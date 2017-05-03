@@ -1,0 +1,284 @@
+Description: (SO0018) - WorkSpaces Cost Optimizer
+Parameters:
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues:
+    - WARNING
+    - INFO
+    - DEBUG
+  DryRun:
+    Type: String
+    Description: Solution will generate a change log, but not execute any changes.
+    Default: "Yes"
+    AllowedValues:
+    - "Yes"
+    - "No"
+  SendAnonymousData:
+    Type: String
+    Description: Choose to send anonymous data to AWS.
+    Default: "Yes"
+    AllowedValues:
+    - "Yes"
+    - "No"
+  TestEndOfMonth:
+    Type: String
+    Description: Overrides date and forces the solution to run as if it is the end of the month.
+    Default: "No"
+    AllowedValues:
+    - "Yes"
+    - "No"
+  ValueLimit:
+    Type: Number
+    Description: The number of hours a Value instance can run in a month before being converted to ALWAYS_ON. Default is 81.
+    Default: 81
+  StandardLimit:
+    Type: Number
+    Description: The number of hours a Standard instance can run in a month before being converted to ALWAYS_ON. Default is 85.
+    Default: 85
+  PerformanceLimit:
+    Type: Number
+    Description: The number of hours a Performane instance can run in a month before being converted to ALWAYS_ON. Default is 83.
+    Default: 83
+  GraphicsLimit:
+    Type: Number
+    Description: The number of hours a Graphics instance can run in a month before being converted to ALWAYS_ON. Default is 217.
+    Default: 217
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Testing Parameters
+      Parameters:
+        - DryRun
+        - TestEndOfMonth
+        - LogLevel
+    - Label:
+        default: Data Collectioin
+      Parameters:
+        - SendAnonymousData
+    - Label:
+        default: Pricing Parameters
+      Parameters:
+        - ValueLimit
+        - StandardLimit
+        - PerformanceLimit
+        - GraphicsLimit
+    ParameterLabels:
+      DryRun:
+        default: Launch in Dry Run Mode
+      TestEndOfMonth:
+        default: Simulate End of Month Cleanup
+      LogLevel:
+        default: Log Level
+      SendAnonymousData:
+        default: Send Anonymous Usage Data
+
+Resources:
+  CostOptimizerBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: "Retain"
+
+  CostOptimizerParentFunction:
+    Type: AWS::Lambda::Function
+    Description: Cost Optimizer- Gathers information about Directories and WorkSpaces
+    Properties:
+      Code:
+        S3Bucket:
+          !Join
+          - '-'
+          - - solutions
+            - !Ref AWS::Region
+        S3Key: workspaces-cost-optimizer/v3/workspaces-cost-optimizer.zip
+      Handler: parent.lambda_handler
+      Runtime: python2.7
+      Timeout: 300
+      Role: !GetAtt CostOptimizerParentFunctionRole.Arn
+
+  CostOptimizerParentFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: CostOptimizerParentFunctionPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudformation:DescribeStacks
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - workspaces:DescribeWorkspaces
+            - workspaces:DescribeWorkspaceDirectories
+            - workspaces:ModifyWorkspaceProperties
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: !GetAtt CostOptimizerChildFunction.Arn
+
+  CostOptimizerScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Rule to trigger WorkSpacesCostOptimizer function on a schedule.
+      ScheduleExpression: cron(55 23 * * ? *)
+      State: ENABLED
+      Targets:
+      - Arn: !GetAtt CostOptimizerParentFunction.Arn
+        Id: CostOptimizerParentFunction
+
+  CostOptimizerScheduleRulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CostOptimizerParentFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CostOptimizerScheduleRule.Arn
+
+  CostOptimizerChildFunction:
+    Type: AWS::Lambda::Function
+    Description: Cost Optimizer- Calculates WorkSpaces usage and makes changes to billing
+    Properties:
+      Code:
+        S3Bucket:
+          !Join
+          - '-'
+          - - solutions
+            - !Ref AWS::Region
+        S3Key: workspaces-cost-optimizer/v3/workspaces-cost-optimizer.zip
+      Handler: child.lambda_handler
+      Runtime: python2.7
+      Timeout: 300
+      Role: !GetAtt CostOptimizerChildFunctionRole.Arn
+
+  CostOptimizerChildFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  CostOptimizerChildFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CostOptimizerChildFunctionPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - cloudformation:DescribeStacks
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - workspaces:DescribeTags
+          - workspaces:DescribeWorkspaces
+          - workspaces:DescribeWorkspaceBundles
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - s3:PutObject
+          Resource:
+            !Join
+            - ''
+            - - 'arn:aws:s3:::'
+              - !Ref CostOptimizerBucket
+              - /*
+        - Effect: Allow
+          Action:
+          - cloudwatch:GetMetricStatistics
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - lambda:InvokeFunction
+          Resource: !GetAtt CostOptimizerChildFunction.Arn
+      Roles:
+      - !Ref CostOptimizerChildFunctionRole
+
+  SolutionHelperFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: solution-helper.lambda_handler
+      Role: !GetAtt SolutionHelperRole.Arn
+      Description: Solution Helper Lambda Function
+      Code:
+        S3Bucket:
+          !Join
+          - '-'
+          - - solutions
+            - !Ref AWS::Region
+        S3Key: library/solution-helper/v3/solution-helper.zip
+      Runtime: python2.7
+      Timeout: 300
+
+  SolutionHelperRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            Service: lambda.amazonaws.com
+      Path: '/'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  UUIDGenerator:
+    Type: Custom::UUIDGenerator
+    Properties:
+      ServiceToken: !GetAtt SolutionHelperFunction.Arn
+      Region: !Ref AWS::Region
+      CreateUniqueID: true
+      DependsOn: SolutionHelperFunction
+
+Outputs:
+  BucketName:
+    Description: The name of the bucket created by the solution.
+    Value: !Ref CostOptimizerBucket
+  ChildFunctionArn:
+    Description: The ARN of the child Lambda function
+    Value: !GetAtt CostOptimizerChildFunction.Arn
+  UUID:
+    Description: Unique identifier for this solution
+    Value: !GetAtt UUIDGenerator.UUID
+  LogLevel:
+    Value: !Ref LogLevel
+  DryRun:
+    Value: !Ref DryRun
+  SendAnonymousData:
+    Value: !Ref SendAnonymousData
+  TestEndOfMonth:
+    Value: !Ref TestEndOfMonth
+  ValueLimit:
+    Value: !Ref ValueLimit
+  StandardLimit:
+    Value: !Ref StandardLimit
+  PerformanceLimit:
+    Value: !Ref PerformanceLimit
+  GraphicsLimit:
+    Value: !Ref GraphicsLimit
