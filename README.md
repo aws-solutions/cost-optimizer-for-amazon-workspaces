@@ -1,28 +1,48 @@
 # WorkSpaces Cost Optimizer
-Amazon WorkSpaces, a fully managed, secure virtual desktop computing service on the
-AWS Cloud, eliminates the need for customers to procure, deploy, and manage complex
-virtual desktop environments. Amazon WorkSpaces provides a complete cloud-based
-virtual desktop service, including compute, persistent storage, and applications.
+Amazon WorkSpaces, a fully managed, secure virtual desktop computing service on the AWS Cloud, eliminates the need for customers to procure, deploy, and manage complex virtual desktop environments. Amazon WorkSpaces offers the flexibility to pay hourly or monthly without any up-front commitment.
+
+To help customers with unpredictable WorkSpace usage patterns monitor their Amazon WorkSpaces usage and optimize costs, AWS offers the Amazon WorkSpaces Cost Optimizer, a solution that analyzes all of your WorkSpace usage data and automatically converts the WorkSpace to the most cost-effective billing option (hourly or monthly) depending on the user's individual usage. This solution is easy to deploy and uses AWS CloudFormation to automatically provision and configure the necessary AWS services.
+
+## Getting Started
+Deploy the [WorkSpaces Cost Optimizer CloudFormation Template](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
 
 For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/answers/account-management/workspaces-cost-optimizer)
 
-## Build/Deploy
-* Make a copy of the configuration file located at `config/config.js.example` and replace the values as appropriate
-* Run `npm install` at the package root
-* Run `gulp build` to zip Lambda function
-* Run `gulp upload` to upload Lambda assets to S3
-* If needed, change the S3 Bucket/Key for the Lambda functions in the CloudFormation Template to match new S3 location.
+## Building from Source
+Clone the repository
 
-## CloudFormation Template
-- cform/workspaces-cost-optimizer.template
+```
+git clone git@github.com:awslabs/workspaces-cost-optimizer.git
+```
 
-## Solution Code
-- src/child.py
-- src/parent.py
+Set the destination bucket name- this bucket should be in the region you're deploying the solution to.
+
+```
+export BUCKET_NAME=<YOUR_BUCKET_NAME>
+```
+
+Run the build script.
+
+```
+chmod +x "./deployment/build-s3-dist.sh" && "./deployment/build-s3-dist.sh" $BUCKET_NAME
+```
+
+Upload the artifacts.
+
+```
+s3 cp ./deployment/dist/ s3://$BUCKET_NAME/workspaces-cost-optimizer/latest --recursive
+```
+
+You should now have everything in place to run the CloudFormation template (either from your bucket or from `./deployment/dist/`).
+
+## Running Unit Tests
+```
+chmod +x "./deployment/run-unit-tests.sh" && "./deployment/run-unit-tests.sh"
+```
 
 ***
 
-Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
