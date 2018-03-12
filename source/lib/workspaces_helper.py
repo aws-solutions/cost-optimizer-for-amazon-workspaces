@@ -128,17 +128,25 @@ class WorkspacesHelper(object):
     }
     '''
     def get_workspaces_page(self, directoryID, nextToken):
-        if nextToken == 'None':
-            result = self.client.describe_workspaces(
-                DirectoryId = directoryID
-            )
-        else:
-            result = self.client.describe_workspaces(
-                DirectoryId = directoryID,
-                NextToken = nextToken
-            )
+        for i in range(0, self.maxRetries):
+            try:
+                if nextToken == 'None':
+                    result = self.client.describe_workspaces(
+                        DirectoryId = directoryID
+                    )
+                else:
+                    result = self.client.describe_workspaces(
+                        DirectoryId = directoryID,
+                        NextToken = nextToken
+                    )
 
-        return result            
+                return result
+            except botocore.exceptions.ClientError as e:
+                log.error(e)
+                if i >= self.maxRetries - 1:
+                    log.error('ExceededMaxRetries')
+                else:
+                    time.sleep(i/10)
 
     '''
     returns bool
