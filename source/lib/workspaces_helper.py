@@ -60,21 +60,26 @@ class WorkspacesHelper(object):
 
         workspaceID = workspace['WorkspaceId']
         log.debug('workspaceID: %s', workspaceID)
-        
-        workspaceBundleType = self.get_bundle_type(workspace)
-        log.debug('workspaceBundleType: %s', workspaceBundleType)
 
         workspaceRunningMode = workspace['WorkspaceProperties']['RunningMode']
         log.debug('workspaceRunningMode: %s', workspaceRunningMode)
 
-        hourlyThreshold = self.get_hourly_threshold(workspaceBundleType)
-
-        billableTime = 0
-
         if self.check_for_skip_tag(workspaceID) == True:
             log.info('Skipping WorkSpace %s due to Skip_Convert tag', workspaceID)
-            optimizationResult = 'S'
+            optimizationResult = {
+                'resultCode': '-S-',
+                'newMode': workspaceRunningMode
+            }
+            billableTime = 0
+            hourlyThreshold = 0
+            workspaceBundleType = "Skipped"
+
         else:
+
+            workspaceBundleType = self.get_bundle_type(workspace)
+            log.debug('workspaceBundleType: %s', workspaceBundleType)
+
+            hourlyThreshold = self.get_hourly_threshold(workspaceBundleType)
 
             billableTime = self.metricsHelper.get_billable_time(
                 workspaceID,
@@ -82,8 +87,6 @@ class WorkspacesHelper(object):
                 self.settings['startTime'],
                 self.settings['endTime']
             );
-
-            print billableTime
 
             optimizationResult = self.compare_usage_metrics(
                 workspaceID,
@@ -128,17 +131,25 @@ class WorkspacesHelper(object):
     }
     '''
     def get_workspaces_page(self, directoryID, nextToken):
-        if nextToken == 'None':
-            result = self.client.describe_workspaces(
-                DirectoryId = directoryID
-            )
-        else:
-            result = self.client.describe_workspaces(
-                DirectoryId = directoryID,
-                NextToken = nextToken
-            )
+        for i in range(0, self.maxRetries):
+            try:
+                if nextToken == 'None':
+                    result = self.client.describe_workspaces(
+                        DirectoryId = directoryID
+                    )
+                else:
+                    result = self.client.describe_workspaces(
+                        DirectoryId = directoryID,
+                        NextToken = nextToken
+                    )
 
-        return result            
+                return result
+            except botocore.exceptions.ClientError as e:
+                log.error(e)
+                if i >= self.maxRetries - 1:
+                    log.error('Exceeded describe_workspaces MaxRetries')
+                else:
+                    time.sleep(i/10)
 
     '''
     returns bool
@@ -173,7 +184,7 @@ class WorkspacesHelper(object):
             except botocore.exceptions.ClientError as e:
                 log.error(e)
                 if i >= self.maxRetries - 1:
-                    log.error('ExceededMaxRetries')
+                    log.error('Exceeded describe_tags MaxRetries')
                 else:
                     time.sleep(i/10)
 
@@ -199,9 +210,10 @@ class WorkspacesHelper(object):
 
                 return result
 
-            except botocore.exeptions.ClientError as e:
+            except botocore.exceptions.ClientError as e:
                 if i >= self.maxRetries - 1:
                     result = '-E-'
+                    log.error('Exceeded retries for %s due to error: %s', workspaceID, e)
                 else:
                     time.sleep(i/10)
         return result
@@ -221,7 +233,7 @@ class WorkspacesHelper(object):
             }
 
         # If the Workspace is in Auto Stop (hourly)
-        if workspaceRunningMode == 'AUTO_STOP':             
+        if workspaceRunningMode == 'AUTO_STOP':
             log.debug('workspaceRunningMode {} == AUTO_STOP'.format(workspaceRunningMode))
 
             # If billable time is over the threshold for this bundle type
@@ -236,7 +248,7 @@ class WorkspacesHelper(object):
             elif billableTime <= hourlyThreshold:
                 log.debug('billableTime {} <= hourlyThreshold {}'.format(billableTime, hourlyThreshold))
                 resultCode = '-N-'
-                newMode = 'AUTO_STOP'        
+                newMode = 'AUTO_STOP'
 
         # Or if the Workspace is Always On (monthly)
         elif workspaceRunningMode == 'ALWAYS_ON':

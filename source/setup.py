@@ -5,7 +5,8 @@ from setuptools import setup, find_packages
 tests_require = [
     "pytest-mock>=1.6.2",
     "pytest-runner>=2.11.1",
-    "pytest==3.2.1"
+    "pytest==3.2.1",
+    "boto3>=1.4.5"
 ]
 
 setup(

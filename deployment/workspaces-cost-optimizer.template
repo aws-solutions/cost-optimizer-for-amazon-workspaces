@@ -1,4 +1,4 @@
-Description: (SO0018) - WorkSpaces Cost Optimizer
+Description: "(SO0018) - WorkSpaces Cost Optimizer: A solution for automatically optimizing the cost of Amazon Workspaces v1.1.1"
 Parameters:
   LogLevel:
     Type: String
@@ -71,7 +71,7 @@ Mappings:
   Solution:
     Data:
       ID: "SO0018"
-      Version: "2.3.0"
+      Version: "1.1.1"
       SendAnonymousUsageData: True
 
 Resources:
@@ -194,6 +194,7 @@ Resources:
           - workspaces:DescribeTags
           - workspaces:DescribeWorkspaces
           - workspaces:DescribeWorkspaceBundles
+          - workspaces:ModifyWorkspaceProperties
           Resource: '*'
         - Effect: Allow
           Action:
@@ -282,6 +283,6 @@ Outputs:
   PerformanceLimit:
     Value: !Ref PerformanceLimit
   PowerLimit:
-    Value: !Ref PowerLimit  
+    Value: !Ref PowerLimit
   GraphicsLimit:
     Value: !Ref GraphicsLimit

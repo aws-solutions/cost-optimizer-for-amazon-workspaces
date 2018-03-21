@@ -44,6 +44,7 @@ def lambda_handler(event, context):
     stackOutputs = {}
     testEndOfMonth = False
     sendAnonymousData = False
+    isDryRun = True
 
     # Get cached StackOutputs
     if 'StackOutputs' in event:
@@ -63,7 +64,9 @@ def lambda_handler(event, context):
     log.debug(stackOutputs)
 
     # Provide point to clean up parameter names in the future.
-    isDryRun = stackOutputs['DryRun']
+    
+    if stackOutputs['DryRun'] == 'No':
+        isDryRun = False
 
     # Determine if child function should run last-day-of-month routine.
     if (time.strftime('%d') == lastDay):
@@ -75,9 +78,10 @@ def lambda_handler(event, context):
         testEndOfMonth = True
         log.debug('Setting testEndOfMonth to %s due to CloudFormation stack parameters', testEndOfMonth)
 
-    if stackOutputs['SendAnonymousData'] == 'True':
+    if stackOutputs['SendAnonymousData'] == True:
+        log.debug('SendAnonymousData')
         sendAnonymousData = True
-    
+
     log.debug('sendAnonymousData: %s', sendAnonymousData)
 
     childFunctionArn = stackOutputs['ChildFunctionArn']

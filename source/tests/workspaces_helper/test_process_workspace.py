@@ -75,3 +75,64 @@ def test_process_workspace(monkeypatch):
     assert result['billableTime'] == 10
     assert result['hourlyThreshold'] == 5
     assert result['bundleType'] == 'VALUE'
+
+def test_process_workspace_skip(monkeypatch):
+
+    workspacesHelper = WorkspacesHelper({
+        'region': 'us-west-2',
+        'hourlyLimits': {
+            'VALUE': 5,
+            'STANDARD': 5,
+            'PERFORMANCE': 5,
+            'GRAPHICS': 5
+        },
+        'testEndOfMonth': False,
+        'isDryRun': True,
+        'startTime': '2018-02-01T00:00:00Z',
+        'endTime': '2018-02-01T12:00:00Z'  
+    })
+
+    def mock_describe_tags(ResourceId='ws-xxxxxxxxx'):
+        return {
+            'ResponseMetadata': {
+                'RetryAttempts': 0,
+                'HTTPStatusCode': 200,
+                'RequestId': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+                'HTTPHeaders': {
+                    'x-amzn-requestid': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+                    'date': 'Thu, 07 Feb 1988 11:00:00 GMT',
+                    'content-length': '42',
+                    'content-type': 'application/x-amz-json-1.1'
+                }
+            },
+            'TagList': [
+                {
+                    'Value': 'True',
+                    'Key':'Skip_Convert'
+                }
+            ]
+        }
+
+    monkeypatch.setattr(workspacesHelper.client, 'describe_tags', mock_describe_tags)
+
+    result = workspacesHelper.process_workspace({
+        "UserName": "username",
+        "DirectoryId": "d-xxxxxxxxx",
+        "WorkspaceProperties": {
+            "UserVolumeSizeGib": 50,
+            "RunningModeAutoStopTimeoutInMinutes": 60,
+            "RunningMode": "AUTO_STOP",
+            "RootVolumeSizeGib": 80,
+            "ComputeTypeName": "STANDARD"
+        },
+        "ModificationStates": [],
+        "State": "STOPPED",
+        "WorkspaceId": "ws-xxxxxxxxx",
+        "BundleId": "wsb-xxxxxxxxx"
+    })
+
+    assert result['workspaceID'] == 'ws-xxxxxxxxx'
+    assert result['optimizationResult'] == '-S-'
+    assert result['billableTime'] == 0
+    assert result['hourlyThreshold'] == 0
+    assert result['bundleType'] == 'Skipped'
