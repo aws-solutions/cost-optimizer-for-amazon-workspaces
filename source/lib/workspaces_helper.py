@@ -64,29 +64,25 @@ class WorkspacesHelper(object):
         workspaceRunningMode = workspace['WorkspaceProperties']['RunningMode']
         log.debug('workspaceRunningMode: %s', workspaceRunningMode)
 
+        workspaceBundleType = self.get_bundle_type(workspace)
+        log.debug('workspaceBundleType: %s', workspaceBundleType)
+
+        billableTime = self.metricsHelper.get_billable_time(
+            workspaceID,
+            workspaceRunningMode,
+            self.settings['startTime'],
+            self.settings['endTime']
+        );
+
         if self.check_for_skip_tag(workspaceID) == True:
             log.info('Skipping WorkSpace %s due to Skip_Convert tag', workspaceID)
             optimizationResult = {
                 'resultCode': '-S-',
                 'newMode': workspaceRunningMode
             }
-            billableTime = 0
-            hourlyThreshold = 0
-            workspaceBundleType = "Skipped"
-
+            hourlyThreshold = "n/a"
         else:
-
-            workspaceBundleType = self.get_bundle_type(workspace)
-            log.debug('workspaceBundleType: %s', workspaceBundleType)
-
             hourlyThreshold = self.get_hourly_threshold(workspaceBundleType)
-
-            billableTime = self.metricsHelper.get_billable_time(
-                workspaceID,
-                workspaceRunningMode,
-                self.settings['startTime'],
-                self.settings['endTime']
-            );
 
             optimizationResult = self.compare_usage_metrics(
                 workspaceID,
