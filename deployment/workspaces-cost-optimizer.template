@@ -1,4 +1,4 @@
-Description: "(SO0018) - WorkSpaces Cost Optimizer: A solution for automatically optimizing the cost of Amazon Workspaces v1.1.1"
+Description: "(SO0018) - WorkSpaces Cost Optimizer: A solution for automatically optimizing the cost of Amazon Workspaces %%VERSION%%"
 Parameters:
   LogLevel:
     Type: String
@@ -71,7 +71,7 @@ Mappings:
   Solution:
     Data:
       ID: "SO0018"
-      Version: "1.1.1"
+      Version: "%%VERSION%%"
       SendAnonymousUsageData: True
 
 Resources:
@@ -88,7 +88,7 @@ Resources:
           - '-'
           - - "%%BUCKET_NAME%%"
             - !Ref "AWS::Region"
-        S3Key: workspaces-cost-optimizer/latest/workspaces-cost-optimizer.zip
+        S3Key: workspaces-cost-optimizer/%%VERSION%%/workspaces-cost-optimizer.zip
       Handler: workspaces_cost_optimizer/parent.lambda_handler
       Runtime: python2.7
       Timeout: 300
@@ -156,7 +156,7 @@ Resources:
           - '-'
           - - "%%BUCKET_NAME%%"
             - !Ref "AWS::Region"
-        S3Key: workspaces-cost-optimizer/latest/workspaces-cost-optimizer.zip
+        S3Key: workspaces-cost-optimizer/%%VERSION%%/workspaces-cost-optimizer.zip
       Handler: workspaces_cost_optimizer/child.lambda_handler
       Runtime: python2.7
       Timeout: 300

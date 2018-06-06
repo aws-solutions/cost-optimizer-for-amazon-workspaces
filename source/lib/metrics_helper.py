@@ -38,6 +38,7 @@ class MetricsHelper(object):
     returns int
     '''
     def get_billable_time(self, workspaceID, runningMode, startTime, endTime):
+
         for i in range(0, self.maxRetries):
             log.debug('getMetricStatistics')
             try:
@@ -95,5 +96,5 @@ class MetricsHelper(object):
                 if metricTime.hour == 23: wsTimeNext = str('{:0>2}'.format(metricTime.day+1)) + '00'
                 else: wsTimeNext = str(int(wsTime) + 1)
                 billableArray[wsTimeNext] = 1
-                
+
             return len(billableArray)

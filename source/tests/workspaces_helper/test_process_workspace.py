@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 ##############################################################################
-#  Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -31,7 +31,7 @@ def test_process_workspace(monkeypatch):
         'testEndOfMonth': False,
         'isDryRun': True,
         'startTime': '2018-02-01T00:00:00Z',
-        'endTime': '2018-02-01T12:00:00Z'  
+        'endTime': '2018-02-01T12:00:00Z'
     })
 
     def mock_get_bundle_type(BundleIds = 'wsb-xxxxxxxxx'):
@@ -89,7 +89,7 @@ def test_process_workspace_skip(monkeypatch):
         'testEndOfMonth': False,
         'isDryRun': True,
         'startTime': '2018-02-01T00:00:00Z',
-        'endTime': '2018-02-01T12:00:00Z'  
+        'endTime': '2018-02-01T12:00:00Z'
     })
 
     def mock_describe_tags(ResourceId='ws-xxxxxxxxx'):
@@ -115,6 +115,17 @@ def test_process_workspace_skip(monkeypatch):
 
     monkeypatch.setattr(workspacesHelper.client, 'describe_tags', mock_describe_tags)
 
+    def mock_get_bundle_type(BundleIds = 'wsb-xxxxxxxxx'):
+        return 'VALUE'
+
+    monkeypatch.setattr(workspacesHelper, 'get_bundle_type', mock_get_bundle_type)
+
+    def mock_get_billable_time(workspaceID, workspaceRunningMode, startTime, endTime):
+        return 0
+
+    monkeypatch.setattr(workspacesHelper.metricsHelper, 'get_billable_time', mock_get_billable_time)
+
+
     result = workspacesHelper.process_workspace({
         "UserName": "username",
         "DirectoryId": "d-xxxxxxxxx",
@@ -134,5 +145,5 @@ def test_process_workspace_skip(monkeypatch):
     assert result['workspaceID'] == 'ws-xxxxxxxxx'
     assert result['optimizationResult'] == '-S-'
     assert result['billableTime'] == 0
-    assert result['hourlyThreshold'] == 0
-    assert result['bundleType'] == 'Skipped'
+    assert result['hourlyThreshold'] == 'n/a'
+    assert result['bundleType'] == 'VALUE'

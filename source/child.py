@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 ##############################################################################
-#  Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -38,7 +38,8 @@ def lambda_handler(event, context):
     wcoHelper = WCOHelper()
 
     lastDay = calendar.monthrange(int(time.strftime('%Y')), int(time.strftime('%m')))[1]
-
+    log.info("Current date = %s", time.strftime('%Y/%m/%d'))
+    log.info("Last day of month = %s", lastDay)
     region = event['Region']
 
     stackOutputs = {}
@@ -64,21 +65,21 @@ def lambda_handler(event, context):
     log.debug(stackOutputs)
 
     # Provide point to clean up parameter names in the future.
-    
+
     if stackOutputs['DryRun'] == 'No':
         isDryRun = False
 
     # Determine if child function should run last-day-of-month routine.
-    if (time.strftime('%d') == lastDay):
+    if (int(time.strftime('%d')) == lastDay):
         testEndOfMonth = True
-        log.debug('Last day of month, setting testEndOfMonth to %s', testEndOfMonth)
+        log.info('Last day of month, setting testEndOfMonth to %s', testEndOfMonth)
 
     # CloudFormation overrides the end of month testing
     if (stackOutputs['TestEndOfMonth'] == 'Yes'):
         testEndOfMonth = True
-        log.debug('Setting testEndOfMonth to %s due to CloudFormation stack parameters', testEndOfMonth)
+        log.info('Setting testEndOfMonth to %s due to CloudFormation stack parameters', testEndOfMonth)
 
-    if stackOutputs['SendAnonymousData'] == True:
+    if stackOutputs['SendAnonymousData'] == 'true':
         log.debug('SendAnonymousData')
         sendAnonymousData = True
 
@@ -98,7 +99,7 @@ def lambda_handler(event, context):
     startTime = event['StartTime']
     lastDay = event['LastDay']
     runUUID = event['RunUUID']
-    
+
     try: event['CSV']
     except: wsCsv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
     else: wsCsv = event['CSV']
@@ -106,7 +107,7 @@ def lambda_handler(event, context):
     try: event['NextToken']
     except: nextToken = 'None'
     else: nextToken = event['NextToken']
-    
+
     workspacesHelper = WorkspacesHelper({
         'region': region,
         'hourlyLimits': {
@@ -169,9 +170,9 @@ def lambda_handler(event, context):
         logKey = time.strftime('%Y/%m/%d/', pEndTime) + region + '_' + directoryID
 
         if testEndOfMonth:
-            logKey += '_end-of-month' 
+            logKey += '_end-of-month'
         else:
-            logKey += '_daily'       
+            logKey += '_daily'
 
         if isDryRun:
             logKey += '_dry-run'

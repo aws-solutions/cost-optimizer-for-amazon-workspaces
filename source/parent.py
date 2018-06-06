@@ -1,4 +1,4 @@
-#  Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           
+#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 #  Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance
 #  with the License. A copy of the License is located at
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
     stackOutputs = {}
     maxRetries = 20
     sendAnonymousData = False
-        
+
     runUUID = str(uuid.uuid4())
     anonymousDataEndpoint = 'https://metrics.awssolutionsbuilder.com/generic'
     regionCount = 0;
@@ -49,13 +49,13 @@ def lambda_handler(event, context):
 
     log.debug(stackOutputs)
 
-    if (stackOutputs['SendAnonymousData'] == 'Yes'):
+    if stackOutputs['SendAnonymousData'] == 'true':
         sendAnonymousData = True
         log.debug('Setting sendAnonymousData to %s due to CloudFormation stack parameters', sendAnonymousData)
 
     childFunctionArn = stackOutputs['ChildFunctionArn']
     laClient = boto3.client('lambda')
-    
+
     # Get all WorkSpaces regions
     for i in range(0, maxRetries):
         log.debug('Try #%s to get_regions for WorkSpaces', i)
@@ -106,7 +106,7 @@ def lambda_handler(event, context):
 
             for i in range(0, maxRetries):
                 log.debug('Try #%s to call Lambda child function', i)
-                
+
                 # Invoke the child lambda for each directory in the region
                 try:
                     laResponse = laClient.invoke(

@@ -8,8 +8,8 @@
 # The template will then expect the source code to be located in the solutions-[region_name] bucket
 
 # Check to see if input has been provided:
-if [ -z "$1" ]; then
-    echo "Please provide the base source bucket name where the lambda code will eventually reside.\nFor example: ./build-s3-dist.sh solutions"
+if [ -z "$2" ]; then
+    echo "Please provide the base source bucket name and version number where the lambda code will eventually reside.\nFor example: ./build-s3-dist.sh solutions v1.0"
     exit 1
 fi
 
@@ -28,6 +28,10 @@ echo "Updating code source bucket in template with $1"
 replace="s/%%BUCKET_NAME%%/$1/g"
 echo "sed -i '' -e $replace $dist_dir/workspaces-cost-optimizer.template"
 sed -i '' -e $replace "$dist_dir/workspaces-cost-optimizer.template"
+echo "Updating code version in template with $2"
+replace="s/%%VERSION%%/$2/g"
+echo "sed -i '' -e $replace $dist_dir/workspaces-cost-optimizer.template"
+sed -i '' -e $replace "$dist_dir/workspaces-cost-optimizer.template"
 
 # Build Lambda zip
 echo "Building Lambda package"
@@ -40,10 +44,8 @@ pip install "./source" --target="$TMP/env/lib/python2.7/site-packages/"
 
 echo "Creating Lambda zip package"
 cd "$TMP/env/lib/python2.7/site-packages/"
-zip -r9 "./workspaces-cost-optimizer.zip" .
-zip -q -d "./workspaces-cost-optimizer.zip" pip*
-zip -q -d "./workspaces-cost-optimizer.zip" easy*
-cp "./workspaces-cost-optimizer.zip" "$dist_dir/workspaces-cost-optimizer.zip"
+zip -q -r9 $dist_dir/workspaces-cost-optimizer.zip *
+zip -q -d $dist_dir/workspaces-cost-optimizer.zip "pip*" "easy*" "setup*" "wheel*" "pkg_resources*"
 cd $initial_dir
 echo "Cleaning up Python virtual environment"
 rm -r "$TMP"
