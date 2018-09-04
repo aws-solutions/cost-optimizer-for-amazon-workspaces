@@ -34,11 +34,6 @@ def test_process_workspace(monkeypatch):
         'endTime': '2018-02-01T12:00:00Z'
     })
 
-    def mock_get_bundle_type(BundleIds = 'wsb-xxxxxxxxx'):
-        return 'VALUE'
-
-    monkeypatch.setattr(workspacesHelper, 'get_bundle_type', mock_get_bundle_type)
-
     def mock_check_for_skip_tag(workspaceID):
         return False
 
@@ -74,7 +69,7 @@ def test_process_workspace(monkeypatch):
     assert result['optimizationResult'] == '-M-'
     assert result['billableTime'] == 10
     assert result['hourlyThreshold'] == 5
-    assert result['bundleType'] == 'VALUE'
+    assert result['bundleType'] == 'STANDARD'
 
 def test_process_workspace_skip(monkeypatch):
 
@@ -115,11 +110,6 @@ def test_process_workspace_skip(monkeypatch):
 
     monkeypatch.setattr(workspacesHelper.client, 'describe_tags', mock_describe_tags)
 
-    def mock_get_bundle_type(BundleIds = 'wsb-xxxxxxxxx'):
-        return 'VALUE'
-
-    monkeypatch.setattr(workspacesHelper, 'get_bundle_type', mock_get_bundle_type)
-
     def mock_get_billable_time(workspaceID, workspaceRunningMode, startTime, endTime):
         return 0
 
@@ -146,4 +136,4 @@ def test_process_workspace_skip(monkeypatch):
     assert result['optimizationResult'] == '-S-'
     assert result['billableTime'] == 0
     assert result['hourlyThreshold'] == 'n/a'
-    assert result['bundleType'] == 'VALUE'
+    assert result['bundleType'] == 'STANDARD'

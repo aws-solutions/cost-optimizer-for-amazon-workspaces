@@ -64,7 +64,7 @@ class WorkspacesHelper(object):
         workspaceRunningMode = workspace['WorkspaceProperties']['RunningMode']
         log.debug('workspaceRunningMode: %s', workspaceRunningMode)
 
-        workspaceBundleType = self.get_bundle_type(workspace)
+        workspaceBundleType = workspace['WorkspaceProperties']['ComputeTypeName']
         log.debug('workspaceBundleType: %s', workspaceBundleType)
 
         billableTime = self.metricsHelper.get_billable_time(
@@ -100,16 +100,6 @@ class WorkspacesHelper(object):
             'bundleType': workspaceBundleType,
             'initialMode': workspaceRunningMode
         }
-
-    '''
-    returns str
-    '''
-    def get_bundle_type(self, workspace):
-        describeBundle = self.client.describe_workspace_bundles(
-            BundleIds = [workspace['BundleId']]
-        )
-
-        return describeBundle['Bundles'][0]['ComputeType']['Name']
 
     '''
     returns int
