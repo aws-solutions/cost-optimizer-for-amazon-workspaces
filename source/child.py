@@ -101,7 +101,7 @@ def lambda_handler(event, context):
     runUUID = event['RunUUID']
 
     try: event['CSV']
-    except: wsCsv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
+    except: wsCsv = 'WorkspaceID,UserName,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
     else: wsCsv = event['CSV']
 
     try: event['NextToken']

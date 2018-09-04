@@ -48,6 +48,7 @@ class WorkspacesHelper(object):
     '''
     returns {
         workspaceID: str,
+        UserName: str,
         billableTime: int,
         hourlyThreshold: int,
         optimizationResult: str,
@@ -60,6 +61,9 @@ class WorkspacesHelper(object):
 
         workspaceID = workspace['WorkspaceId']
         log.debug('workspaceID: %s', workspaceID)
+
+        workspaceUserName = workspace['UserName']
+        log.debug('workspaceUserName: %s', workspaceUserName)
 
         workspaceRunningMode = workspace['WorkspaceProperties']['RunningMode']
         log.debug('workspaceRunningMode: %s', workspaceRunningMode)
@@ -93,6 +97,7 @@ class WorkspacesHelper(object):
 
         return {
             'workspaceID': workspaceID,
+            'userName': workspaceUserName,
             'billableTime': billableTime,
             'hourlyThreshold': hourlyThreshold,
             'optimizationResult': optimizationResult['resultCode'],

@@ -31,6 +31,7 @@ class WCOHelper(object):
         s = ','
         csv = oldCsv + s.join((
             result['workspaceID'],
+            result['userName'],
             str(result['billableTime']),
             str(result['hourlyThreshold']),
             result['optimizationResult'],

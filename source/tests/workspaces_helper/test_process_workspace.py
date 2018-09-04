@@ -71,6 +71,7 @@ def test_process_workspace(monkeypatch):
     })
 
     assert result['workspaceID'] == 'ws-xxxxxxxxx'
+    assert result['userName'] == 'username'
     assert result['optimizationResult'] == '-M-'
     assert result['billableTime'] == 10
     assert result['hourlyThreshold'] == 5
@@ -143,6 +144,7 @@ def test_process_workspace_skip(monkeypatch):
     })
 
     assert result['workspaceID'] == 'ws-xxxxxxxxx'
+    assert result['userName'] == 'username'
     assert result['optimizationResult'] == '-S-'
     assert result['billableTime'] == 0
     assert result['hourlyThreshold'] == 'n/a'

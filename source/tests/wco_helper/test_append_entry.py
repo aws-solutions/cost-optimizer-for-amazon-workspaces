@@ -23,12 +23,13 @@ helper = WCOHelper()
 def test_append_entry():
     csv = helper.append_entry('foo,bar,baz,biz,', {
         'workspaceID': 'ws-xxxxxxxxx',
+        'userName': 'username',
         'billableTime': 0,
         'hourlyThreshold': 1,
         'optimizationResult': 'N',
-        'newMode': 'ALWAYS_ON',
         'bundleType': 'VALUE',
-        'initialMode': 'ALWAYS_ON'
+        'initialMode': 'ALWAYS_ON',
+        'newMode': 'ALWAYS_ON'
     })
 
-    assert csv == 'foo,bar,baz,biz,ws-xxxxxxxxx,0,1,N,VALUE,ALWAYS_ON,ALWAYS_ON\n'
+    assert csv == 'foo,bar,baz,biz,ws-xxxxxxxxx,username,0,1,N,VALUE,ALWAYS_ON,ALWAYS_ON\n'
