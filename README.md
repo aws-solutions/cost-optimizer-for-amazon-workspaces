@@ -19,18 +19,20 @@ Set the destination bucket name- this bucket should be in the region you're depl
 
 ```
 export BUCKET_NAME=<YOUR_BUCKET_NAME>
+export VERSION=<VERSION>
+## NOTE THAT the region is appended to the Bucket_Name (BUCKET_NAME-REGION) when deployed, so created a bucket with only Bucket_Name will not work.
 ```
 
 Run the build script.
 
 ```
-chmod +x "./deployment/build-s3-dist.sh" && "./deployment/build-s3-dist.sh" $BUCKET_NAME
+chmod +x "./deployment/build-s3-dist.sh" && "./deployment/build-s3-dist.sh" $BUCKET_NAME $VERSION
 ```
 
 Upload the artifacts.
 
 ```
-s3 cp ./deployment/dist/ s3://$BUCKET_NAME/workspaces-cost-optimizer/latest --recursive
+aws s3 cp ./deployment/dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION --recursive
 ```
 
 You should now have everything in place to run the CloudFormation template (either from your bucket or from `./deployment/dist/`).

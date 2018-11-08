@@ -108,14 +108,17 @@ def lambda_handler(event, context):
     except: nextToken = 'None'
     else: nextToken = event['NextToken']
 
+    # List of bundles with specific hourly limits
     workspacesHelper = WorkspacesHelper({
         'region': region,
         'hourlyLimits': {
             'VALUE': stackOutputs['ValueLimit'],
             'STANDARD': stackOutputs['StandardLimit'],
             'PERFORMANCE': stackOutputs['PerformanceLimit'],
+            'POWER': stackOutputs['PowerLimit'],
+            'POWERPRO':stackOutputs['PowerProLimit'],
             'GRAPHICS': stackOutputs['GraphicsLimit'],
-            'POWER': stackOutputs['PowerLimit']
+            'GRAPHICSPRO':stackOutputs['GraphicsProLimit']
         },
         'testEndOfMonth': testEndOfMonth,
         'isDryRun': isDryRun,

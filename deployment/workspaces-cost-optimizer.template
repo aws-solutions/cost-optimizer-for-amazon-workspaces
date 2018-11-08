@@ -4,8 +4,10 @@ Parameters:
     Type: String
     Default: INFO
     AllowedValues:
-    - WARNING
+    - CRITICAL
+    - ERROR
     - INFO
+    - WARNING
     - DEBUG
   DryRun:
     Type: String
@@ -37,10 +39,18 @@ Parameters:
     Type: Number
     Description: The number of hours a Power instance can run in a month before being converted to ALWAYS_ON. Default is 83.
     Default: 83
+  PowerProLimit:
+    Type: Number
+    Description: The number of hours a Power Pro instance can run in a month before being converted to ALWAYS_ON. Default is 80.
+    Default: 80
   GraphicsLimit:
     Type: Number
     Description: The number of hours a Graphics instance can run in a month before being converted to ALWAYS_ON. Default is 217.
     Default: 217
+  GraphicsProLimit:
+    Type: Number
+    Description: The number of hours a Graphics Pro instance can run in a month before being converted to ALWAYS_ON. Default is 80.
+    Default: 80
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -58,7 +68,9 @@ Metadata:
         - StandardLimit
         - PerformanceLimit
         - GraphicsLimit
+        - GraphicsProLimit
         - PowerLimit
+        - PowerProLimit
     ParameterLabels:
       DryRun:
         default: Launch in Dry Run Mode
@@ -284,5 +296,9 @@ Outputs:
     Value: !Ref PerformanceLimit
   PowerLimit:
     Value: !Ref PowerLimit
+  PowerProLimit:
+    Value: !Ref PowerProLimit
   GraphicsLimit:
     Value: !Ref GraphicsLimit
+  GraphicsProLimit:
+    Value: !Ref GraphicsProLimit
