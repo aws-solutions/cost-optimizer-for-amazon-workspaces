@@ -1,7 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 ##############################################################################
-#  Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -14,6 +12,9 @@
 #  express or implied. See the License for the specific language governing   #
 #  permissions and limitations under the License.                            #
 ##############################################################################
+
+# This file reads the AWS cloudwatch metrics for a given workspace
+# This is where we will change the algorithm to determine billing preference
 
 import boto3
 import botocore
@@ -91,7 +92,7 @@ class MetricsHelper(object):
                 wsTime = str('{:0>2}'.format(metricTime.day)) + str('{:0>2}'.format(metricTime.hour))
                 billableArray[wsTime] = 1
 
-                # Add an additoinal hour to billable time because AutoStop Time would add an additional hour after the customer logs out
+                # Add an additional hour to billable time because AutoStop Time would add an additional hour after the customer logs out
                 wsTimeNext = 0
                 if metricTime.hour == 23: wsTimeNext = str('{:0>2}'.format(metricTime.day+1)) + '00'
                 else: wsTimeNext = str(int(wsTime) + 1)
