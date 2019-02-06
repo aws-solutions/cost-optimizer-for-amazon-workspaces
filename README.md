@@ -47,14 +47,14 @@ chmod +x "./deployment/run-unit-tests.sh" && "./deployment/run-unit-tests.sh"
 -------------
 ## Optimization Engine
 
-source/engine/wco.py - depends on source/engine/lib/directory_reader.py
-source/engine/lib/directory_reader.py depends on workspaces_helper
-source/engine/lib/workspaces_helper.py depends on metrics_helper
-source/engine/lib/metrics_helper.py
+- source/engine/wco.py - depends on source/engine/lib/directory_reader.py
+- source/engine/lib/directory_reader.py depends on workspaces_helper
+- source/engine/lib/workspaces_helper.py depends on metrics_helper
+- source/engine/lib/metrics_helper.py
 
 ## Scheduler
 
-source/scheduler/create-task.py
+- source/scheduler/create-task.py
 
 ***
 
