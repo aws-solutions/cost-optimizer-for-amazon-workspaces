@@ -1,5 +1,7 @@
-##############################################################################
-#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#!/usr/bin/python 
+# -*- coding: utf-8 -*- 
+############################################################################## 
+# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -33,14 +35,8 @@ import os
 from lib.directory_reader import DirectoryReader
 
 # Set default logging level
+logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=logging.INFO)
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
-
-# adding an additional handler so we can see log printed to stdout
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-log.addHandler(handler)
-# end added handler
 
 endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 startTime = time.strftime("%Y-%m") + '-01T00:00:00Z'
@@ -75,16 +71,27 @@ for param in {'LogLevel',
              }:
     stackParams[param] = os.environ[param]
 
+
 # Check to make sure we have values for all expected stack parameters
 # Otherwise exit with appropriate log errors
 for param in stackParams:
     if stackParams[param] and not stackParams[param].isspace():
-      log.info("Parameter: %s, Value: %s", param, stackParams[param])
+      log.info('Parameter: %s, Value: %s', param, stackParams[param])
     else:
-      log.error("No value for stack parameter -> %s", param)
+      log.error('No value for stack parameter -> %s', param)
       sys.exit()
 
 log.setLevel(stackParams['LogLevel'])
+log.info('Logging level set to %s', logging._levelToName[log.getEffectiveLevel()])
+
+theDay = int(time.strftime('%d'))
+# Determine if we should run end-of-month routine.
+if (theDay == int(lastDay)):
+    stackParams['TestEndOfMonth'] = 'Yes'
+    log.info('Last day of month, setting TestEndOfMonth to Yes')
+    log.info('It is the last day of the month, last day is %s and today is %s', lastDay, theDay)
+else:
+    log.info('It is NOT the last day of the month, last day is %s and today is %s', lastDay, theDay)
 
 # Get all regions that run Workspaces
 for i in range(0, maxRetries):

@@ -1,5 +1,7 @@
-##############################################################################
-#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#!/usr/bin/python 
+# -*- coding: utf-8 -*- 
+############################################################################## 
+# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -23,7 +25,6 @@ import time
 from lib.metrics_helper import MetricsHelper
 
 log = logging.getLogger()
-log.setLevel(logging.INFO)
 
 botoConfig = botocore.config.Config(
     max_pool_connections=100
@@ -44,6 +45,7 @@ class WorkspacesHelper(object):
             config = botoConfig
         )
         self.metricsHelper = MetricsHelper(self.region)
+
         return
 
     '''

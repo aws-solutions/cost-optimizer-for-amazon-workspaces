@@ -1,5 +1,7 @@
-##############################################################################
-#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
+#!/usr/bin/python 
+# -*- coding: utf-8 -*- 
+############################################################################## 
+# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
 #                                                                            #
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
@@ -29,7 +31,6 @@ import ssl
 from lib.workspaces_helper import WorkspacesHelper
 
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
 
 class DirectoryReader(object):
 
@@ -49,22 +50,14 @@ class DirectoryReader(object):
         lastDay = directoryParams['LastDay']
         runUUID = directoryParams['RunUUID']
 
-        # Set log level
-        log.setLevel(stackParams['LogLevel'])
-
         # Provide point to clean up parameter names in the future.
         if stackParams['DryRun'] == 'No':
             isDryRun = False
 
-        # Determine if we should run end-of-month routine.
-        if (int(time.strftime('%d')) == lastDay):
-            testEndOfMonth = True
-            log.info('Last day of month, setting testEndOfMonth to %s', testEndOfMonth)
-
         # CloudFormation overrides the end-of-month testing
         if (stackParams['TestEndOfMonth'] == 'Yes'):
             testEndOfMonth = True
-            log.info('Setting testEndOfMonth to %s due to CloudFormation stack parameters', testEndOfMonth)
+            log.info('Setting testEndOfMonth to %s', testEndOfMonth)
 
         # Should we send Solutiuon Team metrics
         if stackParams['SendAnonymousData'] == 'true':
@@ -119,8 +112,8 @@ class DirectoryReader(object):
             for workspace in workspacesPage['Workspaces']:
                 result = workspacesHelper.process_workspace(workspace)
                 workspaceCount = workspaceCount + 1
-                log.info("Result %d -> %s", workspaceCount, result)
-                log.info("Appending CSV file")
+                log.info('Workspace %d -> %s', workspaceCount, result)
+                log.info('Appending CSV file')
                 # Append result data to the CSV
                 wsCsv = workspacesHelper.append_entry(wsCsv, result)
 
@@ -142,7 +135,7 @@ class DirectoryReader(object):
                     headers = {'content-type': 'application/json'}
 
                     log.debug('%s', data)
-                    log.info("Sending solution tracking metrics to %s", url)
+                    log.info('Sending solution tracking metrics to %s', url)
 
                     # added to overcome ssl certificate
         

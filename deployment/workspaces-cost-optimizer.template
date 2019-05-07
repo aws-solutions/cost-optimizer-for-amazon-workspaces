@@ -99,7 +99,7 @@ Mappings:
       TaskDefinitionName: "wco-task"
       LogGroupName: "/ecs/wco-task"
       ID: "SO0018"
-      Version: "v2.0"
+      Version: "%%VERSION%%" 
       SendAnonymousUsageData: True
 
 Resources:
@@ -316,7 +316,7 @@ Resources:
   CostOptimizerLogs:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !FindInMap [Solution, Data, "LogGroupName"]
+      LogGroupName: !Join [ "/", [!FindInMap [Solution, Data, "LogGroupName"], !Ref "AWS::StackName"] ]
 
   # Logs [end]
 
@@ -333,7 +333,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Cpu: "256"
-      Family: !FindInMap [Solution, Data, "TaskDefinitionName"]
+      Family:  !FindInMap [Solution, Data, "TaskDefinitionName"]
       Memory: "1024"
       NetworkMode: "awsvpc"
       RequiresCompatibilities:
@@ -342,7 +342,7 @@ Resources:
       TaskRoleArn: !GetAtt CostOptimizerAdminRole.Arn
       ContainerDefinitions:
         - Name: "wco2-container"
-          Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/wco:2.0"
+          Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/wco:2.1"
           Essential: True
           Cpu: "256"
 
@@ -405,10 +405,9 @@ Resources:
           - - "%%BUCKET_NAME%%"
             - !Ref "AWS::Region"
         S3Key: workspaces-cost-optimizer/%%VERSION%%/workspaces-cost-optimizer.zip
-      Handler: source/scheduler/create-task.lambda_handler
-      Runtime: python3.6
+      Handler: source/helpers/create-task.lambda_handler
+      Runtime: python3.7
       Timeout: 300
-
 
   # For now we use a lambda to create the task and CloudEvent to schedule
   # This choice was made so that the user can fire the task on-demand using the lambda, outside of the schedule
@@ -437,13 +436,13 @@ Resources:
       Role: !GetAtt SolutionHelperRole.Arn
       Description: Solution Helper Lambda Function
       Code:
-        S3Bucket:
-          !Join
+        S3Bucket: !Join
           - '-'
-          - - solutions
-            - !Ref AWS::Region
-        S3Key: library/solution-helper/v3/solution-helper.zip
-      Runtime: python2.7
+          - - "%%BUCKET_NAME%%"
+            - !Ref "AWS::Region"
+        S3Key: workspaces-cost-optimizer/%%VERSION%%/workspaces-cost-optimizer.zip
+      Handler: source/helpers/uuid-helper.lambda_handler
+      Runtime: python3.7
       Timeout: 300
 
   SolutionHelperRole:
@@ -461,12 +460,12 @@ Resources:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
   UUIDGenerator:
-    Type: Custom::UUIDGenerator
+    Type: "Custom::UUIDGenerator"
     Properties:
       ServiceToken: !GetAtt SolutionHelperFunction.Arn
       Region: !Ref AWS::Region
-      CreateUniqueID: true
       DependsOn: SolutionHelperFunction
+      
 
   # External Resources [end]
 

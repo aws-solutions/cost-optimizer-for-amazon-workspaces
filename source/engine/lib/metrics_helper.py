@@ -1,6 +1,8 @@
-##############################################################################
-#  Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.   #
-#                                                                            #
+#!/usr/bin/python 
+# -*- coding: utf-8 -*- 
+############################################################################## 
+# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
+#
 #  Licensed under the Amazon Software License (the "License"). You may not   #
 #  use this file except in compliance with the License. A copy of the        #
 #  License is located at                                                     #
@@ -25,7 +27,6 @@ botoConfig = botocore.config.Config(max_pool_connections=100)
 wsClient = boto3.client('workspaces', config=botoConfig)
 
 log = logging.getLogger()
-log.setLevel(logging.INFO)
 
 class MetricsHelper(object):
 
@@ -33,6 +34,7 @@ class MetricsHelper(object):
         self.maxRetries = 20
         self.region = region
         self.client = boto3.client('cloudwatch', region_name=self.region, config=botoConfig)
+
         return
 
     '''
@@ -76,26 +78,16 @@ class MetricsHelper(object):
                 if i >= self.maxRetries - 1: log.error('getMetricStatisticsError: ExceededMaxRetries')
                 else: time.sleep(i/10)
 
+        billableTime = 0
+        log.info('METRICS for WS:%s:', workspaceID)
         if runningMode == 'AUTO_STOP':
-            billableTime = 0
             for metric in metrics['Datapoints']:
-                # If Workspace Stopped metric = 0 for the hour, then the workspace was running sometime during that hour
                 if metric['Minimum'] == 0:
                     billableTime += 1
-            return int(billableTime)
-        elif runningMode == 'ALWAYS_ON':
-            billableArray = {}
+                    log.info('METRIC %d -> %s', billableTime, metric)
+        else:
             for metric in metrics['Datapoints']:
-                # If the Workspace recorded session latency, then a user was connected sometime during that hour
-                metricTime = metric['Timestamp']
-                # Create a dictionary for day+hour with a value of the day+hour
-                wsTime = str('{:0>2}'.format(metricTime.day)) + str('{:0>2}'.format(metricTime.hour))
-                billableArray[wsTime] = 1
+                billableTime += 1
+                log.info('METRIC %d -> %s', billableTime, metric)
 
-                # Add an additional hour to billable time because AutoStop Time would add an additional hour after the customer logs out
-                wsTimeNext = 0
-                if metricTime.hour == 23: wsTimeNext = str('{:0>2}'.format(metricTime.day+1)) + '00'
-                else: wsTimeNext = str(int(wsTime) + 1)
-                billableArray[wsTimeNext] = 1
-
-            return len(billableArray)
+        return int(billableTime)
