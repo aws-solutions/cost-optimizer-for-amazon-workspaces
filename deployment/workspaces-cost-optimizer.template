@@ -432,7 +432,6 @@ Resources:
   SolutionHelperFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: solution-helper.lambda_handler
       Role: !GetAtt SolutionHelperRole.Arn
       Description: Solution Helper Lambda Function
       Code:
