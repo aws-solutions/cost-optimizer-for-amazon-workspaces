@@ -18,28 +18,30 @@ git clone git@github.com:awslabs/workspaces-cost-optimizer.git
 Set the destination bucket name- this bucket should be in the region you're deploying the solution to.
 
 ```
-export BUCKET_NAME=<YOUR_BUCKET_NAME>
+export TEMPLATE_BUCKET_NAME=<YOUR_TEMPLATE_BUCKET_NAME>
+export DIST_BUCKET_NAME=<YOUR_DIST_BUCKET_NAME>
+export SOLUTION_NAME="workspaces-cost-optimizer"
 export VERSION=<VERSION>
-## NOTE THAT the region is appended to the Bucket_Name (BUCKET_NAME-REGION) when deployed, so created a bucket with only Bucket_Name will not work.
+## NOTE THAT the region is appended to the DIST_BUCKET_NAME (DIST_BUCKET_NAME-REGION) when deployed, so creating a bucket with only Bucket_Name will not work.
 ```
 
 Run the build script.
 
 ```
-chmod +x "./deployment/build-s3-dist.sh" && "./deployment/build-s3-dist.sh" $BUCKET_NAME $VERSION
+chmod +x ./build-s3-dist.sh && ./build-s3-dist.sh $TEMPLATE_OUTPUT_BUCKET $DIST_OUTPUT_BUCKET $SOLUTION_NAME $VERSION
 ```
 
 Upload the artifacts.
 
 ```
-aws s3 cp ./deployment/dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION --recursive
+aws s3 cp ./dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION --recursive
 ```
 
 You should now have everything in place to run the CloudFormation template (either from your bucket or from `./deployment/dist/`).
 
 ## Running Unit Tests
 ```
-chmod +x "./deployment/run-unit-tests.sh" && "./deployment/run-unit-tests.sh"
+chmod +x "./run-unit-tests.sh" && "./run-unit-tests.sh"
 ```
 
 ***
@@ -52,17 +54,22 @@ chmod +x "./deployment/run-unit-tests.sh" && "./deployment/run-unit-tests.sh"
 - source/engine/lib/workspaces_helper.py depends on metrics_helper
 - source/engine/lib/metrics_helper.py
 
-## Scheduler
+## Helpers
 
-- source/scheduler/create-task.py
+- source/helpers/create-task.py
 
 ***
 
-Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    http://aws.amazon.com/asl/
+    http://www.apache.org/licenses/LICENSE-2.0
 
-or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

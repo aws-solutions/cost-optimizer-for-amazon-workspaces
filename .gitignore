@@ -1,3 +1,11 @@
-dist
-node_modules
-config/config.js
+**/dist
+**/open-source
+**/.zip
+.cache/
+.pytest_cache/
+__init__.pyc
+__pycache__/
+**.pyc
+TESTING.md
+.eggs/
+**.egg-info

@@ -1,4 +1,4 @@
-FROM python:3.7.3
+FROM python:3.8.0
 
 COPY wco.py /app/wco.py
 COPY lib /app/lib

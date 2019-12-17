@@ -1,19 +1,17 @@
 #!/usr/bin/python 
 # -*- coding: utf-8 -*- 
-############################################################################## 
-# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
-#                                                                            #
-#  Licensed under the Amazon Software License (the "License"). You may not   #
-#  use this file except in compliance with the License. A copy of the        #
-#  License is located at                                                     #
-#                                                                            #
-#      http://aws.amazon.com/asl/                                            #
-#                                                                            #
-#  or in the "license" file accompanying this file. This file is distributed #
-#  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,        #
-#  express or implied. See the License for the specific language governing   #
-#  permissions and limitations under the License.                            #
-##############################################################################
+######################################################################################################################
+#  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
+#                                                                                                                    #
+#  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
+#  with the License. A copy of the License is located at                                                             #
+#                                                                                                                    #
+#      http://www.apache.org/licenses/LICENSE-2.0                                                                    #
+#                                                                                                                    #
+#  or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES #
+#  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions    #
+#  and limitations under the License.                                                                                #
+######################################################################################################################
 
 # This file reads the AWS workspaces properties and will change the billing preference if necessary
 # It calls the metrics_helper to determine if changes are required
@@ -180,8 +178,10 @@ class WorkspacesHelper(object):
     def check_for_skip_tag(self, workspaceID):
         tags = self.get_tags(workspaceID)
 
+# Added for case insensitive matching.  Works with standard alphanumeric tags
+
         for tagPair in tags:
-            if tagPair['Key'] == 'Skip_Convert':
+            if tagPair['Key'].lower() == 'Skip_Convert'.lower():
                 return True
 
         return False

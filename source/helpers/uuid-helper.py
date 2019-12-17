@@ -1,26 +1,24 @@
 #!/usr/bin/python 
 # -*- coding: utf-8 -*- 
-############################################################################## 
-# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved. 
-#                                                                            #
-#  Licensed under the Amazon Software License (the "License"). You may not   #
-#  use this file except in compliance with the License. A copy of the        #
-#  License is located at                                                     #
-#                                                                            #
-#      http://aws.amazon.com/asl/                                            #
-#                                                                            #
-#  or in the "license" file accompanying this file. This file is distributed #
-#  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,        #
-#  express or implied. See the License for the specific language governing   #
-#  permissions and limitations under the License.                            #
-##############################################################################
+######################################################################################################################
+#  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
+#                                                                                                                    #
+#  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
+#  with the License. A copy of the License is located at                                                             #
+#                                                                                                                    #
+#      http://www.apache.org/licenses/LICENSE-2.0                                                                    #
+#                                                                                                                    #
+#  or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES #
+#  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions    #
+#  and limitations under the License.                                                                                #
+######################################################################################################################
 
 # uuid-helper.py
 # This code generates a uuid using the uuid random tool
-import json 
-import uuid 
-from botocore.vendored import requests 
- 
+import json
+import uuid
+import requests
+
 def send(event, context, responseStatus, responseData, physicalResourceId=None, noEcho=False): 
     try: 
         responseUrl = event.get('ResponseURL') 
@@ -62,4 +60,4 @@ def lambda_handler(event, context):
  
     except Exception as e: 
         print('Exception: {}'.format(e)) 
-        cfn.send(event, context, 'FAILED', {}, context.log_stream_name) 
+        send(event, context, 'FAILED', {}, context.log_stream_name) 
