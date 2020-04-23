@@ -13,4 +13,5 @@ THIRD PARTY COMPONENTS
 This software includes third party software subject to the following copyrights:
 
 AWS SDK under the Apache License Version 2.0
+Requests under the Apache License Version 2.0
 

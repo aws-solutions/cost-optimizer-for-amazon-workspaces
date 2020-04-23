@@ -20,6 +20,8 @@
 
 import boto3
 import botocore
+from botocore.exceptions import ClientError
+from botocore.config import Config
 import calendar
 import datetime
 import json
@@ -40,12 +42,14 @@ endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 startTime = time.strftime("%Y-%m") + '-01T00:00:00Z'
 lastDay = calendar.monthrange(int(time.strftime("%Y")), int(time.strftime("%m")))[1]
 maxRetries = 3
-
 runUUID = str(uuid.uuid4())
 anonymousDataEndpoint = 'https://metrics.awssolutionsbuilder.com/generic'
 regionCount = 0;
 directoryCount = 0;
-
+botoConfig = Config(
+    max_pool_connections=100,
+    retries={'max_attempts': 20}
+)
 # Pull Stack Parameters from environment
 # These are assigned by CloudFormation as container environment variables in production,
 # or as online params (docker) shell vars when testing
@@ -108,21 +112,22 @@ for wsRegion in wsRegions:
     regionCount += 1
 
     # Create a WS Client
-    wsClient = boto3.client('workspaces', region_name=wsRegion)
+    wsClient = boto3.client(
+        'workspaces',
+        region_name=wsRegion,
+        config=botoConfig
+    )
 
     log.info('>>>> Scanning Workspace Directories for Region %s', wsRegion)
 
-    for i in range(0, maxRetries):
-        log.debug('Try #%s to get list of directories', i+1)
+    log.debug('Try #%s to get list of directories', i+1)
 
-        # Get the directories within the region
-        try:
-            directories = wsClient.describe_workspace_directories()
-            break
-        except botocore.exceptions.ClientError as e:
-            log.error(e)
-            if i >= maxRetries - 1: log.error('describe_workspace_directories ExceededMaxRetries')
-            else: time.sleep(i/10)
+    # Get the directories within the region
+    try:
+        directories = wsClient.describe_workspace_directories()
+
+    except botocore.exceptions.ClientError as e:
+        log.error(e)
 
     # For each directory
     for directory in directories["Directories"]:

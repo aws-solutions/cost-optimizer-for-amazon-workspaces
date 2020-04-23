@@ -18,14 +18,17 @@
 
 import boto3
 import botocore
+from botocore.config import Config
+from botocore.exceptions import ClientError
 import logging
 import time
 from lib.metrics_helper import MetricsHelper
 
 log = logging.getLogger()
 
-botoConfig = botocore.config.Config(
-    max_pool_connections=100
+botoConfig = Config(
+    max_pool_connections=100,
+    retries={'max_attempts': 20}
 )
 
 class WorkspacesHelper(object):
@@ -39,8 +42,8 @@ class WorkspacesHelper(object):
         self.isDryRun = settings['isDryRun']
         self.client = boto3.client(
             'workspaces',
-            region_name = self.region,
-            config = botoConfig
+            region_name=self.region,
+            config=botoConfig
         )
         self.metricsHelper = MetricsHelper(self.region)
 
@@ -82,19 +85,17 @@ class WorkspacesHelper(object):
     }
     '''
     def process_workspace(self, workspace):
-
         workspaceID = workspace['WorkspaceId']
         log.debug('workspaceID: %s', workspaceID)
 
         workspaceRunningMode = workspace['WorkspaceProperties']['RunningMode']
         log.debug('workspaceRunningMode: %s', workspaceRunningMode)
 
-        workspaceBundleType = self.get_bundle_type(workspace)
+        workspaceBundleType = workspace['WorkspaceProperties']['ComputeTypeName']
         log.debug('workspaceBundleType: %s', workspaceBundleType)
 
         billableTime = self.metricsHelper.get_billable_time(
             workspaceID,
-            workspaceRunningMode,
             self.settings['startTime'],
             self.settings['endTime']
         );
@@ -129,12 +130,6 @@ class WorkspacesHelper(object):
     '''
     returns str
     '''
-    def get_bundle_type(self, workspace):
-        describeBundle = self.client.describe_workspace_bundles(
-            BundleIds = [workspace['BundleId']]
-        )
-
-        return describeBundle['Bundles'][0]['ComputeType']['Name']
 
     '''
     returns int
@@ -152,25 +147,21 @@ class WorkspacesHelper(object):
     }
     '''
     def get_workspaces_page(self, directoryID, nextToken):
-        for i in range(0, self.maxRetries):
-            try:
-                if nextToken == 'None':
-                    result = self.client.describe_workspaces(
-                        DirectoryId = directoryID
-                    )
-                else:
-                    result = self.client.describe_workspaces(
-                        DirectoryId = directoryID,
-                        NextToken = nextToken
-                    )
+        try:
+            if nextToken == 'None':
+                result = self.client.describe_workspaces(
+                    DirectoryId = directoryID
+                )
+            else:
+                result = self.client.describe_workspaces(
+                    DirectoryId = directoryID,
+                    NextToken = nextToken
+                )
 
-                return result
-            except botocore.exceptions.ClientError as e:
-                log.error(e)
-                if i >= self.maxRetries - 1:
-                    log.error('Exceeded describe_workspaces MaxRetries')
-                else:
-                    time.sleep(i/10)
+            return result
+        except botocore.exceptions.ClientError as e:
+            log.error(e)
+
 
     '''
     returns bool
@@ -195,50 +186,42 @@ class WorkspacesHelper(object):
     ]
     '''
     def get_tags(self, workspaceID):
-        for i in range(0, self.maxRetries):
-            try:
-                workspaceTags = self.client.describe_tags(
-                    ResourceId = workspaceID
-                )
-                log.debug(workspaceTags)
+        try:
+            workspaceTags = self.client.describe_tags(
+                ResourceId = workspaceID
+            )
+            log.debug(workspaceTags)
 
-                return workspaceTags['TagList']
+            return workspaceTags['TagList']
 
-            except botocore.exceptions.ClientError as e:
-                log.error(e)
-                if i >= self.maxRetries - 1:
-                    log.error('Exceeded describe_tags MaxRetries')
-                else:
-                    time.sleep(i/10)
+        except botocore.exceptions.ClientError as e:
+            log.error(e)
+
 
     '''
     returns str
     '''
     def modify_workspace_properties(self, workspaceID, newRunningMode, isDryRun):
-        for i in range(0, self.maxRetries):
-            log.debug('modifyWorkspaceProperties')
-            try:
-                if isDryRun == False:
-                    wsModWS = self.client.modify_workspace_properties(
-                        WorkspaceId = workspaceID,
-                        WorkspaceProperties = { 'RunningMode': newRunningMode }
-                    )
-                else:
-                    log.info('Skipping modifyWorkspaceProperties for Workspace %s due to dry run', workspaceID)
+        log.debug('modifyWorkspaceProperties')
+        try:
+            if isDryRun == False:
+                wsModWS = self.client.modify_workspace_properties(
+                    WorkspaceId = workspaceID,
+                    WorkspaceProperties = { 'RunningMode': newRunningMode }
+                )
+            else:
+                log.info('Skipping modifyWorkspaceProperties for Workspace %s due to dry run', workspaceID)
 
-                if newRunningMode == 'ALWAYS_ON':
-                    result = '-M-'
-                elif newRunningMode == 'AUTO_STOP':
-                    result = '-H-'
+            if newRunningMode == 'ALWAYS_ON':
+                result = '-M-'
+            elif newRunningMode == 'AUTO_STOP':
+                result = '-H-'
 
-                return result
+            return result
 
-            except botocore.exceptions.ClientError as e:
-                if i >= self.maxRetries - 1:
-                    result = '-E-'
-                    log.error('Exceeded retries for %s due to error: %s', workspaceID, e)
-                else:
-                    time.sleep(i/10)
+        except botocore.exceptions.ClientError as e:
+            log.error('Exceeded retries for %s due to error: %s', workspaceID, e)
+
         return result
 
     '''
@@ -282,7 +265,7 @@ class WorkspacesHelper(object):
                 log.debug('testEndOfMonth {} == True'.format(self.testEndOfMonth))
 
                 # If billable time is under the threshold for this bundle type
-                if billableTime < hourlyThreshold:
+                if billableTime <= hourlyThreshold:
                     log.debug('billableTime {} < hourlyThreshold {}'.format(billableTime, hourlyThreshold))
 
                     # Change the workspace to AUTO_STOP
@@ -290,7 +273,7 @@ class WorkspacesHelper(object):
                     newMode = 'AUTO_STOP'
 
                 # Otherwise, report no change for the Workspace
-                elif billableTime >= hourlyThreshold:
+                elif billableTime > hourlyThreshold:
                     log.debug('billableTime {} >= hourlyThreshold {}'.format(billableTime, hourlyThreshold))
                     resultCode = '-N-'
                     newMode = 'ALWAYS_ON'

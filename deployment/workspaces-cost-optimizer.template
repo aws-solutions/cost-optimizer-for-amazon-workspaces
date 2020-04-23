@@ -137,6 +137,7 @@ Mappings:
       ID: "SO0018"
       Version: "%VERSION%" 
       SendAnonymousUsageData: True
+      ECRImageURI: "arn:aws:ecr:us-east-1:898061675696:repository/wco"
 
 Resources:
 
@@ -171,17 +172,19 @@ Resources:
           Resource: !Join ["", ["arn:aws:logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/ecs/wco-task/*"]]
         - Effect: Allow
           Action:
+          - ecr:GetAuthorizationToken
+          Resource: "*"
+        - Effect: Allow
+          Action:
           - ecr:BatchCheckLayerAvailability
           - ecr:BatchGetImage
           - ecr:GetDownloadUrlForLayer
-          - ecr:GetAuthorizationToken
-          Resource: "*"
+          Resource: !FindInMap [Solution, Data, "ECRImageURI"]
         - Effect: Allow
           Action:
           - workspaces:DescribeTags
           - workspaces:DescribeWorkspaces
           - workspaces:DescribeWorkspaceDirectories
-          - workspaces:DescribeWorkspaceBundles
           - workspaces:ModifyWorkspaceProperties
           Resource:
             - !Sub "arn:aws:workspaces:*:${AWS::AccountId}:directory/*"
@@ -373,7 +376,6 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
 
-# https://stackoverflow.com/questions/48229796/how-do-you-set-sse-s3-or-sse-kms-encryption-on-s3-buckets-using-cloud-formation
   CostOptimizerBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: "Retain"
@@ -429,7 +431,7 @@ Resources:
       TaskRoleArn: !GetAtt CostOptimizerAdminRole.Arn
       ContainerDefinitions:
         - Name: "wco2-container"
-          Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/wco:2.2"
+          Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/wco:2.3"
           Essential: True
           Cpu: 256
 
@@ -477,6 +479,11 @@ Resources:
 
   CostOptimizerCreateTaskFunction:
     Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: "The lambda function has access to write logs"
     Properties:
       Role: !GetAtt CostOptimizerLambdaRole.Arn
       Description: WorkspaceCostOptimizer CreateTask Lambda Function
@@ -518,6 +525,11 @@ Resources:
 
   SolutionHelperFunction:
     Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: "The lambda function has access to write logs"
     Properties:
       Role: !GetAtt SolutionHelperRole.Arn
       Description: Solution Helper Lambda Function
@@ -569,6 +581,41 @@ Resources:
       ServiceToken: !GetAtt SolutionHelperFunction.Arn
       Region: !Ref AWS::Region
       DependsOn: SolutionHelperFunction
+
+  FlowLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: vpc-flow-logs.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: flowlogs-policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - logs:DescribeLogGroups
+            - logs:DescribeLogStreams
+            Resource: !GetAtt FlowLogGroup.Arn
+
+  FlowLogGroup:
+    Type: AWS::Logs::LogGroup
+
+  FlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt FlowLogRole.Arn
+      LogGroupName: !Ref FlowLogGroup
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
       
 
   # External Resources [end]

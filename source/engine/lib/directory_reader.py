@@ -18,6 +18,7 @@
 
 import boto3
 import botocore
+from botocore.exceptions import ClientError
 import calendar
 import datetime
 import json
