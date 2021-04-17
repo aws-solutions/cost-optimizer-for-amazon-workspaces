@@ -56,6 +56,8 @@ class WorkspacesHelper(object):
         s = ','
         csv = oldCsv + s.join((
             result['workspaceID'],
+            result['directoryID'],
+            result['userName'],
             str(result['billableTime']),
             str(result['hourlyThreshold']),
             result['optimizationResult'],
@@ -119,6 +121,8 @@ class WorkspacesHelper(object):
 
         return {
             'workspaceID': workspaceID,
+            'directoryID': workspace['DirectoryId'],
+            'userName': workspace['UserName'],
             'billableTime': billableTime,
             'hourlyThreshold': hourlyThreshold,
             'optimizationResult': optimizationResult['resultCode'],
