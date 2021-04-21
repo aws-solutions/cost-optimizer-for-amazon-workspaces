@@ -59,6 +59,7 @@ class WorkspacesHelper(object):
             result['directoryID'],
             result['userName'],
             str(result['billableTime']),
+            str(result['lastConnectionTime']),
             str(result['hourlyThreshold']),
             result['optimizationResult'],
             result['bundleType'],
@@ -78,7 +79,10 @@ class WorkspacesHelper(object):
     '''
     returns {
         workspaceID: str,
+        directoryID: str,
+        userName: tr
         billableTime: int,
+        lastConnectionTime: datetime,
         hourlyThreshold: int,
         optimizationResult: str,
         initialMode: str,
@@ -102,6 +106,10 @@ class WorkspacesHelper(object):
             self.settings['endTime']
         );
 
+        lastConnectionTime = self.client.describe_workspaces_connection_status(
+            WorkspaceIds=[workspaceID]
+        )['WorkspacesConnectionStatus'][0]['LastKnownUserConnectionTimestamp']
+
         if self.check_for_skip_tag(workspaceID) == True:
             log.info('Skipping WorkSpace %s due to Skip_Convert tag', workspaceID)
             optimizationResult = {
@@ -124,6 +132,7 @@ class WorkspacesHelper(object):
             'directoryID': workspace['DirectoryId'],
             'userName': workspace['UserName'],
             'billableTime': billableTime,
+            'lastConnectionTime': lastConnectionTime,
             'hourlyThreshold': hourlyThreshold,
             'optimizationResult': optimizationResult['resultCode'],
             'newMode': optimizationResult['newMode'],
