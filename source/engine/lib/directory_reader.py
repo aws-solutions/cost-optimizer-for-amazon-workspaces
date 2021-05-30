@@ -1,5 +1,5 @@
-#!/usr/bin/python 
-# -*- coding: utf-8 -*- 
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 ######################################################################################################################
 #  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
 #                                                                                                                    #
@@ -74,7 +74,7 @@ class DirectoryReader(object):
             return 0
 
         try: directoryParams['CSV']
-        except: wsCsv = 'WorkspaceID,DirectoryID,UserName,Billable Hours,Last Connection,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
+        except: wsCsv = 'WorkspaceID,DirectoryID,UserName,ComputerName,Billable Hours,Last Connection,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
         else: wsCsv = directoryParams['CSV']
 
         try: directoryParams['NextToken']
@@ -137,7 +137,7 @@ class DirectoryReader(object):
                     log.info('Sending solution tracking metrics to %s', url)
 
                     # added to overcome ssl certificate
-        
+
                     context = ssl._create_unverified_context()
                     req = urllib.request.Request(url, data=data, headers=headers)
                     rsp = urllib.request.urlopen(req, timeout=5, context=context)

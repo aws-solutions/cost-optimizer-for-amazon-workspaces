@@ -1,5 +1,5 @@
-#!/usr/bin/python 
-# -*- coding: utf-8 -*- 
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 ######################################################################################################################
 #  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
 #                                                                                                                    #
@@ -58,6 +58,7 @@ class WorkspacesHelper(object):
             result['workspaceID'],
             result['directoryID'],
             result['userName'],
+            result['computerName'],
             str(result['billableTime']),
             result['lastConnectionTime'],
             str(result['hourlyThreshold']),
@@ -81,6 +82,7 @@ class WorkspacesHelper(object):
         workspaceID: str,
         directoryID: str,
         userName: str
+        computerName: str
         billableTime: int,
         lastConnectionTime: str,
         hourlyThreshold: int,
@@ -135,6 +137,7 @@ class WorkspacesHelper(object):
             'workspaceID': workspaceID,
             'directoryID': workspace['DirectoryId'],
             'userName': workspace['UserName'],
+            'computerName': workspace['ComputerName'],
             'billableTime': billableTime,
             'lastConnectionTime': lastConnectionTime,
             'hourlyThreshold': hourlyThreshold,
