@@ -71,9 +71,8 @@ echo "--------------------------------------------------------------------------
 
 cd $source_dir
 # install third party library for python 3.8, 3.7 used botocore.vendor.requests
-pip3 install requests -t .
+pip3 install -r ../source/requirements.txt -t .
 ls -alt
 zip -q -r9 $build_dist_dir/workspaces-cost-optimizer.zip .
-zip -q -d  $build_dist_dir/workspaces-cost-optimizer.zip *fargate-schedule.py
 echo "Completed building distribution"
 cd $template_dir

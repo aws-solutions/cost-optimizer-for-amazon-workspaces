@@ -1,7 +1,7 @@
 #!/usr/bin/python 
 # -*- coding: utf-8 -*- 
 ######################################################################################################################
-#  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
+#  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
 #                                                                                                                    #
 #  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
 #  with the License. A copy of the License is located at                                                             #
@@ -23,20 +23,22 @@ import botocore
 from botocore.exceptions import ClientError
 from botocore.config import Config
 import calendar
-import datetime
-import json
 import logging
 import sys
-import threading
 import time
 import uuid
 import os
+import math
 
-from lib.directory_reader import DirectoryReader
+from ecs.directory_reader import DirectoryReader
+from ecs.utils.solution_metrics import send_metrics
 
 # Set default logging level
+ecs_task_start_time = time.perf_counter()
 logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=logging.INFO)
 log = logging.getLogger()
+LOG_LEVEL = str(os.getenv('LogLevel', 'INFO'))
+log.setLevel(LOG_LEVEL)
 
 endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 startTime = time.strftime("%Y-%m") + '-01T00:00:00Z'
@@ -44,18 +46,25 @@ lastDay = calendar.monthrange(int(time.strftime("%Y")), int(time.strftime("%m"))
 maxRetries = 3
 runUUID = str(uuid.uuid4())
 anonymousDataEndpoint = 'https://metrics.awssolutionsbuilder.com/generic'
-regionCount = 0;
-directoryCount = 0;
+regionCount = 0
+directoryCount = 0
 botoConfig = Config(
     max_pool_connections=100,
-    retries={'max_attempts': 20}
+    retries={
+        'max_attempts': 20,
+        'mode': 'standard'
+    },
+    user_agent_extra=os.getenv('UserAgentString')
 )
+list_workspaces_processed = []
+totalWorkspaces = 0
+
 # Pull Stack Parameters from environment
 # These are assigned by CloudFormation as container environment variables in production,
 # or as online params (docker) shell vars when testing
 
 stackParams = {}
-for param in {'LogLevel', 
+for param in {'LogLevel',
               'DryRun',
               'TestEndOfMonth',
               'SendAnonymousData',
@@ -70,25 +79,21 @@ for param in {'LogLevel',
               'PowerProLimit',
               'GraphicsLimit',
               'GraphicsProLimit'
-             }:
+              }:
     stackParams[param] = os.environ[param]
 
+# Check to make sure we have values for all expected stack parameters, otherwise exit with appropriate log errors
 
-# Check to make sure we have values for all expected stack parameters
-# Otherwise exit with appropriate log errors
 for param in stackParams:
     if stackParams[param] and not stackParams[param].isspace():
-      log.info('Parameter: %s, Value: %s', param, stackParams[param])
+        log.info('Parameter: %s, Value: %s', param, stackParams[param])
     else:
-      log.error('No value for stack parameter -> %s', param)
-      sys.exit()
-
-log.setLevel(stackParams['LogLevel'])
-log.info('Logging level set to %s', logging._levelToName[log.getEffectiveLevel()])
+        log.error('No value for stack parameter: %s', param)
+        sys.exit()
 
 theDay = int(time.strftime('%d'))
 # Determine if we should run end-of-month routine.
-if (theDay == int(lastDay)):
+if theDay == int(lastDay):
     stackParams['TestEndOfMonth'] = 'Yes'
     log.info('Last day of month, setting TestEndOfMonth to Yes')
     log.info('It is the last day of the month, last day is %s and today is %s', lastDay, theDay)
@@ -96,43 +101,51 @@ else:
     log.info('It is NOT the last day of the month, last day is %s and today is %s', lastDay, theDay)
 
 # Get all regions that run Workspaces
-for i in range(0, maxRetries):
-    log.debug('Try #%s to get_regions for WorkSpaces', i+1)
-    try:
-        wsRegions = boto3.session.Session().get_available_regions('workspaces')
-        break
-    except botocore.exceptions.ClientError as e:
-        log.error(e)
-        if i >= maxRetries - 1: log.error('Error processing get_regions for WorkSpaces: ExceededMaxRetries')
-        else: time.sleep(i/10)
+my_session = boto3.session.Session()
+my_region = my_session.region_name
 
-# For each region
-totalWorkspaces = 0
+if 'gov' in my_region:
+    partition = 'aws-us-gov'
+elif 'cn' in my_region:
+    partition = 'aws-cn'
+else:
+    partition = 'aws'
+
+log.debug("Partition is {}".format(partition))
+
+try:
+    wsRegions = boto3.session.Session().get_available_regions('workspaces', partition)
+except Exception as e:
+    log.error("Error getting the regions for the workspaces : {}".format(e))
+    raise
+
+# Iterate over list of AWS Regions
 for wsRegion in wsRegions:
     regionCount += 1
-
-    # Create a WS Client
     wsClient = boto3.client(
         'workspaces',
         region_name=wsRegion,
         config=botoConfig
     )
+    log.info('Scanning Workspace Directories for Region %s', wsRegion)
 
-    log.info('>>>> Scanning Workspace Directories for Region %s', wsRegion)
-
-    log.debug('Try #%s to get list of directories', i+1)
-
-    # Get the directories within the region
+    # Get all the directories within the region
     try:
-        directories = wsClient.describe_workspace_directories()
-
+        response = wsClient.describe_workspace_directories()
+        directories = response.get('Directories', [])
+        next_token = response.get('NextToken', None)
+        while next_token is not None:
+            response = wsClient.describe_workspace_directories(
+                NextToken=next_token
+            )
+            directories.extend(response.get('Directories', []))
+            next_token = response.get('NextToken', None)
     except botocore.exceptions.ClientError as e:
-        log.error(e)
+        log.error("Error while getting the list of Directories for region {}. Error: {}".format(wsRegion, e))
+        raise
 
-    # For each directory
-    for directory in directories["Directories"]:
+    for directory in directories:
         directoryCount += 1
-
         directoryParams = {
             "DirectoryId": directory["DirectoryId"],
             "Region": wsRegion,
@@ -142,10 +155,25 @@ for wsRegion in wsRegions:
             "RunUUID": runUUID,
             "AnonymousDataEndpoint": anonymousDataEndpoint
         }
-
         log.info('Calling directory reader')
         directoryReader = DirectoryReader()
-        countWorkspaces = directoryReader.read_directory(wsRegion, stackParams, directoryParams)
-        totalWorkspaces = totalWorkspaces + countWorkspaces
+        workspaceCount, list_workspaces = directoryReader.read_directory(wsRegion, stackParams, directoryParams)
+        totalWorkspaces = totalWorkspaces + workspaceCount
+        list_workspaces_processed.append(list_workspaces)
 
-log.info('Successfully invoked directory_reader for %d workspaces in %d directories across %d regions.', totalWorkspaces, directoryCount, regionCount)
+ecs_task_end_time = time.perf_counter()
+ecs_task_execution_time = math.ceil(ecs_task_end_time - ecs_task_start_time)
+
+if os.getenv('SendAnonymousData').lower() == 'true':
+    stackParams.pop("BucketName", None)
+    data = {
+        "List_of_Workspaces": list_workspaces_processed,
+        "Total_Workspaces": totalWorkspaces,
+        "Total_Directories": directoryCount,
+        "Total_Regions": regionCount,
+        "Stack_Parameters": stackParams,
+        "ECS_Task_Execution_Time": ecs_task_execution_time
+    }
+    send_metrics(data)
+log.info('Successfully invoked directory_reader for %d workspaces in %d directories across %d regions.',
+         totalWorkspaces, directoryCount, regionCount)

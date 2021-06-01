@@ -1,14 +1,41 @@
-# WorkSpaces Cost Optimizer
+**[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)** | **[🚧 Feature request](https://github.com/awslabs/<insert-solution-repo-name>/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)** | **[🐛 Bug Report](https://github.com/awslabs/<insert-solution-repo-name>/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)**
+
+Note: If you want to use the solution without building from source, navigate to Solution Landing Page
+
+## Table of contents
+
+- [Solution Overview](#solution-overview)
+- [Architecture Diagram](#architecture-diagram)
+- [Getting Started](#getting-started)
+- [Customizing the Solution](#customizing-the-solution)
+  - [Build](#build)
+  - [Unit Test](#unit-test)
+  - [Deploy](#deploy)
+- [File Structure](#file-structure)
+- [Collection of operational metrics](#collection-of-operational-metrics)
+- [License](#license)
+
+<a name="solution-overview"></a>
+# Solution Overview
 Amazon WorkSpaces, a fully managed, secure virtual desktop computing service on the AWS Cloud, eliminates the need for customers to procure, deploy, and manage complex virtual desktop environments. Amazon WorkSpaces offers the flexibility to pay hourly or monthly without any up-front commitment.
 
 To help customers with unpredictable WorkSpace usage patterns monitor their Amazon WorkSpaces usage and optimize costs, AWS offers the Amazon WorkSpaces Cost Optimizer, a solution that analyzes all of your WorkSpace usage data and automatically converts the WorkSpace to the most cost-effective billing option (hourly or monthly) depending on the user's individual usage. This solution is easy to deploy and uses AWS CloudFormation to automatically provision and configure the necessary AWS services.
 
-## Getting Started
+<a name="architecture-diagram"></a>
+# Architecture Diagram
+![alt Architecture Diagram](source/architecture_diagram.png)
+
+<a name="getting-started"></a>
+# Getting Started
 Deploy the [WorkSpaces Cost Optimizer CloudFormation Template](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
+For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)
 
-For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/answers/account-management/workspaces-cost-optimizer)
+<a name="aws-solutions-constructs"></a><a name="customizing-the-solution"></a>
+# Customizing the Solution
 
-## Building from Source
+<a name="build"></a>
+## Build
+
 Clone the repository
 
 ```
@@ -39,12 +66,81 @@ aws s3 cp ./dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION 
 
 You should now have everything in place to run the CloudFormation template (either from your bucket or from `./deployment/dist/`).
 
-## Running Unit Tests
+<a name="unit-test"></a>
+## Unit Test
 ```
 chmod +x "./run-unit-tests.sh" && "./run-unit-tests.sh"
 ```
 
-***
+<a name="deploy"></a>
+## Deploy
+Get the link of the workspaces-cost-optimizer.template loaded to your Amazon S3 bucket.
+Deploy the Workspaces Cost Optimizer solution to your account by launching a new AWS CloudFormation stack using the link of the workspaces-cost-optimizer.template.
+
+<a name="file-structure"></a>
+# File structure
+
+<pre>
+|-deployment/
+  |-build-open-source-dist.sh
+  |-build-s3-dist.sh
+  |-run-unit-tests.sh
+  |-workspaces-cost-optimizer.template
+|-source/
+  |-ecs/
+    |-utils/
+      |-decimal_encoder.py
+      |-solutions_metrics.py
+    |-directory_reader.py
+    |-metrics_helper.py
+    |-workspaces_helper.py
+    |-app.py
+  |-tests/
+    |-test_metrics_helper.py
+    |-test_workspaces_helper.py
+  |-docker
+    |-docker-build.sh
+    |-docker-clean.sh
+    |-docker-run.sh
+  |-lambda/
+    |-create-task.py
+    |-uuid-helper.py    
+  |-requirements.txt
+  |-testing_requirements.txt
+  |-architecture_diagram.png
+  |-Dockerfile
+|-.gitignore
+|-.viperlightignore
+|-.viperlightrc
+|-buildspec.yml
+|-CHANGELOG.md
+|-CODE_OF_CONDUCT.md
+|-CONTRIBUTING.md
+|-LICENSE.txt
+|-NOTICE.txt
+|-README.md
+</pre>
+
+<a name="Collection of operational metrics"></a>
+# Collection of operational metrics
+
+This solution collects anonymous operational metrics to help AWS improve the quality and features of the solution. For more information, including how to disable this capability, please see the [implementation guide](https://docs.aws.amazon.com/solutions/latest/workspaces-cost-optimizer/collection-of-operational-metrics.html).
+
+<a name="license"></a>
+# License
+
+See license [here](https://github.com/awslabs/workspaces-cost-optimizer/blob/master/LICENSE.txt) 
+
+
+
+
+
+
+
+################################################
+
+
+
 
 -------------
 ## Optimization Engine
@@ -58,18 +154,16 @@ chmod +x "./run-unit-tests.sh" && "./run-unit-tests.sh"
 
 - source/helpers/create-task.py
 
-***
+<a name="collection-of-operational-metrics"></a>
+# Collection of operational metrics
 
-Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+This solution collects anonymous operational metrics to help AWS improve the
+quality of features of the solution. For more information, including how to disable
+this capability, please see the
+[Implementation Guide](https://docs.aws.amazon.com/solutions/latest/aws-security-hub-automated-response-and-remediation/collection-of-operational-metrics.html)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+<a name="license"></a>
+# License
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+See license
+[here](https://github.com/awslabs/%3Cinsert-solution-repo-name%3E/blob/master/LICENSE.txt)

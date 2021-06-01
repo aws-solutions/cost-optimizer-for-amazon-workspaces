@@ -1,7 +1,7 @@
 #!/usr/bin/python 
 # -*- coding: utf-8 -*- 
 ######################################################################################################################
-#  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
+#  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           #
 #                                                                                                                    #
 #  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance    #
 #  with the License. A copy of the License is located at                                                             #
@@ -19,17 +19,15 @@
 import boto3
 import botocore
 from botocore.exceptions import ClientError
-import calendar
-import datetime
-import json
 import logging
 import time
-import urllib.request
-import ssl
-
-from lib.workspaces_helper import WorkspacesHelper
+from botocore.config import Config
+from ecs.workspaces_helper import WorkspacesHelper
+import os
 
 log = logging.getLogger()
+LOG_LEVEL = str(os.getenv('LogLevel', 'INFO'))
+log.setLevel(LOG_LEVEL)
 
 class DirectoryReader(object):
 
@@ -37,7 +35,14 @@ class DirectoryReader(object):
         return
 
     def read_directory(self, region, stackParams, directoryParams):
-        botoConfig = botocore.config.Config(max_pool_connections=100)
+        botoConfig = Config(
+            max_pool_connections=100,
+            user_agent_extra=os.getenv('UserAgentString'),
+            retries={
+                'max_attempts': 20,
+                'mode': 'standard'
+            }
+        )
         maxRetries = 3
         workspaceCount = 0
         testEndOfMonth = False
@@ -49,12 +54,13 @@ class DirectoryReader(object):
         lastDay = directoryParams['LastDay']
         runUUID = directoryParams['RunUUID']
 
+        list_processed_workspaces = []
         # Provide point to clean up parameter names in the future.
         if stackParams['DryRun'] == 'No':
             isDryRun = False
 
         # CloudFormation overrides the end-of-month testing
-        if (stackParams['TestEndOfMonth'] == 'Yes'):
+        if stackParams['TestEndOfMonth'] == 'Yes':
             testEndOfMonth = True
             log.info('Setting testEndOfMonth to %s', testEndOfMonth)
 
@@ -73,13 +79,19 @@ class DirectoryReader(object):
             log.error('Failed to find directoryId in directoryParams')
             return 0
 
-        try: directoryParams['CSV']
-        except: wsCsv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode\n'
-        else: wsCsv = directoryParams['CSV']
+        try:
+            directoryParams['CSV']
+        except:
+            wsCsv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,DirectoryId,Tags\n'
+        else:
+            wsCsv = directoryParams['CSV']
 
-        try: directoryParams['NextToken']
-        except: nextToken = 'None'
-        else: nextToken = directoryParams['NextToken']
+        try:
+            directoryParams['NextToken']
+        except:
+            nextToken = 'None'
+        else:
+            nextToken = directoryParams['NextToken']
 
         # List of bundles with specific hourly limits
         workspacesHelper = WorkspacesHelper({
@@ -89,9 +101,9 @@ class DirectoryReader(object):
                 'STANDARD': stackParams['StandardLimit'],
                 'PERFORMANCE': stackParams['PerformanceLimit'],
                 'POWER': stackParams['PowerLimit'],
-                'POWERPRO':stackParams['PowerProLimit'],
+                'POWERPRO': stackParams['PowerProLimit'],
                 'GRAPHICS': stackParams['GraphicsLimit'],
-                'GRAPHICSPRO':stackParams['GraphicsProLimit']
+                'GRAPHICSPRO': stackParams['GraphicsProLimit']
             },
             'testEndOfMonth': testEndOfMonth,
             'isDryRun': isDryRun,
@@ -100,53 +112,37 @@ class DirectoryReader(object):
         })
 
         morePages = True
-        while morePages: # looping through all pages of the directory, 25 at a time
+        while morePages:  # looping through all pages of the directory, 25 at a time
             workspacesPage = workspacesHelper.get_workspaces_page(directoryID, nextToken)
 
-            try: workspacesPage['NextToken']
-            except: nextToken = 'None'
-            else: nextToken = workspacesPage['NextToken']
+            try:
+                workspacesPage['NextToken']
+            except:
+                nextToken = 'None'
+            else:
+                nextToken = workspacesPage['NextToken']
 
             # Loop through list of workspaces in current page of directory
             for workspace in workspacesPage['Workspaces']:
+                log.info("Workspace Object")
+                log.info(workspace)
                 result = workspacesHelper.process_workspace(workspace)
                 workspaceCount = workspaceCount + 1
                 log.info('Workspace %d -> %s', workspaceCount, result)
                 log.info('Appending CSV file')
                 # Append result data to the CSV
                 wsCsv = workspacesHelper.append_entry(wsCsv, result)
-
-                # Send metrics about this Solution to Solutions Team tracker
-                if sendAnonymousData == True:
-                    postDict = {}
-                    postDict['Data'] = {
-                        'runUUID': runUUID,
-                        'result': result['optimizationResult'],
+                try:
+                    workspace_processed = {
+                        'previousMode': result['initialMode'],
+                        'newMode': result['newMode'],
                         'bundleType': result['bundleType'],
-                        'previousMode': result['initialMode']
+                        'hourlyThreshold': result['hourlyThreshold'],
+                        'billableTime': result['billableTime']
                     }
-                    postDict['TimeStamp'] = str(datetime.datetime.utcnow().isoformat())
-                    postDict['Solution'] = stackParams['SolutionID']
-                    postDict['UUID'] = stackParams['UUID']
-
-                    url = directoryParams['AnonymousDataEndpoint']
-                    data = urllib.parse.urlencode(postDict).encode("utf-8")
-                    headers = {'content-type': 'application/json'}
-
-                    log.debug('%s', data)
-                    log.info('Sending solution tracking metrics to %s', url)
-
-                    # added to overcome ssl certificate
-        
-                    context = ssl._create_unverified_context()
-                    req = urllib.request.Request(url, data=data, headers=headers)
-                    rsp = urllib.request.urlopen(req, timeout=5, context=context)
-
-                    content = rsp.read()
-                    rspcode = rsp.getcode()
-                    log.debug('Response Code: {}'.format(rspcode))
-                    log.debug('Response Content: {}'.format(content))
-
+                    list_processed_workspaces.append(workspace_processed)
+                except Exception as e:
+                    pass
             if nextToken == 'None':
                 morePages = False
                 log.info('Last page, finished %d workspaces, putting csv file in S3', workspaceCount)
@@ -166,22 +162,18 @@ class DirectoryReader(object):
 
                 logKey += '.csv'
 
-                for i in range(0, maxRetries):
-                    log.debug('Try #%s to put files into S3', i+1)
-                    try:
-                        s3DailyPutResult = s3Client.put_object(
-                            Bucket = awsS3Bucket,
-                            Body = logBody,
-                            Key = logKey
-                         )
-                        log.info('Successfully uploaded csv file to %s', logKey)
-                        return workspaceCount # kill the loop
-                    except botocore.exceptions.ClientError as e:
-                        log.error(e)
-                    if i >= maxRetries - 1: log.error('ExceededMaxRetries')
-                    else: time.sleep(i/10)
+                log.debug('Uploading workspace report to S3 for region {}'.format(region))
+                try:
+                    s3Client.put_object(
+                        Bucket=awsS3Bucket,
+                        Body=logBody,
+                        Key=logKey
+                    )
+                    log.info('Successfully uploaded csv file to %s', logKey)
+                    break
+                except botocore.exceptions.ClientError as e:
+                    log.error(e)
             else:
                 # Loop back to the top of while loop and process another page of workspaces for this directory (every 25 workspaces)
                 log.info('Calling read_directory again for next page with nextToken -> %s', nextToken)
-
-        return workspaceCount
+        return workspaceCount, list_processed_workspaces

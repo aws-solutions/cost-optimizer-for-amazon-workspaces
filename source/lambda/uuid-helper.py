@@ -18,6 +18,13 @@
 import json
 import uuid
 import requests
+import logging
+import os
+
+log = logging.getLogger()
+LOG_LEVEL = str(os.getenv('LogLevel', 'INFO'))
+log.setLevel(LOG_LEVEL)
+
 
 def send(event, context, responseStatus, responseData, physicalResourceId=None, noEcho=False): 
     try: 
@@ -42,11 +49,12 @@ def send(event, context, responseStatus, responseData, physicalResourceId=None, 
         } 
  
         response = requests.put(responseUrl,data=data,headers=headers) 
-        print("CFN Status: " + str(response.status_code)) 
+        log.debug("CFN Status: " + str(response.status_code))
         response.raise_for_status() 
      
     except Exception as e: 
         raise(e) 
+
 
 def lambda_handler(event, context): 
     try: 
@@ -54,10 +62,11 @@ def lambda_handler(event, context):
         responseData = {} 
  
         if request == 'Create': 
-            responseData = {'UUID':str(uuid.uuid4())} 
- 
+            responseData = {'UUID': str(uuid.uuid4())}
+            log.debug(" UUID: {}".format(responseData))
+
         send(event, context, 'SUCCESS', responseData) 
  
     except Exception as e: 
-        print('Exception: {}'.format(e)) 
+        log.error('Exception: {}'.format(e))
         send(event, context, 'FAILED', {}, context.log_stream_name) 

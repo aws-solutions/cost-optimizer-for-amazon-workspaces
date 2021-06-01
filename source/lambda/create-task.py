@@ -22,34 +22,39 @@
 import boto3
 import os
 import logging
+from botocore.config import Config
 
-def lambda_handler(event,context):
-  log = logging.getLogger()
-  log.setLevel(logging.INFO)
+botoConfig = Config(user_agent_extra=os.getenv('USER_AGENT_STRING'))
 
-  CLUSTER = os.getenv('Cluster')
-  TASKDEFINITION = os.getenv('TaskDefinition')
-  SUBNETS = os.getenv('Subnets').split(',')
-  SECURITYGROUPS = os.getenv('SecurityGroups').split(',')
 
-  log.info('Cluster: %s', CLUSTER)
-  log.info('Task Definition: %s', TASKDEFINITION)
-  log.info('Subnets: %s', SUBNETS)
-  log.info('Security Groups: %s', SECURITYGROUPS)
+def lambda_handler(event, context):
+    log = logging.getLogger()
+    LOG_LEVEL = str(os.getenv('LogLevel', 'INFO'))
+    log.setLevel(LOG_LEVEL)
 
-  client = boto3.client('ecs')
+    CLUSTER = os.getenv('CLUSTER')
+    TASKDEFINITION = os.getenv('TASK_DEFINITION')
+    SUBNETS = os.getenv('SUBNETS').split(',')
+    SECURITYGROUPS = os.getenv('SECURITY_GROUPS').split(',')
 
-  response = client.run_task(
-  cluster=CLUSTER,
-  launchType = 'FARGATE',
-  taskDefinition=TASKDEFINITION,
-  count = 1,
-  platformVersion='LATEST',
-  networkConfiguration={
-        'awsvpcConfiguration': {
-            'subnets': SUBNETS,
-            'securityGroups': SECURITYGROUPS,
-            'assignPublicIp': 'ENABLED'
-        }
-    })
-  return str(response)
+    log.info('Cluster: %s', CLUSTER)
+    log.info('Task Definition: %s', TASKDEFINITION)
+    log.info('Subnets: %s', SUBNETS)
+    log.info('Security Groups: %s', SECURITYGROUPS)
+
+    client = boto3.client('ecs', config=botoConfig)
+
+    response = client.run_task(
+        cluster=CLUSTER,
+        launchType='FARGATE',
+        taskDefinition=TASKDEFINITION,
+        count=1,
+        platformVersion='LATEST',
+        networkConfiguration={
+            'awsvpcConfiguration': {
+                'subnets': SUBNETS,
+                'securityGroups': SECURITYGROUPS,
+                'assignPublicIp': 'ENABLED'
+            }
+        })
+    return str(response)
