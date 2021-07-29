@@ -97,6 +97,13 @@ Parameters:
     Type: Number
     Description: The number of hours a Graphics Pro instance can run in a month before being converted to ALWAYS_ON. Default is 80.
     Default: 80
+  OnlyInCurrentRegion:
+    Type: String
+    Description: Execute the cost optimizer only in the current region the cloudformation stack has been installed
+    Default: "No"
+    AllowedValues:
+    - "Yes"
+    - "No"
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -124,6 +131,7 @@ Metadata:
         - DryRun
         - TestEndOfMonth
         - LogLevel
+        - OnlyInCurrentRegion
     - Label:
         default: Pricing Parameters
       Parameters:
@@ -145,6 +153,8 @@ Metadata:
         default: "AWS Fargate SecurityGroup CIDR Block"
       DryRun:
         default: "Launch in Dry Run Mode"
+      OnlyInCurrentRegion:
+        default: "Execute only in deployed aws region"
       TestEndOfMonth:
         default: "Simulate End of Month Cleanup"
       LogLevel:
@@ -519,6 +529,8 @@ Resources:
               Value: !Ref LogLevel
             - Name: DryRun
               Value: !Ref DryRun
+            - Name: OnlyInCurrentRegion
+              Value: !Ref OnlyInCurrentRegion
             - Name: TestEndOfMonth
               Value: !Ref TestEndOfMonth
             - Name: SendAnonymousData
@@ -745,6 +757,8 @@ Outputs:
     Value: !Ref LogLevel
   DryRun:
     Value: !Ref DryRun
+  OnlyInCurrentRegion:
+    Value: !Ref OnlyInCurrentRegion
   SendAnonymousData:
     Value: !FindInMap [Solution, Data, "SendAnonymousUsageData"]
   SolutionID:
