@@ -78,7 +78,8 @@ for param in {'LogLevel',
               'PowerLimit',
               'PowerProLimit',
               'GraphicsLimit',
-              'GraphicsProLimit'
+              'GraphicsProLimit',
+              'OnlyInCurrentRegion'
               }:
     stackParams[param] = os.environ[param]
 
@@ -104,6 +105,9 @@ else:
 my_session = boto3.session.Session()
 my_region = my_session.region_name
 
+if stackParams['OnlyInCurrentRegion'] == 'Yes':
+    wsRegions = [my_region]
+else: 
 if 'gov' in my_region:
     partition = 'aws-us-gov'
 elif 'cn' in my_region:
