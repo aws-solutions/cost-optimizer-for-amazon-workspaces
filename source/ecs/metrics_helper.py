@@ -64,8 +64,9 @@ class MetricsHelper(object):
         list_time_ranges = self.get_list_time_ranges(start_time, end_time)
         list_metric_data_points_user_connected = \
             self.get_cloudwatch_metric_data_points(workspace['WorkspaceId'], list_time_ranges, 'UserConnected')
+        auto_stop_metric_limit = self.get_auto_stop_metric_limit(workspace)
         list_user_sessions_user_connected = self.get_list_user_session_data_points(
-            list_metric_data_points_user_connected)
+            list_metric_data_points_user_connected, auto_stop_metric_limit)
         user_connected_hours = self.get_user_connected_hours(list_user_sessions_user_connected, workspace)
         log.debug("Calculated user connected hours: {}".format(user_connected_hours))
         return user_connected_hours
@@ -129,7 +130,7 @@ class MetricsHelper(object):
         log.debug("The cloudwatch metrics list for workspace id {} is {}".format(workspace_id, list_data_points))
         return list_data_points
 
-    def get_list_user_session_data_points(self, list_metric_data_points):
+    def get_list_user_session_data_points(self, list_metric_data_points, auto_stop_metric_limit):
         """
         This method returns the list of data points per user session.
         :param list_metric_data_points:
@@ -138,11 +139,24 @@ class MetricsHelper(object):
         log.debug("Getting the list of user session data points for metric data points {}".
                   format(list_metric_data_points))
         list_data_points = []
+        list_user_sessions = []
+        
+        counter = 1
         sorted_list_metric_data_points = sorted(list_metric_data_points, key=lambda x: x['Timestamp'])
         for metric in sorted_list_metric_data_points:
-            list_data_points.append(metric['Maximum'])
+            if metric["Maximum"] == 1.0:
+                list_data_points.append(metric)
+                counter = 1
+            elif counter > auto_stop_metric_limit:
+                list_user_sessions.append(list_data_points)
+                list_data_points = [] 
+                counter = 1
+            elif len(list_data_points) > 0 and metric["Maximum"] == 0.0:
+                list_data_points.append(metric)
+                counter += 1
+
+            
         # Use groupby to find continuous patterns of data point 1.0
-        list_user_sessions = [list(g) for k, g in groupby(list_data_points) if k == 1.0]
         log.debug("List of user sessions is {}".format(list_user_sessions))
         return list_user_sessions
 
@@ -163,5 +177,13 @@ class MetricsHelper(object):
 
         for session in list_user_sessions:
             # Divide each session by 12 to convert the 5 min intervals to hour and idle time per session
-            user_connected_hours = user_connected_hours + math.ceil(len(session) / 12) + idle_time_in_hours
+            user_connected_hours = user_connected_hours + math.ceil(len(session) / 12)
         return user_connected_hours
+
+    def get_auto_stop_metric_limit(self, workspace):
+        if workspace['WorkspaceProperties']['RunningMode'] == ALWAYS_ON:
+            idle_time_in_minutes = int(AUTO_STOP_TIMEOUT_HOURS)* 60
+        else:
+            idle_time_in_minutes= workspace['WorkspaceProperties']['RunningModeAutoStopTimeoutInMinutes']
+        return idle_time_in_minutes / 5
+
