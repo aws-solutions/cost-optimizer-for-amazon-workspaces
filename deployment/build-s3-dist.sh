@@ -33,7 +33,9 @@ source_dir="$template_dir/../source"
 
 # There are now TWO dist directories
 template_dist_dir="$template_dir/global-s3-assets" 
-build_dist_dir="$template_dir/regional-s3-assets" 
+build_dist_dir="$template_dir/regional-s3-assets"
+
+wco_folder="$template_dir/ecr/workspaces-cost-optimizer"
 
 echo "------------------------------------------------------------------------------"
 echo "[Init] Clean old dist and template folders"
@@ -48,6 +50,9 @@ echo "rm -rf $build_dist_dir"
 rm -rf $build_dist_dir 
 echo "mkdir -p $build_dist_dir" 
 mkdir -p $build_dist_dir 
+
+echo "mkdir -p $wco_folder"
+mkdir -p $wco_folder
 
 echo "------------------------------------------------------------------------------"
 echo "[Packing] Template"
@@ -64,6 +69,16 @@ SUB4="s/%VERSION%/$4/g"
 
 sed -e $SUB1 -e $SUB2 -e $SUB3 -e $SUB4 ./$TEMPLATE > $template_dist_dir/$TEMPLATE
 
+echo "***** public ECR registry: $PUBLIC_ECR_REGISTRY"
+replace="s|PUBLIC_ECR_REGISTRY|$PUBLIC_ECR_REGISTRY|g" # "|" is used as a delimiter because $PUBLIC_ECR_REGISTRY includes "/"
+echo "sed -i -e $replace"
+sed -i -e $replace $template_dist_dir/$TEMPLATE
+
+echo "***** public ECR tag: $PUBLIC_ECR_TAG"
+replace="s/PUBLIC_ECR_TAG/$PUBLIC_ECR_TAG/g"
+echo "sed -i -e $replace"
+sed -i -e $replace $template_dist_dir/$TEMPLATE
+
 # Build Lambda zip
 echo "------------------------------------------------------------------------------"
 echo "[Packing] lambda code"
@@ -76,3 +91,13 @@ ls -alt
 zip -q -r9 $build_dist_dir/workspaces-cost-optimizer.zip .
 echo "Completed building distribution"
 cd $template_dir
+
+
+echo "------------------------------------------------------------------------------"
+echo "[Copying] Dockerfile and code artifacts to deployment/ecr folder"
+echo "------------------------------------------------------------------------------"
+
+echo "$source_dir/Dockerfile $wco_folder"
+cp $source_dir/Dockerfile $wco_folder
+echo "-r $source_dir/ecs $wco_folder"
+cp -r $source_dir/ecs $wco_folder

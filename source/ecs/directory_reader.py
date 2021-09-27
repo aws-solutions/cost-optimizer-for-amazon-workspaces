@@ -16,164 +16,77 @@
 # This file calls the workspaces_helper module to read cloudwatch logs.  The only AWS activity in this file
 # is writing the CSV file to S3 and making a call to our tracking url.
 
-import boto3
-import botocore
-from botocore.exceptions import ClientError
 import logging
-import time
-from botocore.config import Config
-from ecs.workspaces_helper import WorkspacesHelper
 import os
+from ecs.workspaces_helper import WorkspacesHelper
+from ecs.utils.s3_utils import upload_report
 
 log = logging.getLogger()
 LOG_LEVEL = str(os.getenv('LogLevel', 'INFO'))
 log.setLevel(LOG_LEVEL)
+
 
 class DirectoryReader(object):
 
     def __init__(self):
         return
 
-    def read_directory(self, region, stackParams, directoryParams):
-        botoConfig = Config(
-            max_pool_connections=100,
-            user_agent_extra=os.getenv('UserAgentString'),
-            retries={
-                'max_attempts': 20,
-                'mode': 'standard'
-            }
-        )
-        maxRetries = 3
-        workspaceCount = 0
-        testEndOfMonth = False
-        sendAnonymousData = False
-        isDryRun = True
-
-        endTime = directoryParams['EndTime']
-        startTime = directoryParams['StartTime']
-        lastDay = directoryParams['LastDay']
-        runUUID = directoryParams['RunUUID']
-
+    def process_directory(self, region, stack_parameters, directory_parameters):
+        workspace_count = 0
+        end_time = directory_parameters['EndTime']
+        start_time = directory_parameters['StartTime']
         list_processed_workspaces = []
-        # Provide point to clean up parameter names in the future.
-        if stackParams['DryRun'] == 'No':
-            isDryRun = False
-
-        # CloudFormation overrides the end-of-month testing
-        if stackParams['TestEndOfMonth'] == 'Yes':
-            testEndOfMonth = True
-            log.info('Setting testEndOfMonth to %s', testEndOfMonth)
-
-        # Should we send Solutiuon Team metrics
-        if stackParams['SendAnonymousData'] == 'true':
-            sendAnonymousData = True
-            log.debug('sendAnonymousData: %s', sendAnonymousData)
-
-        awsS3Bucket = stackParams['BucketName']
-        log.info('Output Bucket: %s', awsS3Bucket)
-
-        # Capture the directoryId passed to the function
-        if 'DirectoryId' in directoryParams:
-            directoryID = directoryParams['DirectoryId']
-        else:
-            log.error('Failed to find directoryId in directoryParams')
-            return 0
-
-        try:
-            directoryParams['CSV']
-        except:
-            wsCsv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,DirectoryId,Tags\n'
-        else:
-            wsCsv = directoryParams['CSV']
-
-        try:
-            directoryParams['NextToken']
-        except:
-            nextToken = 'None'
-        else:
-            nextToken = directoryParams['NextToken']
+        directory_csv = ''
+        log_body_directory_csv = ''
+        is_dry_run = self.get_dry_run(stack_parameters)
+        test_end_of_month = self.get_end_of_month(stack_parameters)
+        directory_id = directory_parameters['DirectoryId']
+        report_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags\n'
 
         # List of bundles with specific hourly limits
-        workspacesHelper = WorkspacesHelper({
+        workspaces_helper = WorkspacesHelper({
             'region': region,
             'hourlyLimits': {
-                'VALUE': stackParams['ValueLimit'],
-                'STANDARD': stackParams['StandardLimit'],
-                'PERFORMANCE': stackParams['PerformanceLimit'],
-                'POWER': stackParams['PowerLimit'],
-                'POWERPRO': stackParams['PowerProLimit'],
-                'GRAPHICS': stackParams['GraphicsLimit'],
-                'GRAPHICSPRO': stackParams['GraphicsProLimit']
+                'VALUE': stack_parameters['ValueLimit'],
+                'STANDARD': stack_parameters['StandardLimit'],
+                'PERFORMANCE': stack_parameters['PerformanceLimit'],
+                'POWER': stack_parameters['PowerLimit'],
+                'POWERPRO': stack_parameters['PowerProLimit'],
+                'GRAPHICS': stack_parameters['GraphicsLimit'],
+                'GRAPHICSPRO': stack_parameters['GraphicsProLimit']
             },
-            'testEndOfMonth': testEndOfMonth,
-            'isDryRun': isDryRun,
-            'startTime': startTime,
-            'endTime': endTime
+            'testEndOfMonth': test_end_of_month,
+            'isDryRun': is_dry_run,
+            'startTime': start_time,
+            'endTime': end_time,
+            'terminateUnusedWorkspaces': stack_parameters['TerminateUnusedWorkspaces']
         })
-
-        morePages = True
-        while morePages:  # looping through all pages of the directory, 25 at a time
-            workspacesPage = workspacesHelper.get_workspaces_page(directoryID, nextToken)
-
+        list_workspaces = workspaces_helper.get_workspaces_for_directory(directory_id)
+        for workspace in list_workspaces:
+            log.debug("Processing workspace {}".format(workspace))
+            workspace_count = workspace_count + 1
+            result = workspaces_helper.process_workspace(workspace)
+            report_csv = workspaces_helper.append_entry(report_csv, result)  # Append result data to the CSV
+            directory_csv = workspaces_helper.append_entry(directory_csv, result)  # Append result for aggregated report
             try:
-                workspacesPage['NextToken']
-            except:
-                nextToken = 'None'
-            else:
-                nextToken = workspacesPage['NextToken']
+                workspace_processed = {
+                    'previousMode': result['initialMode'],
+                    'newMode': result['newMode'],
+                    'bundleType': result['bundleType'],
+                    'hourlyThreshold': result['hourlyThreshold'],
+                    'billableTime': result['billableTime']
+                }
+                list_processed_workspaces.append(workspace_processed)
+            except Exception:
+                log.debug("Could not append workspace for metrics. Skipping this workspace")
+            log_body = workspaces_helper.expand_csv(report_csv)
+            log_body_directory_csv = workspaces_helper.expand_csv(directory_csv)
+            upload_report(stack_parameters, log_body, directory_id, region)
+        return workspace_count, list_processed_workspaces, log_body_directory_csv
 
-            # Loop through list of workspaces in current page of directory
-            for workspace in workspacesPage['Workspaces']:
-                log.info("Workspace Object")
-                log.info(workspace)
-                result = workspacesHelper.process_workspace(workspace)
-                workspaceCount = workspaceCount + 1
-                log.info('Workspace %d -> %s', workspaceCount, result)
-                log.info('Appending CSV file')
-                # Append result data to the CSV
-                wsCsv = workspacesHelper.append_entry(wsCsv, result)
-                try:
-                    workspace_processed = {
-                        'previousMode': result['initialMode'],
-                        'newMode': result['newMode'],
-                        'bundleType': result['bundleType'],
-                        'hourlyThreshold': result['hourlyThreshold'],
-                        'billableTime': result['billableTime']
-                    }
-                    list_processed_workspaces.append(workspace_processed)
-                except Exception as e:
-                    pass
-            if nextToken == 'None':
-                morePages = False
-                log.info('Last page, finished %d workspaces, putting csv file in S3', workspaceCount)
-                pEndTime = time.strptime(endTime, '%Y-%m-%dT%H:%M:%SZ')
-                s3Client = boto3.client('s3', config=botoConfig)
+    def get_dry_run(self, stack_parameters):
+        return stack_parameters['DryRun'] == 'Yes'
 
-                logBody = workspacesHelper.expand_csv(wsCsv)
-                logKey = time.strftime('%Y/%m/%d/', pEndTime) + region + '_' + directoryID
 
-                if testEndOfMonth:
-                    logKey += '_end-of-month'
-                else:
-                    logKey += '_daily'
-
-                if isDryRun:
-                    logKey += '_dry-run'
-
-                logKey += '.csv'
-
-                log.debug('Uploading workspace report to S3 for region {}'.format(region))
-                try:
-                    s3Client.put_object(
-                        Bucket=awsS3Bucket,
-                        Body=logBody,
-                        Key=logKey
-                    )
-                    log.info('Successfully uploaded csv file to %s', logKey)
-                    break
-                except botocore.exceptions.ClientError as e:
-                    log.error(e)
-            else:
-                # Loop back to the top of while loop and process another page of workspaces for this directory (every 25 workspaces)
-                log.info('Calling read_directory again for next page with nextToken -> %s', nextToken)
-        return workspaceCount, list_processed_workspaces
+    def get_end_of_month(self, stack_parameters):
+        return stack_parameters['TestEndOfMonth'] == 'Yes'
