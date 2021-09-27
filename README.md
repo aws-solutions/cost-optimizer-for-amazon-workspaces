@@ -121,26 +121,8 @@ Deploy the Workspaces Cost Optimizer solution to your account by launching a new
 |-README.md
 </pre>
 
-<a name="Collection of operational metrics"></a>
-# Collection of operational metrics
-
-This solution collects anonymous operational metrics to help AWS improve the quality and features of the solution. For more information, including how to disable this capability, please see the [implementation guide](https://docs.aws.amazon.com/solutions/latest/workspaces-cost-optimizer/collection-of-operational-metrics.html).
-
-<a name="license"></a>
-# License
-
-See license [here](https://github.com/awslabs/workspaces-cost-optimizer/blob/master/LICENSE.txt) 
-
-
-
-
-
-
 
 ################################################
-
-
-
 
 -------------
 ## Optimization Engine

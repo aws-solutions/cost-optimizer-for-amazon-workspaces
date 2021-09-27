@@ -7,3 +7,4 @@ pytest-runner>=2.11.1
 pytest-cov
 pytest-env
 uuid>=1.30
+requests~=2.22.0

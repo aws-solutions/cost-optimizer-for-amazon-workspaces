@@ -69,6 +69,17 @@ Parameters:
     AllowedValues:
     - "Yes"
     - "No"
+  Regions:
+    Type: String
+    Description: The list of AWS regions which the solution will scan. Example - us-east-1, us-west-2. Leave blank to scan all regions.
+  TerminateUnusedWorkspaces:
+    Type: String
+    Description: Select "Yes" to terminate Workspaces not used for a month.
+    Default: "No"
+    AllowedValues:
+    - "Yes"
+    - "No"
+    - "Dry Run"
   ValueLimit:
     Type: Number
     Description: The number of hours a Value instance can run in a month before being converted to ALWAYS_ON. Default is 81.
@@ -134,6 +145,14 @@ Metadata:
         - GraphicsProLimit
         - PowerLimit
         - PowerProLimit
+    - Label:
+        default: List of AWS Regions
+      Parameters:
+        - Regions
+    - Label:
+        default: Terminate unused workspaces
+      Parameters:
+        - TerminateUnusedWorkspaces
     ParameterLabels:
       VpcCIDR:
         default: "AWS Fargate VPC CIDR Block"
@@ -157,6 +176,10 @@ Metadata:
         default: "Subnet ID for second subnet"
       ExistingSecurityGroupId:
         default: "Security group ID to launch ECS task"
+      Regions:
+        default: "List of AWS Regions"
+      TerminateUnusedWorkspaces:
+        default: "Terminate workspaces not used for a month"
 
 Mappings:
   Solution:
@@ -169,9 +192,7 @@ Mappings:
       SendAnonymousUsageData: True
       MetricsURL: "https://metrics.awssolutionsbuilder.com/generic"
       AutoStopTimeoutHours: 1
-      Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/wco:2.3.0"
-      ECRRepository: "arn:aws:ecr:us-east-1:898061675696:repository/wco"
-    
+      Image: PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:PUBLIC_ECR_TAG
 
 Conditions:
   CreateNewVPC: !Equals
@@ -208,36 +229,28 @@ Resources:
           - logs:CreateLogGroup
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: !Join ["", ["arn:aws:logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/ecs/wco-task/*"]]
+          Resource: !Join ["", ["arn:", Ref: "AWS::Partition", ":logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/ecs/wco-task/*"]]
         - Effect: Allow
           Action:
           - ecr:GetAuthorizationToken
           Resource: "*"
         - Effect: Allow
           Action:
-          - ecr:BatchCheckLayerAvailability
-          - ecr:BatchGetImage
-          - ecr:GetDownloadUrlForLayer
-          Resource: !FindInMap [Solution, Data, "ECRRepository"]
-        - Effect: Allow
-          Action:
           - workspaces:DescribeTags
           - workspaces:DescribeWorkspaces
           - workspaces:DescribeWorkspaceDirectories
           - workspaces:ModifyWorkspaceProperties
+          - workspaces:TerminateWorkspaces
+          - workspaces:DescribeWorkspacesConnectionStatus
           Resource:
-            - !Sub "arn:aws:workspaces:*:${AWS::AccountId}:directory/*"
-            - !Sub "arn:aws:workspaces:*:${AWS::AccountId}:workspace/*"
-            - !Sub "arn:aws:workspaces:*:${AWS::AccountId}:workspacebundle/*"
+            - !Sub "arn:${AWS::Partition}:workspaces:*:${AWS::AccountId}:directory/*"
+            - !Sub "arn:${AWS::Partition}:workspaces:*:${AWS::AccountId}:workspace/*"
+            - !Sub "arn:${AWS::Partition}:workspaces:*:${AWS::AccountId}:workspacebundle/*"
         - Effect: Allow
           Action:
           - s3:PutObject
-          Resource:
-            !Join
-            - ''
-            - - 'arn:aws:s3:::'
-              - !Ref CostOptimizerBucket
-              - /*
+          Resource: 
+            - !Sub "arn:${AWS::Partition}:s3:::${CostOptimizerBucket}/*"
         - Effect: Allow
           Action:
           - cloudwatch:GetMetricStatistics
@@ -277,11 +290,11 @@ Resources:
           - logs:CreateLogGroup
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: !Join ["", ["arn:aws:logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/aws/lambda/*"]]
+          Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/{AWS::Partition}/lambda/*"
         - Effect: Allow
           Action:
           - ecs:RunTask
-          Resource: !Join [":", [ "arn:aws:ecs", !Ref "AWS::Region", !Ref "AWS::AccountId", "task-definition/wco-task" ] ]
+          Resource: !Sub "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/wco-task"
         - Effect: Allow
           Action:
           - iam:PassRole
@@ -554,6 +567,10 @@ Resources:
                   Version: !FindInMap [Solution, Data, "Version"]
             - Name: AutoStopTimeoutHours
               Value: !FindInMap [Solution, Data, "AutoStopTimeoutHours"]
+            - Name: Regions
+              Value: !Ref Regions
+            - Name: TerminateUnusedWorkspaces
+              Value: !Ref TerminateUnusedWorkspaces
 
           LogConfiguration:
             LogDriver: "awslogs"
@@ -607,7 +624,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Description: Rule to trigger WorkSpacesCostOptimizer function on a schedule.
-      ScheduleExpression: cron(55 23 * * ? *)
+      ScheduleExpression: cron(00 23 * * ? *)
       State: ENABLED
       Targets:
       - Arn: !GetAtt CostOptimizerCreateTaskFunction.Arn
@@ -671,7 +688,7 @@ Resources:
           - logs:CreateLogGroup
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: !Join ["", ["arn:aws:logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/aws/lambda/*"]]
+          Resource: !Join ["", ["arn:", Ref: "AWS::Partition", ":logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/", Ref: "AWS::Partition", "/lambda/*"]]
         - Effect: Allow
           Action:
           - iam:PassRole

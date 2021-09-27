@@ -3,6 +3,15 @@
  
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ ## [2.4] - 2021-09
+ ### Fixed
+ - Fixed the bug to correctly calculate billable hours if user disconnects workspace within autostop timeout
+ 
+ ### Added
+ - Feature to terminate unused workspaces
+ - Generate aggregated reports
+ - Feature to specify AWS Regions to monitor
+ - Support for Gov cloud partition
  
  ## [2.3] - 2021-06
  ### Fixed
