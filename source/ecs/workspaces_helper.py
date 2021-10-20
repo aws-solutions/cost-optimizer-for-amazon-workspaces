@@ -96,6 +96,7 @@ class WorkspacesHelper(object):
             workspace_terminated = self.get_termination_status(workspace_id, billable_time, tags)
             optimization_result = self.compare_usage_metrics(workspace_id, billable_time, hourly_threshold,
                                                              workspace_running_mode)
+
         return {
             'workspaceID': workspace_id,
             'billableTime': billable_time,
@@ -104,9 +105,9 @@ class WorkspacesHelper(object):
             'newMode': optimization_result['newMode'],
             'bundleType': workspace_bundle_type,
             'initialMode': workspace_running_mode,
-            'userName': workspace['UserName'],
-            'computerName': workspace['ComputerName'],
-            'directoryId': workspace['DirectoryId'],
+            'userName': workspace.get('UserName', ''),
+            'computerName': workspace.get('ComputerName', ''),
+            'directoryId': workspace.get('DirectoryId', ''),
             'tags': tags,
             'workspaceTerminated': workspace_terminated
         }
@@ -200,7 +201,7 @@ class WorkspacesHelper(object):
                     DirectoryId=directory_id,
                     NextToken=next_token
                 )
-                list_workspaces.extend(response.get('Directories', []))
+                list_workspaces.extend(response.get('Workspaces', []))
                 next_token = response.get('NextToken', None)
         except botocore.exceptions.ClientError as e:
             log.error(

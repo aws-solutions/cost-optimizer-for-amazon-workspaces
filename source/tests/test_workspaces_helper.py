@@ -878,3 +878,102 @@ def test_get_termination_status_5(mocker):
     workspace_helper.check_if_workspace_needs_to_be_terminated.return_value = 'Yes - Dry Run'
     result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
     assert result == ''
+
+
+def test_get_workspaces_for_directory_use_next_token():
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    directory_id = "123qwe123qwe"
+    workspace_helper = WorkspacesHelper(settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    expected_params_1 = {
+        'DirectoryId': directory_id
+    }
+
+    response_1 = {
+    'Workspaces': [{'WorkspaceId':'id_1'}],
+    'NextToken': 's223123jj32'
+    }
+
+    expected_params_2 = {
+        'DirectoryId': directory_id,
+        'NextToken': 's223123jj32'
+    }
+
+    response_2 = {
+        'Workspaces': [{'WorkspaceId':'id_2'}]
+    }
+
+    client_stubber.add_response('describe_workspaces', response_1, expected_params_1)
+    client_stubber.add_response('describe_workspaces', response_2, expected_params_2)
+    client_stubber.activate()
+    response = workspace_helper.get_workspaces_for_directory(directory_id)
+    client_stubber.activate()
+    assert response == [{'WorkspaceId': 'id_1'}, {'WorkspaceId': 'id_2'}]
+
+
+def test_get_workspaces_for_directory_no_next_token():
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    directory_id = "123qwe123qwe"
+    workspace_helper = WorkspacesHelper(settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    expected_params_1 = {
+        'DirectoryId': directory_id
+    }
+
+    response_1 = {
+    'Workspaces': [{'WorkspaceId':'id_1'}]
+    }
+
+    expected_params_2 = {
+        'DirectoryId': directory_id,
+        'NextToken': 's223123jj32'
+    }
+
+    response_2 = {
+        'Workspaces': [{'WorkspaceId':'id_2'}]
+    }
+
+    client_stubber.add_response('describe_workspaces', response_1, expected_params_1)
+    client_stubber.add_response('describe_workspaces', response_2, expected_params_2)
+    client_stubber.activate()
+    response = workspace_helper.get_workspaces_for_directory(directory_id)
+    client_stubber.activate()
+    assert response == [{'WorkspaceId': 'id_1'}]
+
+
+def test_get_workspaces_for_directory_return_exception():
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    directory_id = "123qwe123qwe"
+    workspace_helper = WorkspacesHelper(settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+    client_stubber.add_client_error('describe_workspaces', "Invalid_request")
+    client_stubber.activate()
+    response = workspace_helper.get_workspaces_for_directory(directory_id)
+    client_stubber.activate()
+    assert response == []
