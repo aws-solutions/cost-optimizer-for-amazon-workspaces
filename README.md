@@ -42,14 +42,24 @@ Clone the repository
 git clone git@github.com:awslabs/workspaces-cost-optimizer.git
 ```
 
-Set the destination bucket name- this bucket should be in the region you're deploying the solution to.
+Create a distribution S3 bucket with the format 'MY-BUCKET-<aws_region>'. The solution's CloudFormation template will expect the 
+source code to be located in this bucket. <aws_region> is where you are testing the customized solution.
+
+Note: When you create a bucket, a randomized value unique to your environment is recommended for the bucket name. 
+As a best practice, enable the server side encryption and also block the public access to the bucket.
 
 ```
-export TEMPLATE_BUCKET_NAME=<YOUR_TEMPLATE_BUCKET_NAME>
-export DIST_BUCKET_NAME=<YOUR_DIST_BUCKET_NAME>
+export TEMPLATE_OUTPUT_BUCKET=<YOUR_TEMPLATE_BUCKET_NAME>
+export DIST_OUTPUT_BUCKET=<YOUR_DIST_BUCKET_NAME>
 export SOLUTION_NAME="workspaces-cost-optimizer"
 export VERSION=<VERSION>
 ## NOTE THAT the region is appended to the DIST_BUCKET_NAME (DIST_BUCKET_NAME-REGION) when deployed, so creating a bucket with only Bucket_Name will not work.
+```
+
+change the working directory to the deployment folder
+
+```
+cd deployment
 ```
 
 Run the build script.
@@ -82,36 +92,75 @@ Deploy the Workspaces Cost Optimizer solution to your account by launching a new
 
 <pre>
 |-deployment/
-  |-build-open-source-dist.sh
   |-build-s3-dist.sh
   |-run-unit-tests.sh
   |-workspaces-cost-optimizer.template
+  |-workspaces-cost-optimizer-spoke.template
 |-source/
-  |-ecs/
-    |-utils/
-      |-decimal_encoder.py
-      |-solutions_metrics.py
-    |-directory_reader.py
-    |-metrics_helper.py
-    |-workspaces_helper.py
-    |-app.py
-  |-tests/
-    |-test_metrics_helper.py
-    |-test_workspaces_helper.py
-  |-docker
+  |-account_registration_provider/
+    |__tests__/
+      |__init__.py
+      |-conftest.py
+      |-test_account_registration_provider.py
+    |__init__.py
+    |-account_registration_provider.py
+  |-docker/
     |-docker-build.sh
     |-docker-clean.sh
     |-docker-run.sh
-  |-lambda/
-    |-create-task.py
-    |-uuid-helper.py    
+  |-lib/
+    |__tests__/
+      |__init__.py
+      |-conftest.py
+      |-test_cfnresponse.py
+    |-cfnresponse.py
+  |-register_spoke_lambda/
+    |__tests__/
+      |__init__.py
+      |-conftest.py
+      |-test_dynamodb.py
+      |-test_register_spoke_accounts.py
+      |-test_request_event.py
+    |__init__.py
+    |-dynamo_table.py
+    |-register_spoke_accounts.py
+    |-request_event.py
+  |-uuid_helper/
+    |__tests__/
+      |__init__.py
+      |-conftest.py
+      |-test_uuid_helper.py
+    |__init__.py
+    |-uuid_helper.py
+  |-workspaces_app/
+    |-workspaces_app/
+      |__tests__/
+        |__init__.py
+        |-conftest.py
+        |-test_account_registry.py
+        |-test_directory_reader.py
+        |-test_metrics_helper.py
+        |-test_workspaces_helper.py
+      |-utils/
+        |__tests__/
+          |__init__.py
+          |-conftest.py
+          |-test_s3_utils.py
+          |-test_timer.py
+        |__init__.py
+        |-decimal_encoder.py
+        |-s3_utils.py
+        |-solutions_metrics.py
+        |-timer.py
+      |-directory_reader.py
+      |-metrics_helper.py
+      |-workspaces_helper.py
+    |-main.py
   |-requirements.txt
   |-testing_requirements.txt
   |-architecture_diagram.png
   |-Dockerfile
 |-.gitignore
-|-.viperlightignore
-|-.viperlightrc
 |-buildspec.yml
 |-CHANGELOG.md
 |-CODE_OF_CONDUCT.md
@@ -119,22 +168,11 @@ Deploy the Workspaces Cost Optimizer solution to your account by launching a new
 |-LICENSE.txt
 |-NOTICE.txt
 |-README.md
+|-sonar-project.properties
 </pre>
 
 
 ################################################
-
--------------
-## Optimization Engine
-
-- source/engine/wco.py - depends on source/engine/lib/directory_reader.py
-- source/engine/lib/directory_reader.py depends on workspaces_helper
-- source/engine/lib/workspaces_helper.py depends on metrics_helper
-- source/engine/lib/metrics_helper.py
-
-## Helpers
-
-- source/helpers/create-task.py
 
 <a name="collection-of-operational-metrics"></a>
 # Collection of operational metrics

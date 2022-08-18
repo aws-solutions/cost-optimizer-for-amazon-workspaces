@@ -108,6 +108,15 @@ Parameters:
     Type: Number
     Description: The number of hours a Graphics Pro instance can run in a month before being converted to ALWAYS_ON. Default is 80.
     Default: 80
+  OrganizationID:
+    Type: String
+    Description: Organization ID to support multi account deployment. Leave blank for single account deployments.
+    AllowedPattern: "^$|^o-[a-z0-9]{10,32}$"
+    Default: ''
+  ManagementAccountId:
+    Type: String
+    Description: Account ID for the management account of the Organization. Leave blank for single account deployments.
+    Default: ''
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -153,6 +162,12 @@ Metadata:
         default: Terminate unused workspaces
       Parameters:
         - TerminateUnusedWorkspaces
+    - Label:
+        default: Multi account deployment
+      Parameters:
+        - OrganizationID
+        - ManagementAccountId
+
     ParameterLabels:
       VpcCIDR:
         default: "AWS Fargate VPC CIDR Block"
@@ -180,6 +195,10 @@ Metadata:
         default: "List of AWS Regions"
       TerminateUnusedWorkspaces:
         default: "Terminate workspaces not used for a month"
+      OrganizationID:
+        default: "Organization ID for multi account deployment"
+      ManagementAccountId:
+        default: "Account ID of the Management Account for the Organization"
 
 Mappings:
   Solution:
@@ -188,16 +207,33 @@ Mappings:
       TaskDefinitionName: "wco-task"
       LogGroupName: "/ecs/wco-task"
       ID: "SO0018"
-      Version: "%VERSION%" 
+      Version: "%VERSION%"
       SendAnonymousUsageData: True
       MetricsURL: "https://metrics.awssolutionsbuilder.com/generic"
       AutoStopTimeoutHours: 1
       Image: PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:PUBLIC_ECR_TAG
+      RoleName: "Workspaces-Cost-Optimizer"
+      RegisterLambdaFunctionName: "Register-Spoke-Accounts"
+      SpokeAccountWorkspacesRole: "Workspaces-Admin-Spoke"
+      TagKey: "CloudFoundations:CostOptimizerForWorkspaces"
+      AppRegistryApplicationName: 'workspaces-cost-optimizer'
+      SolutionName: 'Cost Optimizer for Amazon Workspaces'
 
 Conditions:
   CreateNewVPC: !Equals
     - !Ref CreateNewVPC
     - 'Yes'
+  UseExistingVPC: !Equals
+    - !Ref CreateNewVPC
+    - 'No'
+  CreateDynamoDBEndpoint: !And
+    - !Condition CreateNewVPC
+    - !Condition MultiAccountDeployment
+  OrganizationSetup: !Not [!Equals [!Ref OrganizationID, '']]
+  ManagementAccountSetup: !Not [!Equals [!Ref ManagementAccountId, '']]
+  MultiAccountDeployment: !And
+    - !Condition OrganizationSetup
+    - !Condition ManagementAccountSetup
 
 Resources:
 
@@ -205,6 +241,11 @@ Resources:
 
   CostOptimizerAdminRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: "W28"
+            reason: "Static naming is necessary for hub account to assume this role"
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -215,7 +256,12 @@ Resources:
               - "ecs-tasks.amazonaws.com"
           Action:
             - "sts:AssumeRole"
+      RoleName: !Join [ "-", [!FindInMap [Solution, Data, "RoleName"], !Ref "AWS::Region"] ]
+      Tags: 
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
       Path: "/"
+           
 
   CostOptimizerAdminPolicy:
     Type: AWS::IAM::Policy
@@ -249,13 +295,19 @@ Resources:
         - Effect: Allow
           Action:
           - s3:PutObject
-          Resource: 
+          Resource:
             - !Sub "arn:${AWS::Partition}:s3:::${CostOptimizerBucket}/*"
         - Effect: Allow
           Action:
           - cloudwatch:GetMetricStatistics
           Resource:
             - "*"
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Resource: !Sub
+            - "arn:${AWS::Partition}:iam::*:role/${RoleName}"
+            - RoleName: !Join [ "-", [!FindInMap [Solution, Data, "SpokeAccountWorkspacesRole"], !Ref "AWS::Region"] ]
       Roles:
       - !Ref CostOptimizerAdminRole
     Metadata:
@@ -264,7 +316,22 @@ Resources:
           - id: W12
             reason: "CloudWatch GetMetricStatistics does not support resource level permissions"
 
-  CostOptimizerLambdaRole:
+  CostOptimizerDynamoDBPolicy:
+    Type: AWS::IAM::Policy
+    Condition: MultiAccountDeployment
+    Properties:
+      PolicyName: CostOptimizerDynamoDBPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:Scan
+          Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SpokeAccountTable}"
+      Roles:
+        - !Ref CostOptimizerAdminRole
+
+  InvokeECSTaskRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -273,42 +340,34 @@ Resources:
         - Effect: Allow
           Principal:
             Service:
-              - lambda.amazonaws.com
+              - events.amazonaws.com
           Action:
             - sts:AssumeRole
+      Tags: 
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
       Path: "/"
+      
 
-  CostOptimizerLambdaPolicy:
+  InvokeECSTaskPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: CostOptimizerLambdaPolicy
+      PolicyName: InvokeECSTaskPolicy
       PolicyDocument:
         Version: 2012-10-17
         Statement:
         - Effect: Allow
           Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-          Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/{AWS::Partition}/lambda/*"
-        - Effect: Allow
-          Action:
           - ecs:RunTask
-          Resource: !Sub "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/wco-task"
+          Resource:
+          - !Sub "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/wco-task"
+          - !Sub "arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/wco-task:*"
         - Effect: Allow
           Action:
           - iam:PassRole
           Resource: !GetAtt CostOptimizerAdminRole.Arn
       Roles:
-      - !Ref CostOptimizerLambdaRole
-
-  ScheduleRulePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref CostOptimizerCreateTaskFunction
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt ScheduleRule.Arn
+      - !Ref InvokeECSTaskRole
 
   # Permissions & Policies [end]
 
@@ -325,6 +384,8 @@ Resources:
       Tags:
         - Key: Name
           Value: "cost-optimizer-vpc"
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -333,6 +394,8 @@ Resources:
       Tags:
         - Key: Name
           Value: "cost-optimizer-igw"
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -351,6 +414,8 @@ Resources:
       Tags:
         - Key: Name
           Value: "cost-optimizer-vpc-subnet1"
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   Subnet2:
     Type: AWS::EC2::Subnet
@@ -362,6 +427,8 @@ Resources:
       Tags:
         - Key: Name
           Value: "cost-optimizer-vpc-subnet2"
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   IntraVPCSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
@@ -372,6 +439,9 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: '-1'
           CidrIp: !Ref EgressCIDR
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -388,6 +458,8 @@ Resources:
       Tags:
         - Key: Name
           Value: "cost-optimizer-vpc-routetable"
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   RouteToInternet:
     Type: AWS::EC2::Route
@@ -437,6 +509,9 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
 
   CostOptimizerBucket:
     Type: AWS::S3::Bucket
@@ -459,9 +534,18 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeletionRule
+            Status: Enabled
+            ExpirationInDays: 365
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
-    Properties: 
+    Properties:
       Bucket: !Ref CostOptimizerBucket
       PolicyDocument:
         Statement:
@@ -475,7 +559,7 @@ Resources:
             Bool:
               aws:SecureTransport: 'false'
           Principal: "*"
-            
+
 
   # S3 [end]
 
@@ -485,6 +569,9 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Join [ "/", [!FindInMap [Solution, Data, "LogGroupName"], !Ref "AWS::StackName"] ]
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -505,6 +592,10 @@ Resources:
       ClusterSettings:
       - Name: containerInsights
         Value: enabled
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+      
 
   # Create the task definition
   CostOptimizerTaskDefinition:
@@ -518,15 +609,14 @@ Resources:
         - FARGATE
       ExecutionRoleArn: !GetAtt CostOptimizerAdminRole.Arn
       TaskRoleArn: !GetAtt CostOptimizerAdminRole.Arn
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
       ContainerDefinitions:
         - Name: "workspace-cost-optimizer"
           Image: !FindInMap [Solution, Data, "Image"]
           Essential: True
           Cpu: 256
-
-          # Environment variables can be customized by adding parameters/values below. Secrets
-          # should be stored in AWS Systems Manager Parameter Store.
-          # See: https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html
           Environment:
             - Name: LogLevel
               Value: !Ref LogLevel
@@ -571,54 +661,18 @@ Resources:
               Value: !Ref Regions
             - Name: TerminateUnusedWorkspaces
               Value: !Ref TerminateUnusedWorkspaces
-
+            - Name: SpokeAccountDynamoDBTable
+              Value:
+                Fn::If:
+                  - MultiAccountDeployment
+                  - !Ref SpokeAccountTable
+                  - !Ref AWS::NoValue
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
               awslogs-group: !Ref CostOptimizerLogs
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: "ecs"
-
-  CostOptimizerCreateTaskFunction:
-    Type: AWS::Lambda::Function
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W58
-            reason: "The lambda function has access to write logs"
-          - id: W89
-            reason: "The lambda function does not need access to resources in VPC"
-    Properties:
-      Role: !GetAtt CostOptimizerLambdaRole.Arn
-      Description: WorkspaceCostOptimizer CreateTask Lambda Function
-      Environment:
-        Variables:
-          CLUSTER: !FindInMap [Solution, Data, "ClusterName"]
-          TASK_DEFINITION: !FindInMap [Solution, Data, "TaskDefinitionName"]
-          SECURITY_GROUPS:
-            !If [CreateNewVPC, !Ref IntraVPCSecurityGroup, !Ref ExistingSecurityGroupId]
-          SUBNETS:
-            !If [CreateNewVPC, !Join [ ",", [ !Ref Subnet1, !Ref Subnet2 ]], !Join [ ",", [ !Ref ExistingSubnet1Id, !Ref ExistingSubnet2Id ]]]
-          USER_AGENT_STRING: !Sub
-            - "AwsSolution/${SolutionID}/${Version}"
-            - SolutionID: !FindInMap [Solution, Data, "ID"]
-              Version: !FindInMap [Solution, Data, "Version"]
-      Code:
-        S3Bucket: !Join
-          - '-'
-          - - "%DIST_BUCKET_NAME%"
-            - !Ref "AWS::Region"
-        S3Key: "%SOLUTION_NAME%/%VERSION%/workspaces-cost-optimizer.zip"
-      Handler: lambda/create-task.lambda_handler
-      Runtime: python3.8
-      Timeout: 300
-      ReservedConcurrentExecutions: 1
-
-  # For now we use a lambda to create the task and CloudEvent to schedule
-  # This choice was made so that the user can fire the task on-demand using the lambda, outside of the schedule
-  # Once the network properties are available via EcsParameters we can schedule directly
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-target.html#cfn-events-rule-target-ecsparameters
-  # Open ticket: https://sim.amazon.com/issues/CFN-4748
 
   ScheduleRule:
     Type: AWS::Events::Rule
@@ -627,8 +681,35 @@ Resources:
       ScheduleExpression: cron(00 23 * * ? *)
       State: ENABLED
       Targets:
-      - Arn: !GetAtt CostOptimizerCreateTaskFunction.Arn
-        Id: CostOptimizerCreateTaskFunction
+      - Arn: !GetAtt CostOptimizerCluster.Arn
+        Id: CostOptimizerTaskDefinition
+        RoleArn: !GetAtt InvokeECSTaskRole.Arn
+        EcsParameters:
+          LaunchType: "FARGATE"
+          NetworkConfiguration:
+            AwsVpcConfiguration:
+              AssignPublicIp: "ENABLED"
+              SecurityGroups:
+              - !If [CreateNewVPC, !Ref IntraVPCSecurityGroup, !Ref ExistingSecurityGroupId]
+              Subnets:
+              - !If
+                - CreateNewVPC
+                - !Ref Subnet1
+                - !Ref 'AWS::NoValue'
+              - !If
+                - CreateNewVPC
+                - !Ref Subnet2
+                - !Ref 'AWS::NoValue'
+              - !If
+                - UseExistingVPC
+                - !Ref ExistingSubnet1Id
+                - !Ref 'AWS::NoValue'
+              - !If
+                - UseExistingVPC
+                - !Ref ExistingSubnet2Id
+                - !Ref 'AWS::NoValue'
+          TaskDefinitionArn: !Ref CostOptimizerTaskDefinition
+
 
   # ECS/Fargate [end]
 
@@ -643,6 +724,8 @@ Resources:
             reason: "The lambda function has access to write logs"
           - id: W89
             reason: "The lambda function does not need access to resources in VPC"
+          - id: "W92"
+            reason: "The lambda function only executes on stack creation and deletion and so does not need reserved concurrency."
     Properties:
       Role: !GetAtt SolutionHelperRole.Arn
       Description: Solution Helper Lambda Function
@@ -651,9 +734,9 @@ Resources:
           - '-'
           - - "%DIST_BUCKET_NAME%"
             - !Ref "AWS::Region"
-        S3Key: "%SOLUTION_NAME%/%VERSION%/workspaces-cost-optimizer.zip"
-      Handler: lambda/uuid-helper.lambda_handler
-      Runtime: python3.8
+        S3Key: "%SOLUTION_NAME%/%VERSION%/uuid_helper.zip"
+      Handler: "uuid_helper/uuid_helper.lambda_handler"
+      Runtime: python3.9
       Timeout: 300
       Environment:
         Variables:
@@ -661,8 +744,12 @@ Resources:
             - "AwsSolution/${SolutionID}/${Version}"
             - SolutionID: !FindInMap [Solution, Data, "ID"]
               Version: !FindInMap [Solution, Data, "Version"]
-      ReservedConcurrentExecutions: 1
-
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+      
 
   SolutionHelperRole:
     Type: AWS::IAM::Role
@@ -674,6 +761,9 @@ Resources:
           Action: sts:AssumeRole
           Principal:
             Service: lambda.amazonaws.com
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
       Path: '/'
 
   SolutionHelperPolicy:
@@ -695,7 +785,7 @@ Resources:
           Resource: !GetAtt SolutionHelperRole.Arn
       Roles:
       - !Ref SolutionHelperRole
-      
+
   UUIDGenerator:
     Type: "Custom::UUIDGenerator"
     Properties:
@@ -714,6 +804,9 @@ Resources:
           Principal:
             Service: vpc-flow-logs.amazonaws.com
           Action: sts:AssumeRole
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
       Policies:
       - PolicyName: flowlogs-policy
         PolicyDocument:
@@ -730,6 +823,10 @@ Resources:
   FlowLogGroup:
     Type: AWS::Logs::LogGroup
     Condition: CreateNewVPC
+    Properties:
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -747,7 +844,265 @@ Resources:
       ResourceId: !Ref VPC
       ResourceType: VPC
       TrafficType: ALL
-      
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+
+  # DynamoDB
+
+  SpokeAccountTable:
+    Type: AWS::DynamoDB::Table
+    Condition: MultiAccountDeployment
+    Properties:
+      KeySchema:
+        - AttributeName: account_id
+          KeyType: HASH
+        - AttributeName: role_name
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: account_id
+          AttributeType: S
+        - AttributeName: role_name
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+
+
+
+  # Lambda Function
+
+  RegisterSpokeAccountsFunction:
+    Type: AWS::Lambda::Function
+    Condition: MultiAccountDeployment
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: "The lambda function has access to write logs"
+          - id: W89
+            reason: "The lambda function does not need access to resources in VPC"
+          - id: W92
+            reason: "ReservedConcurrentExecutions depends on the number of events for event bus"
+    Properties:
+      Role: !GetAtt RegisterSpokeAccountsFunctionLambdaRole.Arn
+      Description: Lambda function to add spoke accounts to DynamoDB table
+      FunctionName: !Join [ "-", [!FindInMap [Solution, Data, "RegisterLambdaFunctionName"], !Ref "AWS::Region"] ]
+      Environment:
+        Variables:
+          USER_AGENT_STRING: !Sub
+            - "AwsSolution/${SolutionID}/${Version}"
+            - SolutionID: !FindInMap [Solution, Data, "ID"]
+              Version: !FindInMap [Solution, Data, "Version"]
+          DDB_TABLE_NAME: !Ref SpokeAccountTable
+          LOG_LEVEL: !Ref "LogLevel"
+      Code:
+        S3Bucket: !Join
+          - '-'
+          - - "%DIST_BUCKET_NAME%"
+            - !Ref "AWS::Region"
+        S3Key: "%SOLUTION_NAME%/%VERSION%/register_spoke_lambda.zip"
+      Handler: register_spoke_lambda/register_spoke_accounts.lambda_handler
+      Runtime: python3.9
+      Timeout: 300
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+
+  # Lambda function Role
+
+  RegisterSpokeAccountsFunctionLambdaRole:
+    Type: AWS::IAM::Role
+    Condition: MultiAccountDeployment
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+      Path: "/"
+
+  # Lambda function policy
+
+  RegisterSpokeAccountsFunctionLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Condition: MultiAccountDeployment
+    Properties:
+      PolicyName: CostOptimizerLambdaPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/${AWS::Partition}/lambda/*"
+        - Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SpokeAccountTable}"
+        - Effect: Allow
+          Action:
+          - iam:PassRole
+          Resource: !GetAtt RegisterSpokeAccountsFunctionLambdaRole.Arn
+      Roles:
+      - !Ref RegisterSpokeAccountsFunctionLambdaRole
+
+  RegisterSpokeAccountsFunctionResourcePolicy:
+    Type: AWS::Lambda::Permission
+    Condition: MultiAccountDeployment
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F13
+            reason: "Lambda principal is a wildcard to allow persmissions to all accounts in the Organization."
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RegisterSpokeAccountsFunction
+      Principal: '*'
+      PrincipalOrgID: !Ref OrganizationID
+
+  S3GatewayEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: CreateNewVPC
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:PutObject'
+            Resource:
+              - !Sub "arn:${AWS::Partition}:s3:::${CostOptimizerBucket}/*"
+      RouteTableIds:
+        - !Ref MainRouteTable
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+
+  DynamoDBGatewayEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: CreateDynamoDBEndpoint
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'dynamodb:Scan'
+            Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SpokeAccountTable}"
+      RouteTableIds:
+        - !Ref MainRouteTable
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.dynamodb'
+      VpcId: !Ref VPC
+
+  # AppRegistry Application
+  Application:
+    Type: AWS::ServiceCatalogAppRegistry::Application
+    Properties:
+      Description: Service Catalog application to track and manage all your resources. The SolutionID SO0018 is and SolutionVersion is %VERSION%.
+                   The ApplicationType is AWS-Solutions and SolutionDomain is CloudFoundations.
+      Name:
+        !Join
+          - "-"
+          - - !FindInMap [Solution, Data, "AppRegistryApplicationName"]
+            - !Ref AWS::Region
+            - !Ref AWS::AccountId
+      Tags: {
+      'SolutionID': !FindInMap [Solution, Data, "ID"],
+      'SolutionName': !FindInMap [Solution, Data, "SolutionName"],
+      'SolutionVersion': !FindInMap [Solution, Data, "Version"],
+      'ApplicationType': 'AWS-Solutions',
+      'SolutionDomain': 'CloudFoundations',
+      'CloudFoundations:CostOptimizerForWorkspaces': !Ref "AWS::StackName"
+      }
+
+  AppRegistryApplicationStackAssociation:
+    Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
+    Properties:
+      Application: !GetAtt Application.Id
+      Resource:
+        !Ref AWS::StackId
+      ResourceType: CFN_STACK
+
+  ApplicationShare:
+    Type: AWS::RAM::ResourceShare
+    Condition: MultiAccountDeployment
+    Properties: 
+        Name: 
+          !Ref AWS::StackName
+        AllowExternalPrincipals: False
+        PermissionArns: 
+          - arn:aws:ram::aws:permission/AWSRAMPermissionServiceCatalogAppRegistryApplicationAllowAssociation
+        Principals: 
+          - !Sub "arn:${AWS::Partition}:organizations::${ManagementAccountId}:organization/${OrganizationID}"
+        ResourceArns: 
+          - !GetAtt Application.Arn
+        Tags:
+          - Key: !FindInMap [Solution, Data, "TagKey"]
+            Value: !Ref "AWS::StackName"
+
+  DefaultApplicationAttributes:
+    Type: AWS::ServiceCatalogAppRegistry::AttributeGroup
+    Properties:
+      Name: CloudFoundationsSolutions
+      Description: Cost Optimizer for Amazon WorkSpaces.
+      Attributes:       
+        { "ApplicationType" : "AWS Solution",
+          "Author" : "CloudFoundations",
+          "Team" : "Mgmt-Gov",
+          "Version": !FindInMap [Solution, Data, "Version"],
+          "SolutionID": !FindInMap [Solution, Data, "ID"],
+          "SolutionName": !FindInMap [Solution, Data, "SolutionName"]
+        }
+      Tags: {'CloudFoundations:CostOptimizerForWorkspaces': !Ref "AWS::StackName"}
+
+  AppRegistryApplicationAttributeAssociation:
+    Type: AWS::ServiceCatalogAppRegistry::AttributeGroupAssociation
+    Properties:
+      Application: !GetAtt Application.Id
+      AttributeGroup: !GetAtt DefaultApplicationAttributes.Id
+  
+  ApplicationInsightsConfiguration:
+    Type: AWS::ApplicationInsights::Application
+    DependsOn:
+      - Application
+    Properties: 
+      ResourceGroupName:
+        !Join
+          - "-"
+          - - AWS_AppRegistry_Application
+            - !FindInMap [Solution, Data, "AppRegistryApplicationName"]
+            - !Ref AWS::Region
+            - !Ref AWS::AccountId
+      AutoConfigurationEnabled: true
+      CWEMonitorEnabled: true
+      OpsCenterEnabled: true
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+
+
 
   # External Resources [end]
 
