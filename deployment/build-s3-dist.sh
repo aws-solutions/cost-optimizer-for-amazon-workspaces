@@ -1,103 +1,128 @@
-#!/bin/bash
-# This assumes all of the OS-level configuration has been completed and git repo has already been cloned 
-# 
-# This script should be run from the repo's home directory 
-# 
-# ./deployment/build-s3-dist.sh source-bucket-base-name trademarked-solution-name version-code 
-# 
-# Parameters: 
+#!/usr/bin/env bash
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+[[ "$TRACE" ]] && set -x
+set -eo pipefail
+
+header() {
+  declare text=$1
+  echo "------------------------------------------------------------------------------"
+  echo "$text"
+  echo "------------------------------------------------------------------------------"
+}
+
+usage() {
+  echo "Please provide the base template-bucket, source-bucket-base-name, trademark-approved-solution-name and version"
+  echo "For example: ./deployment/build-s3-dist.sh solutions solutions-code trademarked-solution-name v2.2"
+}
+
+pack_lambda() {
+  # Pack source_dir/package_name into build_dist_dir/package_name.zip with included files
+  local source_dir=$1; shift
+  local package_name=$1; shift
+  local build_dist_dir=$1; shift
+  local includes="$@"
+
+  local package_temp_dir="$build_dist_dir"/"$package_name"
+  [[ -d "$package_temp_dir" ]] && rm -r "$package_temp_dir"
+  mkdir -p "$package_temp_dir"
+
+  cp -r "$source_dir"/"$package_name" "$package_temp_dir"
+  for include_file in ${includes[@]}; do
+    cp "$include_file" "$package_temp_dir"
+  done
+
+  pushd "$package_temp_dir"
+  local exclude_dirs=("__pycache__" "__tests__")
+  for exclude_dir in ${exclude_dirs[@]}; do
+    find . -type d -name "$exclude_dir" | xargs rm -rf
+  done
+
+  echo "Packed lambda $package_name contents:"
+  ls -AlR
+  zip -q -r9 "$build_dist_dir"/"$package_name".zip .
+
+  popd
+  rm -r "$package_temp_dir"
+}
+
+# ./deployment/build-s3-dist.sh source-bucket-base-name trademarked-solution-name version-code
+#
+# Parameters:
 #  - template-bucket: Name for the S3 bucket location where the templates are found
-#  - source-bucket-base-name: Name for the S3 bucket location where the Lambda source 
+#  - source-bucket-base-name: Name for the S3 bucket location where the Lambda source
 #    code is deployed. The template will append '-[region_name]' to this bucket name.
-#  - trademarked-solution-name: name of the solution for consistency 
-#  - version-code: version of the package 
+#  - trademarked-solution-name: name of the solution for consistency
+#  - version-code: version of the package
 #
 #    For example: ./deployment/build-s3-dist.sh template-bucket source-bucket-base-name my-solution v2.2
-#    The template will then expect the source code to be located in the solutions-[region_name] bucket 
-# 
-# Check to see if input has been provided: 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then 
-    echo "Please provide the base template-bucket, source-bucket-base-name, trademark-approved-solution-name and version" 
-    echo "For example: ./deployment/build-s3-dist.sh solutions solutions-code trademarked-solution-name v2.2" 
-    exit 1 
-fi 
+#    The template will then expect the source code to be located in the solutions-[region_name] bucket
+main() {
+  declare template_bucket=$1 source_bucket=$2 solution=$3 version=$4
+  if [ -z "$template_bucket" ] || [ -z "$source_bucket" ] || [ -z "$solution" ] || [ -z "$version" ]; then
+    usage
+    exit 1
+  fi
 
-echo "template bucket = $1"
-echo "source bucket = $2"
-echo "solution = $3"
-echo "version = $4"
+  echo "template bucket = $template_bucket"
+  echo "source bucket = $source_bucket"
+  echo "solution = $solution"
+  echo "version = $version"
 
-# Get reference for all important folders 
-template_dir="$PWD" 
-source_dir="$template_dir/../source"
+  local root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
+  local template_dir="$root_dir"/deployment
+  local source_dir="$root_dir"/source
 
-# There are now TWO dist directories
-template_dist_dir="$template_dir/global-s3-assets" 
-build_dist_dir="$template_dir/regional-s3-assets"
+  local template_dist_dir="$template_dir"/global-s3-assets
+  local build_dist_dir="$template_dir"/regional-s3-assets
 
-wco_folder="$template_dir/ecr/workspaces-cost-optimizer"
+  local wco_folder="$template_dir"/ecr/workspaces-cost-optimizer
 
-echo "------------------------------------------------------------------------------"
-echo "[Init] Clean old dist and template folders"
-echo "------------------------------------------------------------------------------"
+  header "[Init] Clean old dist and template folders"
 
-echo "rm -rf $template_dist_dir" 
-rm -rf $template_dist_dir 
-echo "mkdir -p $template_dist_dir" 
-mkdir -p $template_dist_dir 
+  local clean_directories=("$template_dist_dir" "$build_dist_dir" "$wco_folder")
+  for dir in ${clean_directories[@]}; do
+    rm -rf "$dir"
+    mkdir -p "$dir"
+  done
 
-echo "rm -rf $build_dist_dir" 
-rm -rf $build_dist_dir 
-echo "mkdir -p $build_dist_dir" 
-mkdir -p $build_dist_dir 
+  header "[Packing] Templates"
 
-echo "mkdir -p $wco_folder"
-mkdir -p $wco_folder
+  echo "Updating tokens in template with token values"
 
-echo "------------------------------------------------------------------------------"
-echo "[Packing] Template"
-echo "------------------------------------------------------------------------------"
+  echo "PUBLIC_ECR_REGISTRY = $PUBLIC_ECR_REGISTRY"
+  echo "PUBLIC_ECR_TAG = $PUBLIC_ECR_TAG"
 
-# Replace tokens with parameter values and write to template directory
-echo "Updating tokens in template with token values"
+  local replace_regexes=(
+    "s/%TEMPLATE_BUCKET_NAME%/$template_bucket/g"
+    "s/%DIST_BUCKET_NAME%/$source_bucket/g"
+    "s/%SOLUTION_NAME%/$solution/g"
+    "s/%VERSION%/$version/g"
+    "s|PUBLIC_ECR_REGISTRY|$PUBLIC_ECR_REGISTRY|g"
+    "s/PUBLIC_ECR_TAG/$PUBLIC_ECR_TAG/g"
+  )
+  replace_args=()
+  for regex in ${replace_regexes[@]}; do
+    replace_args=(-e "$regex" "${replace_args[@]}")
+  done
 
-TEMPLATE="workspaces-cost-optimizer.template"
-SUB1="s/%TEMPLATE_BUCKET_NAME%/$1/g"
-SUB2="s/%DIST_BUCKET_NAME%/$2/g"
-SUB3="s/%SOLUTION_NAME%/$3/g"
-SUB4="s/%VERSION%/$4/g"
+  templates=(workspaces-cost-optimizer.template workspaces-cost-optimizer-spoke.template)
+  for template in ${templates[@]}; do
+    sed ${replace_args[@]} "$template_dir"/"$template" > "$template_dist_dir"/"$template"
+  done
 
-sed -e $SUB1 -e $SUB2 -e $SUB3 -e $SUB4 ./$TEMPLATE > $template_dist_dir/$TEMPLATE
+  header "[Packing] lambda code"
 
-echo "***** public ECR registry: $PUBLIC_ECR_REGISTRY"
-replace="s|PUBLIC_ECR_REGISTRY|$PUBLIC_ECR_REGISTRY|g" # "|" is used as a delimiter because $PUBLIC_ECR_REGISTRY includes "/"
-echo "sed -i -e $replace"
-sed -i -e $replace $template_dist_dir/$TEMPLATE
+  pack_lambda "$source_dir" uuid_helper "$build_dist_dir" "$source_dir"/lib/cfnresponse.py
+  pack_lambda "$source_dir" account_registration_provider "$build_dist_dir" "$source_dir"/lib/cfnresponse.py
+  pack_lambda "$source_dir" register_spoke_lambda "$build_dist_dir"
 
-echo "***** public ECR tag: $PUBLIC_ECR_TAG"
-replace="s/PUBLIC_ECR_TAG/$PUBLIC_ECR_TAG/g"
-echo "sed -i -e $replace"
-sed -i -e $replace $template_dist_dir/$TEMPLATE
+  header "[Copying] Dockerfile and code artifacts to deployment/ecr folder"
 
-# Build Lambda zip
-echo "------------------------------------------------------------------------------"
-echo "[Packing] lambda code"
-echo "------------------------------------------------------------------------------"
+  cp "$source_dir"/Dockerfile "$wco_folder"
+  cp "$source_dir"/.dockerignore "$wco_folder"
+  cp -r "$source_dir"/workspaces_app "$wco_folder"
+  cp -r "$source_dir"/docker "$wco_folder"
+}
 
-cd $source_dir
-# install third party library for python 3.8, 3.7 used botocore.vendor.requests
-pip3 install -r ../source/requirements.txt -t .
-ls -alt
-zip -q -r9 $build_dist_dir/workspaces-cost-optimizer.zip .
-echo "Completed building distribution"
-cd $template_dir
-
-
-echo "------------------------------------------------------------------------------"
-echo "[Copying] Dockerfile and code artifacts to deployment/ecr folder"
-echo "------------------------------------------------------------------------------"
-
-echo "$source_dir/Dockerfile $wco_folder"
-cp $source_dir/Dockerfile $wco_folder
-echo "-r $source_dir/ecs $wco_folder"
-cp -r $source_dir/ecs $wco_folder
+main "$@"

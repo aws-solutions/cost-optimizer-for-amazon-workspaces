@@ -1,9 +1,10 @@
-FROM python:3.8.10
+FROM python:3.9.13-slim-buster
 
-COPY ecs/workspaces_app.py /app/workspaces_app.py
-COPY ecs /app/ecs
+COPY workspaces_app /workspaces_app
 
-WORKDIR /app
-RUN pip install boto3~=1.17.28
-RUN pip install requests~=2.22.0
-CMD python ./workspaces_app.py
+WORKDIR /workspaces_app
+
+RUN pip install -r ./setup_requirements.txt
+RUN pip install -r ./requirements.txt
+
+CMD python3 ./main.py
