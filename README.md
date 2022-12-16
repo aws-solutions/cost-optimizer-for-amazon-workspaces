@@ -39,7 +39,7 @@ For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://
 Clone the repository
 
 ```
-git clone git@github.com:awslabs/workspaces-cost-optimizer.git
+git clone git@github.com:aws-solutions/workspaces-cost-optimizer.git
 ```
 
 Create a distribution S3 bucket with the format 'MY-BUCKET-<aws_region>'. The solution's CloudFormation template will expect the 
