@@ -194,7 +194,7 @@ Resources:
   DefaultApplicationAttributes:
     Type: AWS::ServiceCatalogAppRegistry::AttributeGroup
     Properties:
-      Name: !Ref "AWS::StackName"
+      Name: !Sub '${AWS::Region}-${AWS::StackName}'
       Description: Metadata describing the AWS solution being run
       Attributes:       
             { "ApplicationType" : "WebService",
@@ -218,21 +218,6 @@ Resources:
             - !Ref HubAccountId
       AttributeGroup: !GetAtt DefaultApplicationAttributes.Id
         
-  ApplicationInsightsConfiguration:
-    Type: AWS::ApplicationInsights::Application
-    Properties: 
-      ResourceGroupName:
-        !Join
-          - "-"
-          - - AWS_CloudFormation_Stack
-            - Ref: AWS::StackName
-      AutoConfigurationEnabled: true
-      CWEMonitorEnabled: true
-      OpsCenterEnabled: true  
-      Tags:
-        - Key: !FindInMap [Solution, Data, "TagKey"]
-          Value: !Ref "AWS::StackName"
-
 Outputs:
   SolutionID:
     Value: !FindInMap ["Solution", "Data", "ID"]
