@@ -1083,6 +1083,25 @@ Resources:
       Application: !GetAtt Application.Id
       AttributeGroup: !GetAtt DefaultApplicationAttributes.Id
 
+  ApplicationInsightsConfiguration:
+    Type: AWS::ApplicationInsights::Application
+    DependsOn:
+      - Application
+    Properties: 
+      ResourceGroupName:
+        !Join
+          - "-"
+          - - AWS_AppRegistry_Application
+            - !FindInMap [Solution, Data, "AppRegistryApplicationName"]
+            - !Ref AWS::Region
+            - !Ref AWS::AccountId
+      AutoConfigurationEnabled: true
+      CWEMonitorEnabled: true
+      OpsCenterEnabled: true
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+
 
   # External Resources [end]
 

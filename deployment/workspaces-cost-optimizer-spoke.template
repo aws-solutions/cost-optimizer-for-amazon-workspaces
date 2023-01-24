@@ -217,7 +217,22 @@ Resources:
             - !Ref AWS::Region
             - !Ref HubAccountId
       AttributeGroup: !GetAtt DefaultApplicationAttributes.Id
-        
+
+  ApplicationInsightsConfiguration:
+    Type: AWS::ApplicationInsights::Application
+    Properties: 
+      ResourceGroupName:
+        !Join
+          - "-"
+          - - AWS_CloudFormation_Stack
+            - Ref: AWS::StackName
+      AutoConfigurationEnabled: true
+      CWEMonitorEnabled: true
+      OpsCenterEnabled: true  
+      Tags:
+        - Key: !FindInMap [Solution, Data, "TagKey"]
+          Value: !Ref "AWS::StackName"
+                  
 Outputs:
   SolutionID:
     Value: !FindInMap ["Solution", "Data", "ID"]
