@@ -5,6 +5,10 @@
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.5.1] - 2023-01
+ ### Fixed
+ - Fixed vulnerabilities py [CVE-2022-42969](https://nvd.nist.gov/vuln/detail/CVE-2022-42969), pytest, requests, certifi [CVE-2022-23491](https://nvd.nist.gov/vuln/detail/CVE-2022-23491)
+
  ## [2.5] - 2022-08
  ### Added
  - Added support for AWS Organizations

@@ -1082,7 +1082,7 @@ Resources:
     Properties:
       Application: !GetAtt Application.Id
       AttributeGroup: !GetAtt DefaultApplicationAttributes.Id
-  
+
   ApplicationInsightsConfiguration:
     Type: AWS::ApplicationInsights::Application
     DependsOn:
@@ -1101,7 +1101,6 @@ Resources:
       Tags:
         - Key: !FindInMap [Solution, Data, "TagKey"]
           Value: !Ref "AWS::StackName"
-
 
 
   # External Resources [end]

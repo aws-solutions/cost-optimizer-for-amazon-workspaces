@@ -982,3 +982,124 @@ def test_get_workspaces_for_directory_return_exception(session):
     response = workspace_helper.get_workspaces_for_directory(directory_id)
     client_stubber.activate()
     assert response == []
+
+
+def test_append_entry(session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    test_params = {
+        'workspaceID': 'workspaceID',
+        'billableTime': 'billableTime',
+        'hourlyThreshold': 'hourlyThreshold',
+        'optimizationResult': 'optimizationResult',
+        'bundleType': 'bundleType',
+        'initialMode': 'initialMode',
+        'newMode': 'newMode',
+        'userName': 'userName',
+        'computerName': 'computerName',
+        'directoryId': 'directoryId',
+        'workspaceTerminated': 'workspaceTerminated',
+        'tags': 'tags'
+    }
+    old_csv = ""
+    expected = 'workspaceID,billableTime,hourlyThreshold,optimizationResult,bundleType,initialMode,newMode,userName,computerName,directoryId,workspaceTerminated,"tags"\n'
+    assert workspace_helper.append_entry(old_csv, test_params) == expected
+
+
+def test_expand_csv(session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    raw_csv = ",-M-,-H-,-E-,-N-,-S-"
+    expanded_csv = ",ToMonthly,ToHourly,Failed to change the mode,No Change,Skipped"
+    assert workspace_helper.expand_csv(raw_csv) == expanded_csv
+
+
+def test_get_tags(mocker, session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    tags = { 'TagList': ['tags'] }
+    workspace_id = 1
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    mocker.patch.object(workspace_helper.workspaces_client, 'describe_tags')
+    workspace_helper.workspaces_client.describe_tags.return_value = tags
+    assert workspace_helper.get_tags(workspace_id) == ['tags']
+
+def test_compare_usage_metrics_null_billable_time(session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    new_mode = "ALWAYS_ON"
+    expected = {
+        'resultCode': '-E-',
+        'newMode': new_mode
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    assert workspace_helper.compare_usage_metrics(1,None,None,new_mode) == expected
+
+
+def test_compare_usage_metrics_null_hourly_threshold(session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    new_mode = "ALWAYS_ON"
+    expected = {
+        'resultCode': '-S-',
+        'newMode': new_mode
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    assert workspace_helper.compare_usage_metrics(1,1,None,new_mode) == expected
+
+
+def test_compare_usage_metrics_invalid_workspace_running_mode(session):
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'TerminateUnusedWorkspaces': 'Dry Run'
+    }
+    new_mode = "INVALID_WORKSPACE_RUNNING_MODE"
+    expected = {
+        'resultCode': '-S-',
+        'newMode': new_mode
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    assert workspace_helper.compare_usage_metrics(1,1,None,new_mode) == expected
