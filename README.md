@@ -27,7 +27,9 @@ To help customers with unpredictable WorkSpace usage patterns monitor their Amaz
 
 <a name="getting-started"></a>
 # Getting Started
+
 Deploy the [WorkSpaces Cost Optimizer CloudFormation Template](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
+
 For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)
 
 <a name="aws-solutions-constructs"></a><a name="customizing-the-solution"></a>
@@ -42,11 +44,11 @@ Clone the repository
 git clone git@github.com:awslabs/workspaces-cost-optimizer.git
 ```
 
-Create a distribution S3 bucket with the format 'MY-BUCKET-<aws_region>'. The solution's CloudFormation template will expect the 
-source code to be located in this bucket. <aws_region> is where you are testing the customized solution.
+Create a distribution S3 bucket with the format `MY-BUCKET-<aws_region>`. The solution's CloudFormation template will expect the 
+source code to be located in this bucket. `<aws_region>` is where you are testing the customized solution.
 
 Note: When you create a bucket, a randomized value unique to your environment is recommended for the bucket name. 
-As a best practice, enable the server side encryption and also block the public access to the bucket.
+As a best practice, enable the server side encryption and also block public access to the bucket.
 
 ```
 export TEMPLATE_OUTPUT_BUCKET=<YOUR_TEMPLATE_BUCKET_NAME>
@@ -56,7 +58,7 @@ export VERSION=<VERSION>
 ## NOTE THAT the region is appended to the DIST_BUCKET_NAME (DIST_BUCKET_NAME-REGION) when deployed, so creating a bucket with only Bucket_Name will not work.
 ```
 
-change the working directory to the deployment folder
+Change the working directory to the deployment folder
 
 ```
 cd deployment
@@ -84,8 +86,9 @@ chmod +x "./run-unit-tests.sh" && "./run-unit-tests.sh"
 
 <a name="deploy"></a>
 ## Deploy
-Get the link of the workspaces-cost-optimizer.template loaded to your Amazon S3 bucket.
-Deploy the Workspaces Cost Optimizer solution to your account by launching a new AWS CloudFormation stack using the link of the workspaces-cost-optimizer.template.
+Get the link of the `workspaces-cost-optimizer.template` loaded to your Amazon S3 bucket.
+
+Deploy the Workspaces Cost Optimizer solution to your account by launching a new AWS CloudFormation stack using the link of the `workspaces-cost-optimizer.template`.
 
 <a name="file-structure"></a>
 # File structure
@@ -186,4 +189,4 @@ this capability, please see the
 # License
 
 See license
-[here](https://github.com/awslabs/%3Cinsert-solution-repo-name%3E/blob/master/LICENSE.txt)
+[here](https://github.com/awslabs/%3Cinsert-solution-repo-name%3E/blob/master/LICENSE.txt).
