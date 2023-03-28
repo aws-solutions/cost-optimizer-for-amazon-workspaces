@@ -14,6 +14,6 @@ __pycache__/
 .DS_Store
 
 source/node_modules/
-soource/build
+source/build
 cdk.out
 coverage

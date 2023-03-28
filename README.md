@@ -1,4 +1,4 @@
-*[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/cost-optimizer-for-amazon-workspaces/)** | **[🚧 Feature request](https://github.com/aws-solutions/workspaces-cost-optimizer/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)** | **[🐛 Bug Report](https://github.com/aws-solutions/workspaces-cost-optimizer/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)**
+*[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/cost-optimizer-for-amazon-workspaces/)** | **[🚧 Feature request](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)** | **[🐛 Bug Report](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)**
 
 Note: If you want to use the solution without building from source, navigate to Solution Landing Page.
 
@@ -29,7 +29,7 @@ To help customers with unpredictable WorkSpace usage patterns monitor their Amaz
 # Getting Started
 For deployment flexability and backwards compatability, there are two ways of deploying this solution: via Cloudformation and via CDK. The simplest way to get started is via AWS Cloudformation's WebUI. The programatic way via CDK allows customization of input parameters. Feel free to choose either ways of deployment to fit your needs.
 
-Deploy via the [CloudFormation Template for WorkSpaces Cost Optimizer](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
+Deploy via the [CloudFormation Template for WorkSpaces Cost Optimizer](https://solutions-reference.s3.amazonaws.com/cost-optimizer-for-amazon-workspaces/latest/cost-optimizer-for-amazon-workspaces.template)
 
 Deploy via [CDKv2](https://docs.aws.amazon.com/cdk/v2/guide/home.html) with [npm](https://docs.npmjs.com/):
 
@@ -52,7 +52,7 @@ npm run deploy -- --profile ${AWS_PROFILE} --parameters CreateNewVPC=Yes
 ```
 
 
-For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)
+For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/solutions/implementations/cost-optimizer-for-amazon-workspaces/)
 
 <a name="aws-solutions-constructs"></a><a name="customizing-the-solution"></a>
 # Customizing the Solution
@@ -256,4 +256,4 @@ this capability, please see the
 # License
 
 See license
-[here](https://github.com/aws-solutions/workspaces-cost-optimizer/blob/main/LICENSE.txt).
+[here](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/blob/main/LICENSE.txt).
