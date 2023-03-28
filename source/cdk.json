@@ -1,0 +1,9 @@
+{
+    "app": "npx ts-node bin/cost-optimizer-for-amazon-workspaces-solution.ts",
+    "context": {
+        "solution_id": "SO0018",
+        "solution_name": "cost-optimizer-for-amazon-workspaces",
+        "solution_version": "%%VERSION%%"
+    },
+    "versionReporting": false
+}

@@ -46,7 +46,6 @@ def test_process_input_regions_4():
     result = main.process_input_regions('"us-west-2", "us-east-1", us-east-2', valid_workspaces_regions)
     assert result == {'us-east-1', 'us-west-2'}
 
-
 def test_process_input_regions_5():
     valid_workspaces_regions = ['us-east-1', 'us-west-2']
     result = main.process_input_regions('"us-west-2", us-east-2, 1234,ajdfbkjfb', valid_workspaces_regions)
@@ -92,7 +91,7 @@ def test_get_valid_workspaces_regions(mock_session):
         'aws-cn': ['cn-northwest-1'],
         'aws': ['ap-northeast-1', 'ap-northeast-2', 'ap-south-1', 'ap-southeast-1',
                 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2',
-                'sa-east-1', 'us-east-1', 'us-west-2'],
+                'sa-east-1', 'us-east-1', 'us-west-2', 'af-south-1'],
         'aws-iso': ['us-iso-east-1', 'us-iso-west-1'],
         'aws-iso-b': ['us-isob-east-1']
     }

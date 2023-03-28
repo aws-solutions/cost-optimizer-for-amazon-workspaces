@@ -12,12 +12,12 @@ from register_spoke_lambda.dynamodb_table import DynamoDBTable
 
 
 def test_lambda_handler_put_item(mocker):
-    event = {
-        'account_id': '123456789123',
-        'request_type': 'Register',
-        'role_arn': 'arn:aws:iam::123456789123:role/Admin'
-    }
     context = {}
+    event = {
+        'account_id': '111111111111',
+        'request_type': 'Register',
+        'role_arn': 'arn:aws:iam::111111111111:role/Admin'
+    }
     mocker.patch.object(DynamoDBTable, 'put_item')
     spy_put_item = mocker.spy(DynamoDBTable, 'put_item')
     response = register_spoke_accounts.lambda_handler(event, context)
@@ -26,12 +26,12 @@ def test_lambda_handler_put_item(mocker):
 
 
 def test_lambda_handler_delete_item(mocker):
-    event = {
-        'account_id': '123456789123',
-        'request_type': 'Unregister',
-        'role_arn': 'arn:aws:iam::123456789123:role/Admin'
-    }
     context = {}
+    event = {
+        'account_id': '111111111111',
+        'request_type': 'Unregister',
+        'role_arn': 'arn:aws:iam::111111111111:role/Admin'
+    }
     mocker.patch.object(DynamoDBTable, 'delete_item')
     spy_delete_item = mocker.spy(DynamoDBTable, 'delete_item')
     response = register_spoke_accounts.lambda_handler(event, context)
@@ -40,12 +40,12 @@ def test_lambda_handler_delete_item(mocker):
 
 
 def test_lambda_handler_error_response(mocker):
+    context = {}
     event = {
         'account_id': 'test',
         'request_type': 'Unregister',
-        'role_arn': 'arn:aws:iam::123456789123:role/Admin'
+        'role_arn': 'arn:aws:iam::111111111111:role/Admin'
     }
-    context = {}
     mocker.patch.object(DynamoDBTable, 'delete_item')
     response = register_spoke_accounts.lambda_handler(event, context)
     assert response == {'status': {'code': 'Failed', 'message': 'Error while processing the request',

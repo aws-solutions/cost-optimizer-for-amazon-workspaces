@@ -3,14 +3,13 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import json
 import re
 import logging
 from enum import Enum
 
-REGEX_ACCOUNT_ID = "^([0-9]{12})$"
-REGEX_ROLE_ARN = r"^arn:[A-Za-z-]*:iam::[0-9]{12}:role\/[a-zA-Z0-9_+=,.@-]*$"
+REGEX_ACCOUNT_ID = r"^(\d{12})$"
+REGEX_ROLE_ARN = r"^arn:[A-Za-z-]*:iam::\d{12}:role\/[a-zA-Z0-9_+=,.@-]*$"
 
 # Initialize log level
 log = logging.getLogger(__name__)

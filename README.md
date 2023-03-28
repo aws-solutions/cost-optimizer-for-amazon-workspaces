@@ -1,4 +1,4 @@
-**[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)** | **[🚧 Feature request](https://github.com/awslabs/<insert-solution-repo-name>/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)** | **[🐛 Bug Report](https://github.com/awslabs/<insert-solution-repo-name>/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)**
+*[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/cost-optimizer-for-amazon-workspaces/)** | **[🚧 Feature request](https://github.com/aws-solutions/workspaces-cost-optimizer/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)** | **[🐛 Bug Report](https://github.com/aws-solutions/workspaces-cost-optimizer/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)**
 
 Note: If you want to use the solution without building from source, navigate to Solution Landing Page.
 
@@ -19,7 +19,7 @@ Note: If you want to use the solution without building from source, navigate to 
 # Solution Overview
 Amazon WorkSpaces, a fully managed, secure virtual desktop computing service on the AWS Cloud, eliminates the need for customers to procure, deploy, and manage complex virtual desktop environments. Amazon WorkSpaces offers the flexibility to pay hourly or monthly without any up-front commitment.
 
-To help customers with unpredictable WorkSpace usage patterns monitor their Amazon WorkSpaces usage and optimize costs, AWS offers the Amazon WorkSpaces Cost Optimizer, a solution that analyzes all of your WorkSpace usage data and automatically converts the WorkSpace to the most cost-effective billing option (hourly or monthly) depending on the user's individual usage. This solution is easy to deploy and uses AWS CloudFormation to automatically provision and configure the necessary AWS services.
+To help customers with unpredictable WorkSpace usage patterns monitor their Amazon WorkSpaces usage and optimize costs, AWS offers the Amazon WorkSpaces Cost Optimizer, a solution that analyzes all of your WorkSpace usage data and automatically converts the WorkSpace to the most cost-effective billing option (hourly or monthly) depending on the user's individual usage. This solution is easy to deploy and gives a choice to use either [AWS Cloudformation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) or [AWS CDKv2](https://docs.aws.amazon.com/cdk/v2/guide/home.html) to automatically provision and configure the necessary AWS services.
 
 <a name="architecture-diagram"></a>
 # Architecture Diagram
@@ -27,7 +27,31 @@ To help customers with unpredictable WorkSpace usage patterns monitor their Amaz
 
 <a name="getting-started"></a>
 # Getting Started
-Deploy the [WorkSpaces Cost Optimizer CloudFormation Template](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
+For deployment flexability and backwards compatability, there are two ways of deploying this solution: via Cloudformation and via CDK. The simplest way to get started is via AWS Cloudformation's WebUI. The programatic way via CDK allows customization of input parameters. Feel free to choose either ways of deployment to fit your needs.
+
+Deploy via the [CloudFormation Template for WorkSpaces Cost Optimizer](https://s3.amazonaws.com/solutions-reference/workspaces-cost-optimizer/latest/workspaces-cost-optimizer.template)
+
+Deploy via [CDKv2](https://docs.aws.amazon.com/cdk/v2/guide/home.html) with [npm](https://docs.npmjs.com/):
+
+
+[Preconfigure aws profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
+```
+git clone git@github.com:aws-solutions/workspaces-cost-optimizer.git
+
+cd source 
+
+npm install
+
+# set your preconfigured aws profile in ~/.aws/credentials
+export AWS_PROFILE=""
+export DIST_OUTPUT_BUCKET=solutions
+
+npm run bootstrap -- --profile ${AWS_PROFILE}
+
+npm run deploy -- --profile ${AWS_PROFILE} --parameters CreateNewVPC=Yes
+```
+
+
 For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://aws.amazon.com/solutions/implementations/amazon-workspaces-cost-optimizer/)
 
 <a name="aws-solutions-constructs"></a><a name="customizing-the-solution"></a>
@@ -39,24 +63,24 @@ For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://
 Clone the repository
 
 ```
-git clone git@github.com:awslabs/workspaces-cost-optimizer.git
+git clone git@github.com:aws-solutions/workspaces-cost-optimizer.git
 ```
 
-Create a distribution S3 bucket with the format 'MY-BUCKET-<aws_region>'. The solution's CloudFormation template will expect the 
-source code to be located in this bucket. <aws_region> is where you are testing the customized solution.
+Create a distribution S3 bucket with the format `MY-BUCKET-<aws_region>`. The solution's cdk will expect the 
+source code to be located in this bucket. `<aws_region>` is where you are testing the customized solution.
 
 Note: When you create a bucket, a randomized value unique to your environment is recommended for the bucket name. 
-As a best practice, enable the server side encryption and also block the public access to the bucket.
+As a best practice, enable the server side encryption and also block public access to the bucket.
 
 ```
 export TEMPLATE_OUTPUT_BUCKET=<YOUR_TEMPLATE_BUCKET_NAME>
 export DIST_OUTPUT_BUCKET=<YOUR_DIST_BUCKET_NAME>
-export SOLUTION_NAME="workspaces-cost-optimizer"
+export SOLUTION_NAME="cost-optimizer-for-amazon-workspaces"
 export VERSION=<VERSION>
 ## NOTE THAT the region is appended to the DIST_BUCKET_NAME (DIST_BUCKET_NAME-REGION) when deployed, so creating a bucket with only Bucket_Name will not work.
 ```
 
-change the working directory to the deployment folder
+Change the working directory to the deployment folder.
 
 ```
 cd deployment
@@ -74,7 +98,7 @@ Upload the artifacts.
 aws s3 cp ./dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION --recursive
 ```
 
-You should now have everything in place to run the CloudFormation template (either from your bucket or from `./deployment/dist/`).
+You should now have everything in place to run cdk or CloudFormation template(either from your bucket or from `./deployment/dist/`).
 
 <a name="unit-test"></a>
 ## Unit Test
@@ -84,91 +108,137 @@ chmod +x "./run-unit-tests.sh" && "./run-unit-tests.sh"
 
 <a name="deploy"></a>
 ## Deploy
-Get the link of the workspaces-cost-optimizer.template loaded to your Amazon S3 bucket.
-Deploy the Workspaces Cost Optimizer solution to your account by launching a new AWS CloudFormation stack using the link of the workspaces-cost-optimizer.template.
+Two methods of deploying: CDK or CloudFormation Template
+1. CDK: Run as seen in getting started section and then deploy spoke in a separate aws account
+```
+AWS_PROFILE=""
+AWS_PROFILE_SPOKE=""
+
+# Note: running bootstrap is only required once, not needed for every subsequent deployment.
+npm run bootstrap -- --profile ${AWS_PROFILE}
+
+npm run deploy -- --profile ${AWS_PROFILE} --parameters CreateNewVPC=Yes
+
+HUB_ACCOUNT_ID=$(aws sts get-caller-identity --profile $AWS_PROFILE_SPOKE --query Account --output text)
+
+npm run bootstrap -- --profile ${AWS_PROFILE_SPOKE} --parameter HubAccountId=$HUB_ACCOUNT_ID
+
+npm run deploySpoke -- --profile ${AWS_PROFILE_SPOKE} --parameters HubAccountId=${HUB_ACCOUNT_ID}
+
+```
+
+2. Cloudformation: For backwards compatibility, generate CloudFormation templates into source/cdk.out/ directory. Get the link of the cost-optimizer-for-amazon-workspaces.template loaded to your Amazon S3 bucket. Deploy the Workspaces Cost Optimizer solution to your account by launching a new AWS CloudFormation stack using the link of the cost-optimizer-for-amazon-workspaces.template.
+:
+```
+npm run synth
+
+#  source/cdk.out/{cost-optimizer-for-amazon-workspaces.template.json, cost-optimizer-for-amazon-workspaces-spoke.template.json}
+```
+ 
+
 
 <a name="file-structure"></a>
 # File structure
 
 <pre>
-|-deployment/
-  |-build-s3-dist.sh
-  |-run-unit-tests.sh
-  |-workspaces-cost-optimizer.template
-  |-workspaces-cost-optimizer-spoke.template
-|-source/
-  |-account_registration_provider/
-    |__tests__/
-      |__init__.py
-      |-conftest.py
-      |-test_account_registration_provider.py
-    |__init__.py
-    |-account_registration_provider.py
-  |-docker/
-    |-docker-build.sh
-    |-docker-clean.sh
-    |-docker-run.sh
-  |-lib/
-    |__tests__/
-      |__init__.py
-      |-conftest.py
-      |-test_cfnresponse.py
-    |-cfnresponse.py
-  |-register_spoke_lambda/
-    |__tests__/
-      |__init__.py
-      |-conftest.py
-      |-test_dynamodb.py
-      |-test_register_spoke_accounts.py
-      |-test_request_event.py
-    |__init__.py
-    |-dynamo_table.py
-    |-register_spoke_accounts.py
-    |-request_event.py
-  |-uuid_helper/
-    |__tests__/
-      |__init__.py
-      |-conftest.py
-      |-test_uuid_helper.py
-    |__init__.py
-    |-uuid_helper.py
-  |-workspaces_app/
-    |-workspaces_app/
-      |__tests__/
-        |__init__.py
-        |-conftest.py
-        |-test_account_registry.py
-        |-test_directory_reader.py
-        |-test_metrics_helper.py
-        |-test_workspaces_helper.py
-      |-utils/
-        |__tests__/
-          |__init__.py
-          |-conftest.py
-          |-test_s3_utils.py
-          |-test_timer.py
-        |__init__.py
-        |-decimal_encoder.py
-        |-s3_utils.py
-        |-solutions_metrics.py
-        |-timer.py
-      |-directory_reader.py
-      |-metrics_helper.py
-      |-workspaces_helper.py
-    |-main.py
-  |-requirements.txt
-  |-testing_requirements.txt
-  |-architecture_diagram.png
-  |-Dockerfile
-|-.gitignore
-|-buildspec.yml
-|-CHANGELOG.md
-|-CODE_OF_CONDUCT.md
-|-CONTRIBUTING.md
-|-LICENSE.txt
-|-NOTICE.txt
-|-README.md
-|-sonar-project.properties
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE.txt
+├── NOTICE.txt
+├── README.md
+├── buildspec.yml
+├── deployment
+│   ├── build-open-source-dist.sh
+│   ├── build-s3-dist.sh
+│   ├── run-unit-tests.sh
+│   └── upload-s3-dist.sh
+└── source
+    ├── Dockerfile
+    ├── bin
+    │   └── cost-optimizer-for-amazon-workspaces-solution.ts
+    ├── cdk.json
+    ├── lambda
+    │   ├── account_registration_provider
+    │   │   ├── __init__.py
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   └── test_account_registration_provider.py
+    │   │   └── account_registration_provider.py
+    │   ├── register_spoke_lambda
+    │   │   ├── __init__.py
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   ├── test_dynamodb.py
+    │   │   │   ├── test_register_spoke_accounts.py
+    │   │   │   └── test_request_event.py
+    │   │   ├── dynamodb_table.py
+    │   │   ├── register_spoke_accounts.py
+    │   │   └── request_event.py
+    │   ├── utils
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   └── test_cfnresponse.py
+    │   │   └── cfnresponse.py
+    │   └── uuid_helper
+    │       ├── __init__.py
+    │       ├── __tests__
+    │       │   ├── __init__.py
+    │       │   ├── conftest.py
+    │       │   └── test_uuid_helper.py
+    │       └── uuid_helper.py
+    ├── lib
+    │   ├── cdk-helper
+    │   │   ├── add-cfn-nag-suppression.ts
+    │   │   ├── condition-aspect.ts
+    │   │   ├── override-logical-id.ts
+    │   │   └── set-condition.ts
+    │   ├── components
+    │   │   ├── app-registry-hub-resources.ts
+    │   │   ├── app-registry-spoke-resources.ts
+    │   │   ├── ecs-cluster-resources.ts
+    │   │   ├── register-spoke-account-resources.ts
+    │   │   ├── solution-helper-resources.ts
+    │   │   ├── usage-report-bucket-resources.ts
+    │   │   └── vpc-resources.ts
+    │   ├── cost-optimizer-for-amazon-workspaces-hub-stack.ts
+    │   └── cost-optimizer-for-amazon-workspaces-spoke-stack.ts
+    ├── package.json
+    ├── package-lock.json
+    ├── testing_requirements.txt
+    ├── tsconfig.json
+    └── workspaces_app
+        ├── main.py
+        ├── requirements.txt
+        ├── setup_requirements.txt
+        ├── test_workspaces_app.py
+        └── workspaces_app
+            ├── __init__.py
+            ├── __tests__
+            │   ├── __init__.py
+            │   ├── conftest.py
+            │   ├── test_account_registry.py
+            │   ├── test_directory_reader.py
+            │   ├── test_metrics_helper.py
+            │   └── test_workspaces_helper.py
+            ├── account_registry.py
+            ├── directory_reader.py
+            ├── metrics_helper.py
+            ├── utils
+            │   ├── __init__.py
+            │   ├── __tests__
+            │   │   ├── __init__.py
+            │   │   ├── conftest.py
+            │   │   ├── test_s3_utils.py
+            │   │   └── test_timer.py
+            │   ├── decimal_encoder.py
+            │   ├── s3_utils.py
+            │   ├── solution_metrics.py
+            │   └── timer.py
+            └── workspaces_helper.py
 </pre>
 
 
@@ -180,10 +250,10 @@ Deploy the Workspaces Cost Optimizer solution to your account by launching a new
 This solution collects anonymous operational metrics to help AWS improve the
 quality of features of the solution. For more information, including how to disable
 this capability, please see the
-[Implementation Guide](https://docs.aws.amazon.com/solutions/latest/aws-security-hub-automated-response-and-remediation/collection-of-operational-metrics.html)
+[Implementation Guide](https://docs.aws.amazon.com/solutions/latest/cost-optimizer-for-workspaces/appendix.html)
 
 <a name="license"></a>
 # License
 
 See license
-[here](https://github.com/awslabs/%3Cinsert-solution-repo-name%3E/blob/master/LICENSE.txt)
+[here](https://github.com/aws-solutions/workspaces-cost-optimizer/blob/main/LICENSE.txt).

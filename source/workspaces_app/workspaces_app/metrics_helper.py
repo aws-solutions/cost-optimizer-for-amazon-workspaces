@@ -168,7 +168,7 @@ class MetricsHelper():
         zeroes_count = 0
         end_session_index = 0
         start_session_index = 0
-
+        workspace_zero_count = self.get_zero_count(workspace)
         for i in range(len(list_user_session_data_points)):
             if list_user_session_data_points[i] == 1:
                 if not session_start:
@@ -181,7 +181,7 @@ class MetricsHelper():
                     end_session_index = i + 1
             elif list_user_session_data_points[i] == 0 and session_start:
                 zeroes_count = zeroes_count + 1
-                if zeroes_count == self.get_zero_count(workspace):
+                if zeroes_count == workspace_zero_count:
                     user_session_hours = math.ceil((end_session_index - start_session_index) / 12)
                     list_user_sessions.append(user_session_hours)
                     session_start = False

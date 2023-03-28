@@ -5,7 +5,6 @@
 
 import os
 import logging
-from botocore.config import Config
 from register_spoke_lambda.dynamodb_table import DynamoDBTable
 from register_spoke_lambda.request_event import RequestEvent
 
@@ -33,6 +32,7 @@ def lambda_handler(event, context):
     """
     log.info("Executing Lambda handler")
     log.debug(f'Received payload: {event}')
+    log.debug(f'Context for handler {context}')
     response = {
         'status': {
             'code': STATUS_CODE_SUCCESS,

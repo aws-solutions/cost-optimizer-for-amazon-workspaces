@@ -1,0 +1,637 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`spoke stack synth matches the existing snapshot 1`] = `
+Object {
+  "Description": "(SO0018) - The AWS CloudFormation spoke template for deployment of the workspaces-cost-optimizer, Version: v2.6.0",
+  "Mappings": Object {
+    "Solution": Object {
+      "Data": Object {
+        "AppRegistryApplicationName": "workspaces-cost-optimizer",
+        "HubAccountAdminRoleName": "Workspaces-Cost-Optimizer",
+        "HubAccountRegistrationFunctionName": "Register-Spoke-Accounts",
+        "ID": "SO0018",
+        "SpokeAccountWorkspacesRole": "Workspaces-Admin-Spoke",
+        "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
+        "Version": "v2.6.0",
+      },
+    },
+  },
+  "Metadata": Object {
+    "AWS::CloudFormation::Interface": Object {
+      "ParameterGroups": Array [
+        Object {
+          "Label": Object {
+            "default": "Hub account information",
+          },
+          "Parameters": Array [
+            "HubAccountId",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Testing parameters",
+          },
+          "Parameters": Array [
+            "LogLevel",
+          ],
+        },
+      ],
+      "ParameterLabels": Object {
+        "HubAccountId": Object {
+          "default": "Hub account ID",
+        },
+        "LogLevel": Object {
+          "default": "Logging level",
+        },
+      },
+    },
+  },
+  "Outputs": Object {
+    "LogLevel": Object {
+      "Export": Object {
+        "Name": "LogLevel",
+      },
+      "Value": Object {
+        "Ref": "LogLevel",
+      },
+    },
+    "SolutionID": Object {
+      "Export": Object {
+        "Name": "SolutionID",
+      },
+      "Value": Object {
+        "Fn::FindInMap": Array [
+          "Solution",
+          "Data",
+          "ID",
+        ],
+      },
+    },
+    "SolutionVersion": Object {
+      "Export": Object {
+        "Name": "SolutionVersion",
+      },
+      "Value": Object {
+        "Fn::FindInMap": Array [
+          "Solution",
+          "Data",
+          "Version",
+        ],
+      },
+    },
+  },
+  "Parameters": Object {
+    "HubAccountId": Object {
+      "AllowedPattern": "^\\\\d{12}$",
+      "Description": "The ID of the hub account for the solution. This stack should be deployed in the same region as the hub stack in the hub account.",
+      "Type": "String",
+    },
+    "LogLevel": Object {
+      "AllowedValues": Array [
+        "CRITICAL",
+        "ERROR",
+        "WARNING",
+        "INFO",
+        "DEBUG",
+      ],
+      "Default": "INFO",
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "AccountRegistration": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "AccountRegistrationProviderRolePolicy",
+      ],
+      "Properties": Object {
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AccountRegistrationProvider",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::AccountRegistration",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AccountRegistrationProvider": Object {
+      "DependsOn": Array [
+        "AccountRegistrationProviderRole",
+      ],
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W58",
+              "reason": "The lambda function has access to write logs",
+            },
+            Object {
+              "id": "W89",
+              "reason": "The lambda function does not need access to resources in VPC",
+            },
+            Object {
+              "id": "W92",
+              "reason": "The lambda function only executes on stack creation and deletion and so does not need reserved concurrency.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "solutions-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "S3Key": "workspaces-cost-optimizer/v2.6.0/account_registration_provider.zip",
+        },
+        "Description": "WorkspacesCostOptimizer spoke account registration custom resource provider",
+        "Environment": Object {
+          "Variables": Object {
+            "LOG_LEVEL": Object {
+              "Ref": "LogLevel",
+            },
+            "MANAGEMENT_ROLE_ARN": Object {
+              "Fn::GetAtt": Array [
+                "WorkSpacesManagementRole",
+                "Arn",
+              ],
+            },
+            "REGISTER_LAMBDA_ARN": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "arn:",
+                  Object {
+                    "Ref": "AWS::Partition",
+                  },
+                  ":lambda:",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  ":",
+                  Object {
+                    "Ref": "HubAccountId",
+                  },
+                  ":function:",
+                  Object {
+                    "Fn::FindInMap": Array [
+                      "Solution",
+                      "Data",
+                      "HubAccountRegistrationFunctionName",
+                    ],
+                  },
+                  "-",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                ],
+              ],
+            },
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.6.0",
+          },
+        },
+        "Handler": "account_registration_provider.account_registration_provider.event_handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AccountRegistrationProviderRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.9",
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+        "Timeout": 300,
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AccountRegistrationProviderRole": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AccountRegistrationProviderRolePolicy": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Sub": Array [
+                  "arn:\${Partition}:logs:\${Region}:\${AccountId}:log-group:/\${Partition}/lambda/*",
+                  Object {
+                    "AccountId": Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    "Partition": Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    "Region": Object {
+                      "Ref": "AWS::Region",
+                    },
+                  },
+                ],
+              },
+            },
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Sub": Array [
+                  "arn:\${Partition}:lambda:\${Region}:\${HubAccountId}:function:\${FunctionName}-\${Region}",
+                  Object {
+                    "FunctionName": Object {
+                      "Fn::FindInMap": Array [
+                        "Solution",
+                        "Data",
+                        "HubAccountRegistrationFunctionName",
+                      ],
+                    },
+                    "HubAccountId": Object {
+                      "Ref": "HubAccountId",
+                    },
+                    "Partition": Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    "Region": Object {
+                      "Ref": "AWS::Region",
+                    },
+                  },
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-account-registration-provider-role-policy",
+            ],
+          ],
+        },
+        "Roles": Array [
+          Object {
+            "Ref": "AccountRegistrationProviderRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AppRegistryApplicationAttributeAssociation": Object {
+      "Properties": Object {
+        "Application": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              "workspaces-cost-optimizer",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              Object {
+                "Ref": "HubAccountId",
+              },
+            ],
+          ],
+        },
+        "AttributeGroup": Object {
+          "Fn::GetAtt": Array [
+            "DefaultApplicationAttributes",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroupAssociation",
+    },
+    "AppRegistryApplicationStackAssociation": Object {
+      "Properties": Object {
+        "Application": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              "workspaces-cost-optimizer",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              Object {
+                "Ref": "HubAccountId",
+              },
+            ],
+          ],
+        },
+        "Resource": Object {
+          "Ref": "AWS::StackId",
+        },
+        "ResourceType": "CFN_STACK",
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::ResourceAssociation",
+    },
+    "ApplicationInsightsConfiguration": Object {
+      "Properties": Object {
+        "AutoConfigurationEnabled": true,
+        "CWEMonitorEnabled": true,
+        "OpsCenterEnabled": true,
+        "ResourceGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "AWS_CloudFormation_Stack-",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "CloudFoundations:CostOptimizerForWorkspaces",
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::ApplicationInsights::Application",
+    },
+    "DefaultApplicationAttributes": Object {
+      "Properties": Object {
+        "Attributes": Object {
+          "applicationType": "AWS-Solutions",
+          "solutionID": "SO0018",
+          "solutionName": "workspaces-cost-optimizer",
+          "version": "v2.6.0",
+        },
+        "Description": "Attribute group for solution information",
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "-",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "Tags": Object {
+          "CloudFoundations:CostOptimizerForWorkspaces": Object {
+            "Ref": "AWS::StackName",
+          },
+        },
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroup",
+    },
+    "WorkSpacesManagementRole": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W28",
+              "reason": "Static naming is necessary for hub account to assume this role",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "AWS": Object {
+                  "Fn::Sub": Array [
+                    "arn:\${Partition}:iam::\${HubAccountId}:role/\${RoleName}-\${Region}",
+                    Object {
+                      "HubAccountId": Object {
+                        "Ref": "HubAccountId",
+                      },
+                      "Partition": Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      "Region": Object {
+                        "Ref": "AWS::Region",
+                      },
+                      "RoleName": Object {
+                        "Fn::FindInMap": Array [
+                          "Solution",
+                          "Data",
+                          "HubAccountAdminRoleName",
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RoleName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "SpokeAccountWorkspacesRole",
+                ],
+              },
+              "-",
+              Object {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkSpacesManagementRolePolicy": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W12",
+              "reason": "CloudWatch GetMetricStatistics does not support resource level permissions",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "workspaces:DescribeTags",
+                "workspaces:DescribeWorkspaces",
+                "workspaces:DescribeWorkspaceDirectories",
+                "workspaces:ModifyWorkspaceProperties",
+                "workspaces:TerminateWorkspaces",
+                "workspaces:DescribeWorkspacesConnectionStatus",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":directory/*",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":workspace/*",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":workspacebundle/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "cloudwatch:GetMetricStatistics",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "AWS::StackName",
+              },
+              "-workspaces-management-role-policy",
+            ],
+          ],
+        },
+        "Roles": Array [
+          Object {
+            "Ref": "WorkSpacesManagementRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+}
+`;
