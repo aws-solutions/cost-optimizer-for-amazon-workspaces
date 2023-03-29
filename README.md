@@ -36,7 +36,8 @@ Deploy via [CDKv2](https://docs.aws.amazon.com/cdk/v2/guide/home.html) with [npm
 
 [Preconfigure aws profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
 ```
-git clone git@github.com:aws-solutions/workspaces-cost-optimizer.git
+git clone git@github.com:aws-solutions/cost-optimizer-for-amazon-workspaces.git
+
 
 cd source 
 
@@ -63,7 +64,7 @@ For the full solution overview visit [WorkSpaces Cost Optimizer on AWS](https://
 Clone the repository
 
 ```
-git clone git@github.com:aws-solutions/workspaces-cost-optimizer.git
+git clone git@github.com:aws-solutions/cost-optimizer-for-amazon-workspaces.git
 ```
 
 Create a distribution S3 bucket with the format `MY-BUCKET-<aws_region>`. The solution's cdk will expect the 
@@ -95,7 +96,7 @@ chmod +x ./build-s3-dist.sh && ./build-s3-dist.sh $TEMPLATE_OUTPUT_BUCKET $DIST_
 Upload the artifacts.
 
 ```
-aws s3 cp ./dist/ s3://$BUCKET_NAME-[region]/workspaces-cost-optimizer/$VERSION --recursive
+aws s3 cp ./dist/ s3://$BUCKET_NAME-[region]/cost-optimizer-for-amazon-workspaces/$VERSION --recursive
 ```
 
 You should now have everything in place to run cdk or CloudFormation template(either from your bucket or from `./deployment/dist/`).
