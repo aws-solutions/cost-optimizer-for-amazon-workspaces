@@ -1,0 +1,63 @@
+{
+  "name": "cost-optimizer-for-amazon-workspaces",
+  "version": "2.6.0",
+  "description": "Cost Optimizer for Amazon Workspaces (SO0018)",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces"
+  },
+  "scripts": {
+    "cleanup": "tsc --build ./ --clean && rm -rf node_modules && rm -f package-lock.json",
+    "cleanup:tsc": "tsc --build ./ --clean",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest --coverage",
+    "license-report": "license-report --output=csv --delimiter=' under ' --fields=name --fields=licenseType",
+    "cdk": "cdk",
+    "bootstrap": "SOLUTION_VERSION=v2.6.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk bootstrap",
+    "deploy": "SOLUTION_VERSION=v2.6.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces",
+    "deploySpoke": "SOLUTION_VERSION=v2.6.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces-spoke",
+    "synth": "SOLUTION_VERSION=v2.6.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces DIST_OUTPUT_BUCKET=solutions-reference cdk synth"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "2.68.0",
+    "@types/jest": "^28.1.4",
+    "@types/node": "^18.0.3",
+    "@types/sinon": "^10.0.12",
+    "aws-cdk": "^2.70.0",
+    "jest": "^28.1.2",
+    "sinon": "^14.0.0",
+    "ts-jest": "^28.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4",
+    "cdk-nag": "^2.22.8"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-servicecatalogappregistry-alpha": "^2.67.0-alpha.0",
+    "aws-cdk-lib": "^2.70.0",
+    "constructs": "^10.1.292"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "roots": [
+      "<rootDir>/test"
+    ],
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
+    "collectCoverageFrom": [
+      "**/*.ts*",
+      "!<rootDir>/node_modules/",
+      "!/webui/**",
+      "!/build/"
+    ]
+  }
+}

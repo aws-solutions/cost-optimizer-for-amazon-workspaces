@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-from .workspaces_helper import WorkspacesHelper
-from .utils.s3_utils import upload_report
+
 import boto3
 import logging
-import os
 import typing
+from .workspaces_helper import WorkspacesHelper
+from .utils.s3_utils import upload_report
+from .utils.report_builder import expand_csv, append_entry
+
 
 log = logging.getLogger(__name__)
+
 
 class DirectoryReader():
     def __init__(self, session: boto3.session.Session) -> None:
@@ -17,15 +20,14 @@ class DirectoryReader():
 
     def process_directory(self, region: str, stack_parameters: dict, directory_parameters: dict) -> typing.Tuple[int, typing.List[dict], str]:
         workspace_count = 0
-        end_time = directory_parameters['EndTime']
-        start_time = directory_parameters['StartTime']
         list_processed_workspaces = []
         directory_csv = ''
         log_body_directory_csv = ''
         is_dry_run = self.get_dry_run(stack_parameters)
         test_end_of_month = self.get_end_of_month(stack_parameters)
         directory_id = directory_parameters['DirectoryId']
-        report_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags\n'
+
+        report_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags,ReportDate,\n'
 
         # List of bundles with specific hourly limits
         workspaces_helper = WorkspacesHelper(
@@ -43,8 +45,7 @@ class DirectoryReader():
                 },
                 'testEndOfMonth': test_end_of_month,
                 'isDryRun': is_dry_run,
-                'startTime': start_time,
-                'endTime': end_time,
+                'dateTimeValues': directory_parameters.get('DateTimeValues'),
                 'terminateUnusedWorkspaces': stack_parameters['TerminateUnusedWorkspaces']
             }
         )
@@ -53,8 +54,8 @@ class DirectoryReader():
             log.debug("Processing workspace {}".format(workspace))
             workspace_count = workspace_count + 1
             result = workspaces_helper.process_workspace(workspace)
-            report_csv = workspaces_helper.append_entry(report_csv, result)  # Append result data to the CSV
-            directory_csv = workspaces_helper.append_entry(directory_csv, result)  # Append result for aggregated report
+            report_csv = append_entry(report_csv, result)  # Append result data to the CSV
+            directory_csv = append_entry(directory_csv, result)  # Append result for aggregated report
             try:
                 workspace_processed = {
                     'previousMode': result['initialMode'],
@@ -66,10 +67,10 @@ class DirectoryReader():
                 list_processed_workspaces.append(workspace_processed)
             except Exception:
                 log.debug("Could not append workspace for metrics. Skipping this workspace")
-            log_body = workspaces_helper.expand_csv(report_csv)
-            log_body_directory_csv = workspaces_helper.expand_csv(directory_csv)
+            log_body = expand_csv(report_csv)
+            log_body_directory_csv = expand_csv(directory_csv)
             # Upload with default session, rather than delegated
-            upload_report(boto3.session.Session(), stack_parameters, log_body, directory_id, region, self.get_account())
+            upload_report(boto3.session.Session(), directory_parameters.get('DateTimeValues'), stack_parameters, log_body, directory_id, region, self.get_account())
         return workspace_count, list_processed_workspaces, log_body_directory_csv
 
     def get_account(self) -> str:

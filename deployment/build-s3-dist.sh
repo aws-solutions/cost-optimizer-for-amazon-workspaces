@@ -89,9 +89,10 @@ main() {
   header "[Packing] Templates"
 
   echo "Updating tokens in template with token values"
-
   echo "PUBLIC_ECR_REGISTRY = $PUBLIC_ECR_REGISTRY"
   echo "PUBLIC_ECR_TAG = $PUBLIC_ECR_TAG"
+  echo "Setting env variables"
+  export SOLUTION_VERSION=$version SOLUTION_NAME=$solution DIST_OUTPUT_BUCKET=$source_bucket SOLUTION_TRADEMARKEDNAME=$solution
 
   local replace_regexes=(
     "s/%TEMPLATE_BUCKET_NAME%/$template_bucket/g"
@@ -106,16 +107,23 @@ main() {
     replace_args=(-e "$regex" "${replace_args[@]}")
   done
 
-  templates=(workspaces-cost-optimizer.template workspaces-cost-optimizer-spoke.template)
+  cd $source_dir
+  npm install
+  npx cdk synth cost-optimizer-for-amazon-workspaces >> "$template_dir"/cost-optimizer-for-amazon-workspaces.template
+  npx cdk synth cost-optimizer-for-amazon-workspaces-spoke >> "$template_dir"/cost-optimizer-for-amazon-workspaces-spoke.template
+  templates=(cost-optimizer-for-amazon-workspaces.template cost-optimizer-for-amazon-workspaces-spoke.template)
+  
   for template in ${templates[@]}; do
     sed ${replace_args[@]} "$template_dir"/"$template" > "$template_dist_dir"/"$template"
+    rm  "$template_dir"/"$template"
   done
+
 
   header "[Packing] lambda code"
 
-  pack_lambda "$source_dir" uuid_helper "$build_dist_dir" "$source_dir"/lib/cfnresponse.py
-  pack_lambda "$source_dir" account_registration_provider "$build_dist_dir" "$source_dir"/lib/cfnresponse.py
-  pack_lambda "$source_dir" register_spoke_lambda "$build_dist_dir"
+  pack_lambda "$source_dir"/lambda uuid_generator "$build_dist_dir" "$source_dir"/lambda/utils/cfnresponse.py
+  pack_lambda "$source_dir"/lambda account_registration_provider "$build_dist_dir" "$source_dir"/lambda/utils/cfnresponse.py
+  pack_lambda "$source_dir"/lambda register_spoke_lambda "$build_dist_dir"
 
   header "[Copying] Dockerfile and code artifacts to deployment/ecr folder"
 

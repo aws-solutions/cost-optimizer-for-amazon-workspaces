@@ -12,6 +12,9 @@ import time
 @unittest.mock.patch(s3_utils.__name__ + '.create_s3_key')
 @unittest.mock.patch('boto3.session.Session')
 def test_upload_report(mock_session, mock_create_s3_key, mock_s3_put_report):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     s3_key = 'a_key'
     mock_create_s3_key.return_value = s3_key
     session = mock_session()
@@ -20,21 +23,24 @@ def test_upload_report(mock_session, mock_create_s3_key, mock_s3_put_report):
     directory_id = 'a_directory'
     directory_region = 'a_region'
     account = '111111111111'
-    s3_utils.upload_report(session, stack_parameters, report_body, directory_id, directory_region, account)
-    mock_create_s3_key.assert_called_once_with(stack_parameters, directory_id, directory_region, account)
+    s3_utils.upload_report(session, date_time_values, stack_parameters, report_body, directory_id, directory_region, account)
+    mock_create_s3_key.assert_called_once_with(stack_parameters, directory_id, directory_region, account, date_time_values)
     mock_s3_put_report.assert_called_once_with(session, stack_parameters['BucketName'], report_body, s3_key)
 
 @unittest.mock.patch(s3_utils.__name__ + '.s3_put_report')
 @unittest.mock.patch(s3_utils.__name__ + '.create_s3_key')
 @unittest.mock.patch('boto3.session.Session')
 def test_upload_report_no_directory(mock_session, mock_create_s3_key, mock_s3_put_report):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     s3_key = 'a_key'
     mock_create_s3_key.return_value = s3_key
     session = mock_session()
     stack_parameters = {'BucketName': 'a_bucket'}
     report_body = 'a_report'
-    s3_utils.upload_report(session, stack_parameters, report_body)
-    mock_create_s3_key.assert_called_once_with(stack_parameters, None, None, None)
+    s3_utils.upload_report(session, date_time_values, stack_parameters, report_body)
+    mock_create_s3_key.assert_called_once_with(stack_parameters, None, None, None, date_time_values)
     mock_s3_put_report.assert_called_once_with(session, stack_parameters['BucketName'], report_body, s3_key)
 
 def get_format_string() -> str:
@@ -50,63 +56,87 @@ def get_path_format_string() -> str:
     return '%Y/%m/%d/'
 
 def test_create_s3_key(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'No', 'TestEndOfMonth': 'No'}
     directory_id = 'a_directory'
     directory_region = 'a-region'
     account = '111111111111'
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + directory_region + '_' + account + '_' + directory_id + '_daily.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account)
+    expected_key = '2023/03/15/' + directory_region + '_' + account + '_' + directory_id + '_daily.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account, date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_no_directory_id(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'No', 'TestEndOfMonth': 'No'}
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + 'aggregated_daily.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, None)
+    expected_key = '2023/03/15/' + 'aggregated_daily.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, '', date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_no_directory_id_dry_run(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'Yes', 'TestEndOfMonth': 'No'}
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + 'aggregated_dry-run_daily.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, None)
+    expected_key = '2023/03/15/' + 'aggregated_dry-run_daily.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, '', date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_no_directory_id_end_of_month(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'No', 'TestEndOfMonth': 'Yes'}
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + 'aggregated_end-of-month.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, None)
+    expected_key = '2023/03/15/' + 'aggregated_end-of-month.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, '', date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_no_directory_id_dry_run_end_of_month(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'Yes', 'TestEndOfMonth': 'Yes'}
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + 'aggregated_dry-run_end-of-month.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, None)
+    expected_key = '2023/03/15/' + 'aggregated_dry-run_end-of-month.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, None, None, '', date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_dry_run(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'Yes', 'TestEndOfMonth': 'No'}
     directory_id = 'a_directory'
     directory_region = 'a-region'
     account = '111111111111'
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + directory_region + '_' + account + '_' + directory_id + '_dry-run_daily.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account)
+    expected_key = '2023/03/15/' + directory_region + '_' + account + '_' + directory_id + '_dry-run_daily.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account, date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_end_of_month(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'No', 'TestEndOfMonth': 'Yes'}
     directory_id = 'a_directory'
     directory_region = 'a-region'
     account = '111111111111'
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + directory_region + '_' + account + '_' + directory_id + '_end-of-month.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account)
+    expected_key = '2023/03/15/' + directory_region + '_' + account + '_' + directory_id + '_end-of-month.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account, date_time_values)
     assert actual_key == expected_key
 
 def test_create_s3_key_dry_run_end_of_month(mock_end_time):
+    date_time_values = {
+        'date_for_s3_key': '2023/03/15/'
+    }
     stack_parameters = {'DryRun': 'Yes', 'TestEndOfMonth': 'Yes'}
     directory_id = 'a_directory'
     directory_region = 'a-region'
     account = '111111111111'
-    expected_key = time.strftime(get_path_format_string(), mock_end_time) + directory_region + '_' + account + '_' + directory_id + '_dry-run_end-of-month.csv'
-    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account)
+    expected_key = '2023/03/15/' + directory_region + '_' + account + '_' + directory_id + '_dry-run_end-of-month.csv'
+    actual_key = s3_utils.create_s3_key(stack_parameters, directory_id, directory_region, account, date_time_values)
     assert actual_key == expected_key
 
 @unittest.mock.patch('boto3.session.Session')

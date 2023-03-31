@@ -5,9 +5,7 @@
 import botocore
 import boto3
 import logging
-import time
 import os
-import sys
 import typing
 
 log = logging.getLogger(__name__)
@@ -20,9 +18,8 @@ boto_config = botocore.config.Config(
     user_agent_extra=os.getenv('UserAgentString')
 )
 
-end_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-def upload_report(session: boto3.session.Session, stack_parameters: dict, report_body: str, directory_id: typing.Union[str, None] = None, directory_region: typing.Union[str, None] = None, account: str = None):
+def upload_report(session: boto3.session.Session, date_time_values, stack_parameters: dict, report_body: str, directory_id: typing.Union[str, None] = None, directory_region: typing.Union[str, None] = None, account: str = None):
     """
     :param directory_region: Region for the directory
     :param directory_id: ID for the directory
@@ -31,13 +28,13 @@ def upload_report(session: boto3.session.Session, stack_parameters: dict, report
     This method uploads the workspace report to the cost optimizer bucket.
     """
     log.debug("Uploading the csv report to s3 bucket.")
-    s3_key = create_s3_key(stack_parameters, directory_id, directory_region, account)
+    s3_key = create_s3_key(stack_parameters, directory_id, directory_region, account, date_time_values)
     bucket_name = stack_parameters['BucketName']
     s3_put_report(session, bucket_name, report_body, s3_key)
     log.debug('Successfully uploaded csv file to %s', s3_key)
 
 
-def create_s3_key(stack_parameters: dict, directory_id: typing.Union[str, None], directory_region: typing.Union[str, None], account: str) -> str:
+def create_s3_key(stack_parameters: dict, directory_id: typing.Union[str, None], directory_region: typing.Union[str, None], account: str, date_time_values) -> str:
     """
     :param: stack_parameters: parameters for the stack
     :param: directory_id: ID for the directory
@@ -45,11 +42,11 @@ def create_s3_key(stack_parameters: dict, directory_id: typing.Union[str, None],
     This method creates the s3 key for the report.
     """
     log.debug("Creating s3 key for report")
-    report_time = time.strptime(end_time, '%Y-%m-%dT%H:%M:%SZ')
+    time_for_s3_key = date_time_values.get('date_for_s3_key')
     if directory_id:
-        s3_key = time.strftime('%Y/%m/%d/', report_time) + directory_region + '_' + account + '_' + directory_id
+        s3_key = time_for_s3_key + directory_region + '_' + account + '_' + directory_id
     else:
-        s3_key = time.strftime('%Y/%m/%d/', report_time) + 'aggregated'
+        s3_key = time_for_s3_key + 'aggregated'
     if stack_parameters['DryRun'] == 'Yes':
         s3_key += '_dry-run'
     if stack_parameters['TestEndOfMonth'] == 'Yes':
@@ -60,6 +57,7 @@ def create_s3_key(stack_parameters: dict, directory_id: typing.Union[str, None],
     log.debug("Returning s3 key as {}".format(s3_key))
 
     return s3_key
+
 
 def s3_put_report(session: boto3.session.Session, bucket_name: str, report_body: str, s3_key: str) -> None:
     """

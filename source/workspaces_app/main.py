@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
+from typing import Tuple, Union, Any, List
+
 from workspaces_app.account_registry import AccountRegistry, get_account_registry
 from workspaces_app.directory_reader import DirectoryReader
 from workspaces_app.utils.solution_metrics import SolutionMetricsHelper
 from workspaces_app.utils.s3_utils import upload_report
+import workspaces_app.utils.date_utils as date_utils
 import botocore
 import boto3
 import calendar
 import logging
 import time
-import uuid
 import os
 import sys
 import typing
@@ -33,25 +35,18 @@ def configure_logging() -> None:
     log_level = getattr(logging, str(os.getenv('LogLevel', 'INFO')))
     logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=log_level)
 
+
 def ecs_handler() -> None:
     """Perform workspaces management tasks and upload reports."""
     configure_logging()
-
     logger.info("Begin ECS task handler.")
-
     stack_parameters = get_stack_parameters()
-
+    date_time_values = date_utils.get_date_time_values_for_processing()
     solution_metrics_helper = SolutionMetricsHelper(stack_parameters)
     solution_metrics_helper.start_timer()
-
-    start_time = time.strftime("%Y-%m", time.gmtime()) + '-01T00:00:00Z'
-    end_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    last_day = calendar.monthrange(int(time.strftime("%Y", time.gmtime())), int(time.strftime("%m", time.gmtime())))[1]
-    run_uuid = str(uuid.uuid4())
     partition = get_partition()
     valid_workspaces_regions = get_valid_workspaces_regions(partition)
     regions = process_input_regions(os.getenv('Regions'), valid_workspaces_regions)
-
     current_account = get_account()
     # Policy: always perform workspaces management on the current account
     accounts = [current_account]
@@ -60,7 +55,7 @@ def ecs_handler() -> None:
 
     total_workspaces = 0
     aggregated_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,' \
-                     'Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags\n'
+                     'Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags,ReportDate\n'
     total_directories = 0
     list_workspaces_processed = []
     sts_client = boto3.client('sts', config=boto_config)
@@ -78,7 +73,7 @@ def ecs_handler() -> None:
             else:
                 spoke_session = boto3.session.Session()
 
-            workspaces_count, report_csv, directory_count, workspaces_processed = process_directories(spoke_session, regions, stack_parameters, start_time, end_time, last_day, run_uuid)
+            workspaces_count, report_csv, directory_count, workspaces_processed = process_directories(spoke_session, regions, stack_parameters, date_time_values)
 
             total_workspaces = total_workspaces + workspaces_count
             aggregated_csv = aggregated_csv + report_csv
@@ -87,11 +82,12 @@ def ecs_handler() -> None:
         except Exception as e:
             logger.error(f"Error processing workspaces for account {account}: {str(e)}")
 
-    upload_report(boto3.session.Session(), stack_parameters, aggregated_csv)
+    upload_report(boto3.session.Session(), date_time_values, stack_parameters, aggregated_csv)
 
     solution_metrics_helper.report_metrics(list_workspaces_processed, total_workspaces, total_directories, len(regions))
 
     logger.info("Completed ECS task handler.")
+
 
 def get_stack_parameters() -> dict:
     """This method gets the input parameters for the stack."""
@@ -150,7 +146,7 @@ def get_partition():
     """
     logger.debug("Getting the value for the partition")
     my_session = boto3.session.Session()
-    sts_client = my_session.client('sts', config = boto_config)
+    sts_client = my_session.client('sts', config=boto_config)
     partition = sts_client.get_caller_identity()['Arn'].split(':')[1]
     logger.debug("Returning the partition value as {}".format(partition))
     return partition
@@ -168,7 +164,7 @@ def get_account() -> str:
 
 def get_valid_workspaces_regions(partition):
     """
-    :param: parition: AWS parition
+    :param: partition: AWS partition
     :return: List of supported AWS region
     This method returns the list of AWS regions where the Worskapces service is supported.
     """
@@ -180,8 +176,8 @@ def get_valid_workspaces_regions(partition):
         list_valid_workspaces_regions = ['cn-northwest-1']
     elif partition == 'aws':
         list_valid_workspaces_regions = ['ap-northeast-1', 'ap-northeast-2', 'ap-south-1', 'ap-southeast-1',
-                                         'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2',
-                                         'sa-east-1', 'us-east-1', 'us-west-2']
+                                            'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2',
+                                            'sa-east-1', 'us-east-1', 'us-west-2', 'af-south-1']
     elif partition == 'aws-iso':
         list_valid_workspaces_regions = ['us-iso-east-1', 'us-iso-west-1']
     elif partition == 'aws-iso-b':
@@ -246,10 +242,8 @@ def process_directories(
         session: boto3.session.Session,
         workspaces_regions: typing.Set[str],
         stack_parameters: dict,
-        start_time: str,
-        end_time: str,
-        last_day: int,
-        run_uuid: str) -> typing.Tuple[int, str, int, typing.List[dict]]:
+        date_time_values: dict
+        ) -> tuple[Union[int, Any], Union[str, Any], Union[int, Any], list[list[dict]]]:
     """
     :param: List of AWS regions.
     This method processes all the workspaces for the given list of AWS regions.
@@ -267,19 +261,21 @@ def process_directories(
             directory_params = {
                 "DirectoryId": directory["DirectoryId"],
                 "Region": region,
-                "EndTime": end_time,
-                "StartTime": start_time,
-                "LastDay": str(last_day),
-                "RunUUID": run_uuid,
+                "DateTimeValues": date_time_values,
                 "AnonymousDataEndpoint": 'https://metrics.awssolutionsbuilder.com/generic'
             }
             directory_reader = DirectoryReader(session)
-            workspace_count, list_workspaces, directory_csv = directory_reader.process_directory(region, stack_parameters, directory_params)
+            workspace_count, list_workspaces, directory_csv = directory_reader.process_directory(
+                region,
+                stack_parameters,
+                directory_params
+            )
             total_workspaces = total_workspaces + workspace_count
             list_workspaces_processed.append(list_workspaces)
             aggregated_csv = aggregated_csv + directory_csv
 
-    return (total_workspaces, aggregated_csv, directory_count, list_workspaces_processed)
+    return total_workspaces, aggregated_csv, directory_count, list_workspaces_processed
+
 
 if __name__ == "__main__":
     ecs_handler()

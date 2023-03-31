@@ -28,10 +28,10 @@ main() {
   rm -rf "$coverage_dir"
   mkdir -p "$coverage_dir"
 
-  [[ -a "$source_dir"/uuid_helper/cfnresponse.py ]] && rm "$source_dir"/uuid_helper/cfnresponse.py
-  [[ -a "$source_dir"/account_registration_provider/cfnresponse.py ]] && rm "$source_dir"/account_registration_provider/cfnresponse.py
-  ln -s "$source_dir"/lib/cfnresponse.py "$source_dir"/uuid_helper/cfnresponse.py
-  ln -s "$source_dir"/lib/cfnresponse.py "$source_dir"/account_registration_provider/cfnresponse.py
+  [[ -a "$source_dir"/lambda/uuid_generator/cfnresponse.py ]] && rm "$source_dir"/lambda/uuid_generator/cfnresponse.py
+  [[ -a "$source_dir"/lambda/account_registration_provider/cfnresponse.py ]] && rm "$source_dir"/lambda/account_registration_provider/cfnresponse.py
+  ln -s "$source_dir"/lambda/utils/cfnresponse.py "$source_dir"/lambda/uuid_generator/cfnresponse.py
+  ln -s "$source_dir"/lambda/utils/cfnresponse.py "$source_dir"/lambda/account_registration_provider/cfnresponse.py
 
   pushd "$source_dir"
   python3 -m coverage run -m pytest && \
@@ -40,11 +40,17 @@ main() {
     true
   popd
 
-  rm "$source_dir"/uuid_helper/cfnresponse.py
-  rm "$source_dir"/account_registration_provider/cfnresponse.py
+  rm "$source_dir"/lambda/uuid_generator/cfnresponse.py
+  rm "$source_dir"/lambda/account_registration_provider/cfnresponse.py
 
   # coverage reports generate with absolute path which would conflict with sonarqube
   sed -i -e "s,<source>"$source_dir"</source>,<source>source</source>,g" "$coverage_dir"/wco.coverage.xml
+  
+  # Run the cdk snapshot test
+  
+  cd "$source_dir"
+  npm install
+  npm run test
 
   deactivate
 }

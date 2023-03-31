@@ -5,6 +5,15 @@
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+ ## [2.6.0] - 2023-03
+ ### Added
+ - Updated the solution to use CDK V2 to generate CloudFormation templates and support CDK deployments.
+ - Updated the 'Terminate Workspace' feature to accept user input for number of months to check for before terminating unused workspaces.
+ - Added a retention policy of 365 days to ECS logs to optimize the costs.
+
+### Removed
+- The CFN templates from the deployment folder as we are using CDK V2 to generate templates.
+
 ## [2.5.1] - 2023-01
  ### Fixed
  - Fixed vulnerabilities py [CVE-2022-42969](https://nvd.nist.gov/vuln/detail/CVE-2022-42969), pytest, requests, certifi [CVE-2022-23491](https://nvd.nist.gov/vuln/detail/CVE-2022-23491)

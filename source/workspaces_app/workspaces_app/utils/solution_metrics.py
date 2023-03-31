@@ -64,7 +64,7 @@ class SolutionMetricsHelper:
             }
 
             json_data = json.dumps(reported_metrics_data, cls=DecimalEncoder)
-            response = requests.post(url, data=json_data, headers={'content-type': 'application/json'})
+            response = requests.post(url, data=json_data, headers={'content-type': 'application/json'}, timeout=10)
             logger.debug("The return code for the metrics request is {}".format(response.status_code))
         except Exception as e:
             logger.warning("Unexpected error submitting solution metrics: {}".format(e))

@@ -5,12 +5,10 @@
 from . import metrics_helper
 import boto3
 import botocore
-import calendar
-import datetime
-import time
 import logging
 import os
 import typing
+from .utils import workspace_utils
 
 log = logging.getLogger(__name__)
 
@@ -25,13 +23,6 @@ botoConfig = botocore.config.Config(
 
 ALWAYS_ON = "ALWAYS_ON"
 AUTO_STOP = "AUTO_STOP"
-TERMINATE_UNUSED_WORKSPACES = os.getenv('TerminateUnusedWorkspaces')
-today = int(time.strftime('%d', time.gmtime()))
-last_day = calendar.monthrange(int(time.strftime("%Y", time.gmtime())), int(time.strftime("%m", time.gmtime())))[1]
-year_month_string = "%Y-%m"
-first_day = time.strftime(year_month_string, time.gmtime()) + '-01T00:00:00Z'  # get the first day of the month
-second_day = time.strftime(year_month_string, time.gmtime()) + '-02T00:00:00Z'  # get the second day of the month
-current_month_first_day = datetime.datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0).date()
 
 
 class WorkspacesHelper(object):
@@ -56,16 +47,19 @@ class WorkspacesHelper(object):
         :return: Object with the results of optimization
         """
         workspace_id = workspace['WorkspaceId']
-        log.debug('workspaceID: %s', workspace_id)
+        log.debug(f'workspaceID: {workspace_id}')
         workspace_running_mode = workspace['WorkspaceProperties']['RunningMode']
-        log.debug('workspaceRunningMode: %s', workspace_running_mode)
+        log.debug(f'workspaceRunningMode: {workspace_running_mode}')
         workspace_bundle_type = workspace['WorkspaceProperties']['ComputeTypeName']
-        log.debug('workspaceBundleType: %s', workspace_bundle_type)
-        billable_time = self.metrics_helper.get_billable_hours(self.settings['startTime'], self.settings['endTime'],
-                                                               workspace)
-        tags = self.get_tags(workspace_id)
-        if self.check_for_skip_tag(tags):
-            log.info('Skipping WorkSpace %s due to Skip_Convert tag', workspace_id)
+        log.debug(f'workspaceBundleType: {workspace_bundle_type}')
+        billable_time = self.metrics_helper.get_billable_hours(
+            self.settings.get('dateTimeValues').get('start_time_for_current_month'),
+            self.settings.get('dateTimeValues').get('end_time_for_current_month'),
+            workspace
+        )
+        tags = self.get_list_tags_for_workspace(workspace_id)
+        if workspace_utils.check_for_skip_tag(tags):
+            log.info(f'Skipping WorkSpace {workspace_id} due to Skip_Convert tag')
             hourly_threshold = "n/a"
             workspace_terminated = ''
             optimization_result = {
@@ -73,10 +67,14 @@ class WorkspacesHelper(object):
                 'newMode': workspace_running_mode
             }
         else:
-            hourly_threshold = self.get_hourly_threshold(workspace_bundle_type)
+            hourly_threshold = self.get_hourly_threshold_for_bundle_type(workspace_bundle_type)
             workspace_terminated = self.get_termination_status(workspace_id, billable_time, tags)
-            optimization_result = self.compare_usage_metrics(workspace_id, billable_time, hourly_threshold,
-                                                             workspace_running_mode)
+            optimization_result = self.compare_usage_metrics(
+                workspace_id,
+                billable_time,
+                hourly_threshold,
+                workspace_running_mode
+            )
 
         return {
             'workspaceID': workspace_id,
@@ -90,42 +88,17 @@ class WorkspacesHelper(object):
             'computerName': workspace.get('ComputerName', ''),
             'directoryId': workspace.get('DirectoryId', ''),
             'tags': tags,
-            'workspaceTerminated': workspace_terminated
+            'workspaceTerminated': workspace_terminated,
+            'reportDate': self.settings.get('dateTimeValues').get('date_today')
         }
 
-    def get_hourly_threshold(self, bundle_type):
-        """
-        Returns the hourly threshold value for the given bundle type.
-        :param bundle_type:
-        :return:
-        """
+    def get_hourly_threshold_for_bundle_type(self, bundle_type):
         if bundle_type in self.settings.get('hourlyLimits'):
             return int(self.settings.get('hourlyLimits')[bundle_type])
         else:
             return None
 
-    def check_for_skip_tag(self, tags):
-        """
-        Return a boolean value to indicate if the workspace needs to be skipped from the solution workflow
-        :param tags:
-        :return: True or False to indicate if the workspace can be skipped
-        """
-        # Added for case insensitive matching.  Works with standard alphanumeric tags
-        if tags is None:
-            return True
-        else:
-            for tag_pair in tags:
-                if tag_pair['Key'].lower() == 'Skip_Convert'.lower():
-                    return True
-
-        return False
-
-    def get_tags(self, workspace_id):
-        """
-        Return the list of the tags on the given workspace.
-        :param workspace_id:
-        :return: List of tags for the workspace
-        """
+    def get_list_tags_for_workspace(self, workspace_id):
         try:
             workspace_tags = self.workspaces_client.describe_tags(
                 ResourceId=workspace_id
@@ -133,13 +106,13 @@ class WorkspacesHelper(object):
             log.debug(workspace_tags)
             tags = workspace_tags['TagList']
         except botocore.exceptions.ClientError as error:
-            log.error("Error {} while getting tags for the workspace {}".format(error, workspace_id))
+            log.error(f'Error {error} while getting tags for the workspace {workspace_id}')
             return None
         return tags
 
     def modify_workspace_properties(self, workspace_id, new_running_mode):
         """
-        This method changes the running mode of the workspace to the give new running mode.
+        This method changes the running mode of the workspace to the give new running mode
         :param workspace_id:
         :param new_running_mode:
         :return: Result code to indicate new running mode for the workspace
@@ -152,10 +125,10 @@ class WorkspacesHelper(object):
                     WorkspaceProperties={'RunningMode': new_running_mode}
                 )
             except Exception as e:
-                log.error('Exceeded retries for %s due to error: %s', workspace_id, e)
+                log.error(f'Exceeded retries for {workspace_id} due to error: {e}')
                 return '-E-'  # return the status to indicate that the workspace was not processed.
         else:
-            log.info('Skipping modifyWorkspaceProperties for Workspace %s due to dry run', workspace_id)
+            log.info(f'Skipping modifyWorkspaceProperties for Workspace {workspace_id} due to dry run')
 
         if new_running_mode == ALWAYS_ON:
             result = '-M-'
@@ -169,7 +142,7 @@ class WorkspacesHelper(object):
         :return: List of workspaces for a given directory.
         This method returns the list of AWS directories in the given region.
         """
-        log.debug("Getting the workspace  for the directory {}".format(directory_id))
+        log.debug(f'Getting the workspace  for the directory {directory_id}')
         list_workspaces = []
         try:
             response = self.workspaces_client.describe_workspaces(
@@ -185,47 +158,42 @@ class WorkspacesHelper(object):
                 list_workspaces.extend(response.get('Workspaces', []))
                 next_token = response.get('NextToken', None)
         except botocore.exceptions.ClientError as e:
-            log.error(
-                "Error while getting the list of workspace for directory ID {}. Error: {}".format(directory_id, e))
-        log.debug("Returning the list of directories as {}".format(list_workspaces))
+            log.error(f'Error while getting the list of workspace for directory ID '
+                      f'{directory_id}: Error: {e}')
+        log.debug(f'Returning the list of directories as {list_workspaces}')
         return list_workspaces
 
     def get_termination_status(self, workspace_id, billable_time, tags):
         """
-        This method returns whether the workspace needs to be terminated.
+        This method returns whether the workspace needs to be terminated
         :param workspace_id:
         :param billable_time:
         :param tags:
         :return: 'Yes' if the workspace is terminated and '' if not.
         """
-
-        log.debug("Today is {}".format(today))
-        log.debug("Last day is {}".format(last_day))
-        log.debug("Getting the termination status for workspace: {}, billable time: {} and tags {}".
-                  format(workspace_id, billable_time, tags))
-        log.debug("Terminate unused workspaces parameter is set to {}".format(TERMINATE_UNUSED_WORKSPACES))
-        log.debug("Current month first day is {}".format(current_month_first_day))
+        # Set value to empty string which will be the default value for the terminated column in the report
         workspace_terminated = ''
-        try:  # change this back after testing
-            if (TERMINATE_UNUSED_WORKSPACES == "Yes" or TERMINATE_UNUSED_WORKSPACES == "Dry Run") and today == last_day:
-                log.debug("Today is the last day of the month. Processing further.")
+        log.debug(f'Getting the termination status for workspace: '
+                  f'{workspace_id}, billable time: {billable_time} and tags {tags}')
+        try:
+            if workspace_utils.is_terminate_workspace_enabled() and (
+                    self.settings.get('dateTimeValues').get('current_month_last_day') or
+                    (self.settings.get('testEndOfMonth'))
+            ):
+                log.debug('Today is the last day of the month or the TestEndOfMonth parameter is set to yes.')
+                log.debug(f'Processing further for workspace id {workspace_id}')
                 last_known_user_connection_timestamp = self.get_last_known_user_connection_timestamp(workspace_id)
-                workspace_used_in_current_month = self.check_workspace_usage_for_current_month(
-                    last_known_user_connection_timestamp)
-                workspace_available_on_first_day_of_month = self.check_if_workspace_available_on_first_day(workspace_id)
-                log.debug(
-                    "For workspace {}, billable time is {}, tags are {}, workspace_available_on_first_day_of_month"
-                    " is {}, workspace_used_in_current_month is {}".format(workspace_id, billable_time, tags,
-                                                                           workspace_available_on_first_day_of_month,
-                                                                           workspace_used_in_current_month))
-                if not workspace_used_in_current_month and workspace_available_on_first_day_of_month and billable_time == 0:
-                    log.debug("The workspace {} was not used in current month. Checking other criteria for "
-                              "termination.".format(workspace_id))
+                log.debug(f'Last known user connection time stamp is {last_known_user_connection_timestamp}')
+                workspace_available_on_first_day_of_selected_month = self.check_if_workspace_available_on_first_day_selected_month(workspace_id)
+                log.debug((f'The value for workspace available on first day of selected period is '
+                           f'{workspace_available_on_first_day_of_selected_month}'))
+                workspace_used_in_selected_period = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp)
+                log.debug(f'The value for workspace used in selected period is {workspace_used_in_selected_period}')
+                if workspace_available_on_first_day_of_selected_month and not workspace_used_in_selected_period:
                     workspace_terminated = self.check_if_workspace_needs_to_be_terminated(workspace_id)
         except Exception as error:
-            log.error("Error {} while checking the workspace termination status for workspace : {}".format(error,
-                                                                                                           workspace_id))
-        log.debug("Returning the termination status as {}".format(workspace_terminated))
+            log.error(f'Error {error} while checking the workspace termination status for workspace : {workspace_id}')
+        log.debug(f'Returning the termination status as {workspace_terminated}')
         return workspace_terminated
 
     def get_last_known_user_connection_timestamp(self, workspace_id):
@@ -234,46 +202,28 @@ class WorkspacesHelper(object):
         :param: ID for the given workspace
         :return: LastKnownUserConnectionTimestamp for the workspace
         """
-        log.debug("Getting the last known user connection timestamp for the workspace_id {}".format(workspace_id))
+        log.debug(f'Getting the last known user connection timestamp for the workspace_id {workspace_id}')
         try:
             response = self.workspaces_client.describe_workspaces_connection_status(
                 WorkspaceIds=[workspace_id]
             )
             last_known_timestamp = response['WorkspacesConnectionStatus'][0].get('LastKnownUserConnectionTimestamp')
         except Exception as error:
-            log.error(error)
-            return None
-        log.debug("Returning the last known timestamp as {}".format(last_known_timestamp))
+            log.error(f'Setting the value for last_known_timestamp to ResourceUnavailable due to the error {error}')
+            last_known_timestamp = 'ResourceUnavailable'
+        log.debug(f'Returning the last known timestamp as {last_known_timestamp}')
         return last_known_timestamp
 
-    def check_workspace_usage_for_current_month(self, last_known_user_connection_timestamp):
+    def check_if_workspace_available_on_first_day_selected_month(self, workspace_id):
         """
-        This method returns a boolean value to indicate if the workspace was used in current month
-        :param: last_known_user_connection_timestamp: Last known connection timestamp
-        :return: returns a boolean value to indicate if the workspace was used in current month
-        """
-        log.debug("Checking the workspace usage for the current month")
-        workspace_used_in_current_month = True
-        try:
-            if last_known_user_connection_timestamp is not None:
-                log.debug("Last know timestamp value is not None. Processing further.")
-                log.debug("Current month first day is {}".format(current_month_first_day))
-                last_known_user_connection_day = last_known_user_connection_timestamp.date()
-                workspace_used_in_current_month = not last_known_user_connection_day < current_month_first_day
-        except Exception as error:
-            log.error("Error occurred while checking the workspace usage for the workspace: {}".format(error))
-        log.debug("Returning the workspace usage in current month as {}".format(workspace_used_in_current_month))
-        return workspace_used_in_current_month
-
-    def check_if_workspace_available_on_first_day(self, workspace_id):
-        """
-        This methods checks if the workspace was available on the first day of the month
+        This method checks if the workspace was available on the give date
         :param workspace_id: Workspace ID for the workspace
         """
-
         workspace_available = False
-        log.debug("Checking if the workspace {} was available between first day {} and "
-                  "second day {} ".format(workspace_id, first_day, second_day))
+        star_time_selected_date = self.settings.get('dateTimeValues').get('start_time_selected_date')
+        end_time_selected_date = self.settings.get('dateTimeValues').get('end_time_selected_date')
+        log.debug(f'Checking if the workspace {workspace_id} was available between first day {star_time_selected_date}'
+                  f' and second day {end_time_selected_date}')
         try:
             metrics = self.cloudwatch_client.get_metric_statistics(
                 Dimensions=[{
@@ -282,43 +232,41 @@ class WorkspacesHelper(object):
                 }],
                 Namespace='AWS/WorkSpaces',
                 MetricName='Available',
-                StartTime=first_day,
-                EndTime=second_day,
-                Period=300,
+                StartTime=star_time_selected_date,
+                EndTime=end_time_selected_date,
+                Period=3600,
                 Statistics=['Maximum']
             )
             if metrics.get('Datapoints', None):
                 workspace_available = True
         except Exception as error:
             log.error(error)
-        log.debug("Returning the value {} for workspace available.".format(workspace_available))
+        log.debug(f'Returning the value {workspace_available} for workspace available.')
         return workspace_available
 
     def check_if_workspace_needs_to_be_terminated(self, workspace_id):
         """
-        This method checks if the workspace needs to terminated based on the usage.
+        This method checks if the workspace needs to terminated based on the usage
         :param workspace_id:
-        :param billable_time:
-        :param tags:
-        :return: A string value 'Yes' if the workspace is terminate and an empty string '' if not terminated
+        :return: A string value 'Yes' if the workspace is terminated and an empty string '' if not terminated
         """
         workspace_terminated = ''
         if self.settings.get('terminateUnusedWorkspaces') == 'Dry Run':
-            log.debug("Termination option for workspace {} is set to DryRun. The report was updated but the "
-                      "terminate action was not called".format(workspace_id))
+            log.debug(f'Termination option for workspace {workspace_id} is set to DryRun. The report was updated but the'
+                      ' terminate action was not called')
             workspace_terminated = 'Yes - Dry Run'
         elif self.settings.get('terminateUnusedWorkspaces') == 'Yes' and not self.settings.get('isDryRun'):
-            log.debug('All the criteria for termination of workspace {} are met. Calling the terminate '
-                      'action.'.format(workspace_id))
+            log.debug(f'All the criteria for termination of workspace {workspace_id} are met. '
+                      f'Calling the terminate action.')
             workspace_terminated = self.terminate_unused_workspace(workspace_id)
         return workspace_terminated
 
     def terminate_unused_workspace(self, workspace_id):
         """
-        This methods terminates the given workspace.
+        This method terminates the given workspace
         :param workspace_id: Workspace ID for the workspace
         """
-        log.debug("Terminating the workspace with workspace id {}".format(workspace_id))
+        log.debug(f'Terminating the workspace with workspace id {workspace_id}')
         workspace_terminated = ''
         try:
             response = self.workspaces_client.terminate_workspaces(
@@ -330,9 +278,9 @@ class WorkspacesHelper(object):
             )
             if not response.get('FailedRequests'):
                 workspace_terminated = 'Yes'
-                log.debug("Successfully terminated the workspace with workspace id {}".format(workspace_id))
+                log.debug(f'Successfully terminated the workspace with workspace id {workspace_id}')
         except Exception as error:
-            log.error("Error {} occurred when terminating workspace {}".format(error, workspace_id))
+            log.error(f'Error {error} occurred when terminating workspace {workspace_id}')
         return workspace_terminated
 
     def compare_usage_metrics(self, workspace_id, billable_time, hourly_threshold, workspace_running_mode):
@@ -358,7 +306,7 @@ class WorkspacesHelper(object):
                                                                              hourly_threshold, workspace_running_mode)
         else:
             log.error(
-                'workspaceRunningMode {} is unrecognized for workspace {}'.format(workspace_running_mode, workspace_id))
+                f'workspaceRunningMode {workspace_running_mode} is unrecognized for workspace {workspace_id}')
             result_code = '-S-'
             new_mode = workspace_running_mode
 
@@ -377,15 +325,15 @@ class WorkspacesHelper(object):
         :param workspace_running_mode: workspace running mode
         :return: Result code and new running mode
         """
-        log.debug('workspaceRunningMode {} == AUTO_STOP'.format(workspace_running_mode))
+        log.debug(f'workspaceRunningMode {workspace_running_mode} == AUTO_STOP')
 
         # If billable time is over the threshold for this bundle type
         if billable_time > hourly_threshold:
-            log.debug('billableTime {} > hourlyThreshold {}'.format(billable_time, hourly_threshold))
+            log.debug(f'billableTime {billable_time} > hourlyThreshold {hourly_threshold}')
 
             # Change the workspace to ALWAYS_ON
             result_code = self.modify_workspace_properties(workspace_id, ALWAYS_ON)
-            # if there was an exception in the modify workspace API call, new mode is same as old mode
+            # if there was an exception in the modify_workspace API call, new mode is same as old mode
             if result_code == '-E-':
                 new_mode = AUTO_STOP
             else:
@@ -393,7 +341,7 @@ class WorkspacesHelper(object):
 
         # Otherwise, report no change for the Workspace
         else:  # billable_time <= hourly_threshold:
-            log.debug('billableTime {} <= hourlyThreshold {}'.format(billable_time, hourly_threshold))
+            log.debug(f'billableTime {billable_time} <= hourlyThreshold {hourly_threshold}')
             result_code = '-N-'
             new_mode = AUTO_STOP
 
@@ -409,19 +357,19 @@ class WorkspacesHelper(object):
         :param workspace_running_mode: workspace running mode
         :return: Result code and new running mode
         """
-        log.debug('workspaceRunningMode {} == ALWAYS_ON'.format(workspace_running_mode))
+        log.debug(f'workspaceRunningMode {workspace_running_mode} == ALWAYS_ON')
 
         # Only perform metrics gathering for ALWAYS_ON Workspaces at the end of the month.
         if self.settings.get('testEndOfMonth'):
-            log.debug('testEndOfMonth {} == True'.format(self.settings.get('testEndOfMonth')))
+            log.debug(f"testEndOfMonth {self.settings.get('testEndOfMonth')} == True")
 
             # If billable time is under the threshold for this bundle type
             if billable_time <= hourly_threshold:
-                log.debug('billableTime {} < hourlyThreshold {}'.format(billable_time, hourly_threshold))
+                log.debug(f'billableTime {billable_time} < hourlyThreshold {hourly_threshold}')
 
                 # Change the workspace to AUTO_STOP
                 result_code = self.modify_workspace_properties(workspace_id, AUTO_STOP)
-                # if there was an exception in the modify workspace API call, new mode is same as old mode
+                # if there was an exception in the modify_workspace API call, new mode is same as old mode
                 if result_code == '-E-':
                     new_mode = ALWAYS_ON
                 else:
@@ -429,36 +377,12 @@ class WorkspacesHelper(object):
 
             # Otherwise, report no change for the Workspace
             else:  # billable_time > hourly_threshold:
-                log.debug('billableTime {} >= hourlyThreshold {}'.format(billable_time, hourly_threshold))
+                log.debug(f'billableTime {billable_time} >= hourlyThreshold {hourly_threshold}')
                 result_code = '-N-'
                 new_mode = ALWAYS_ON
         else:
-            log.debug('testEndOfMonth {} == False'.format(self.settings.get('testEndOfMonth')))
+            log.debug(f"testEndOfMonth {self.settings.get('testEndOfMonth')} == False")
             result_code = '-N-'
             new_mode = ALWAYS_ON
 
         return result_code, new_mode
-
-    def append_entry(self, old_csv: str, result: dict) -> str:
-        s = ','
-        csv = old_csv + s.join((
-            result['workspaceID'],
-            str(result['billableTime']),
-            str(result['hourlyThreshold']),
-            result['optimizationResult'],
-            result['bundleType'],
-            result['initialMode'],
-            result['newMode'],
-            result['userName'],
-            result['computerName'],
-            result['directoryId'],
-            result['workspaceTerminated'],
-            ''.join(('"', str(result['tags']), '"')) + '\n'  # Adding quotes to the string to help with csv format
-        ))
-
-        return csv
-
-    def expand_csv(self, raw_csv: str) -> str:
-        csv = raw_csv.replace(',-M-', ',ToMonthly').replace(',-H-', ',ToHourly'). \
-            replace(',-E-', ',Failed to change the mode').replace(',-N-', ',No Change').replace(',-S-', ',Skipped')
-        return csv

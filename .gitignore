@@ -2,6 +2,7 @@ deployment/global-s3-assets/
 deployment/open-source/
 deployment/regional-s3-assets/
 deployment/test/
+deployment/ecr/
 
 __pycache__/
 .pytest_cache/
@@ -11,3 +12,8 @@ __pycache__/
 .coverage
 .venv/
 .DS_Store
+
+source/node_modules/
+source/build
+cdk.out
+coverage

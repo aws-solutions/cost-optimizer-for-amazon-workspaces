@@ -1,0 +1,2600 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`hub stack synth matches the existing snapshot 1`] = `
+Object {
+  "Conditions": Object {
+    "CreateDynamoDBEndpointCondition": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "CreateNewVPCCondition",
+        },
+        Object {
+          "Condition": "MultiAccountDeploymentCondition",
+        },
+      ],
+    },
+    "CreateNewVPCCondition": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "CreateNewVPC",
+        },
+        "Yes",
+      ],
+    },
+    "ManagementAccountSetupCondition": Object {
+      "Fn::Not": Array [
+        Object {
+          "Condition": "managementIdInputParameter",
+        },
+      ],
+    },
+    "MultiAccountDeploymentCondition": Object {
+      "Fn::And": Array [
+        Object {
+          "Condition": "OrganizationSetupCondition",
+        },
+        Object {
+          "Condition": "ManagementAccountSetupCondition",
+        },
+      ],
+    },
+    "OrganizationSetupCondition": Object {
+      "Fn::Not": Array [
+        Object {
+          "Condition": "organizationIdInputParameter",
+        },
+      ],
+    },
+    "UseExistingVPCCondition": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "CreateNewVPC",
+        },
+        "No",
+      ],
+    },
+    "managementIdInputParameter": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "ManagementAccountId",
+        },
+        "",
+      ],
+    },
+    "organizationIdInputParameter": Object {
+      "Fn::Equals": Array [
+        Object {
+          "Ref": "OrganizationID",
+        },
+        "",
+      ],
+    },
+  },
+  "Mappings": Object {
+    "Solution": Object {
+      "Data": Object {
+        "AppRegistryApplicationName": "workspaces-cost-optimizer",
+        "AutoStopTimeoutHours": 1,
+        "ClusterName": "cost-optimizer-cluster",
+        "ID": "SO0218",
+        "Image": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:PUBLIC_ECR_TAG",
+        "LogGroupName": "/ecs/wco-task",
+        "MetricsURL": "https://metrics.awssolutionsbuilder.com/generic",
+        "RegisterLambdaFunctionName": "Register-Spoke-Accounts",
+        "RoleName": "Workspaces-Cost-Optimizer",
+        "SendAnonymousUsageData": "True",
+        "SolutionName": "Cost Optimizer for Amazon Workspaces",
+        "SpokeAccountWorkspacesRole": "Workspaces-Admin-Spoke",
+        "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
+        "TaskDefinitionName": "wco-task",
+        "Version": "v2.6.0",
+      },
+    },
+  },
+  "Metadata": Object {
+    "AWS::CloudFormation::Interface": Object {
+      "ParameterGroups": Array [
+        Object {
+          "Label": Object {
+            "default": "Select New or Existing VPC for AWS Fargate",
+          },
+          "Parameters": Array [
+            "CreateNewVPC",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Existing VPC Settings",
+          },
+          "Parameters": Array [
+            "ExistingSubnet1Id",
+            "ExistingSubnet2Id",
+            "ExistingSecurityGroupId",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "New VPC Settings",
+          },
+          "Parameters": Array [
+            "VpcCIDR",
+            "Subnet1CIDR",
+            "Subnet2CIDR",
+            "EgressCIDR",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Testing Parameters",
+          },
+          "Parameters": Array [
+            "DryRun",
+            "TestEndOfMonth",
+            "LogLevel",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Pricing Parameters",
+          },
+          "Parameters": Array [
+            "ValueLimit",
+            "StandardLimit",
+            "PerformanceLimit",
+            "GraphicsLimit",
+            "GraphicsProLimit",
+            "PowerLimit",
+            "PowerProLimit",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "List of AWS Regions",
+          },
+          "Parameters": Array [
+            "Regions",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Terminate unused workspaces",
+          },
+          "Parameters": Array [
+            "TerminateUnusedWorkspaces",
+            "NumberOfMonthsForTerminationCheck",
+          ],
+        },
+        Object {
+          "Label": Object {
+            "default": "Multi account deployment",
+          },
+          "Parameters": Array [
+            "OrganizationID",
+            "ManagementAccountId",
+          ],
+        },
+      ],
+      "ParameterLabels": Object {
+        "CreateNewVPC": Object {
+          "default": "Create New VPC",
+        },
+        "DryRun": Object {
+          "default": "Launch in Dry Run Mode",
+        },
+        "EgressCIDR": Object {
+          "default": "AWS Fargate SecurityGroup CIDR Block",
+        },
+        "ExistingSecurityGroupId": Object {
+          "default": "Security group ID to launch ECS task",
+        },
+        "ExistingSubnet1Id": Object {
+          "default": "Subnet ID for first subnet",
+        },
+        "ExistingSubnet2Id": Object {
+          "default": "Subnet ID for second subnet",
+        },
+        "LogLevel": Object {
+          "default": "Log Level",
+        },
+        "ManagementAccountId": Object {
+          "default": "Account ID of the Management Account for the Organization",
+        },
+        "NumberOfMonthsForTerminationCheck": Object {
+          "default": "Number of months for termination check",
+        },
+        "OrganizationID": Object {
+          "default": "Organization ID for multi account deployment",
+        },
+        "Regions": Object {
+          "default": "List of AWS Regions",
+        },
+        "Subnet1CIDR": Object {
+          "default": "AWS Fargate Subnet 1 CIDR Block",
+        },
+        "Subnet2CIDR": Object {
+          "default": "AWS Fargate Subnet 2 CIDR Block",
+        },
+        "TerminateUnusedWorkspaces": Object {
+          "default": "Terminate workspaces not used for a month",
+        },
+        "TestEndOfMonth": Object {
+          "default": "Simulate End of Month Cleanup",
+        },
+        "VpcCIDR": Object {
+          "default": "AWS Fargate VPC CIDR Block",
+        },
+      },
+    },
+  },
+  "Outputs": Object {
+    "AppRegistryHubResourcesAppRegistryApplicationManagerUrlC9961BF6": Object {
+      "Description": "Application manager url for the application created.",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".console.aws.amazon.com/systems-manager/appmanager/application/AWS_AppRegistry_Application-",
+            Object {
+              "Fn::Join": Array [
+                "-",
+                Array [
+                  Object {
+                    "Fn::FindInMap": Array [
+                      "Solution",
+                      "Data",
+                      "AppRegistryApplicationName",
+                    ],
+                  },
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  Object {
+                    "Ref": "AWS::AccountId",
+                  },
+                ],
+              ],
+            },
+          ],
+        ],
+      },
+    },
+    "BucketName": Object {
+      "Description": "The name of the bucket created by the solution.",
+      "Value": Object {
+        "Ref": "CostOptimizerBucket",
+      },
+    },
+    "DryRun": Object {
+      "Export": Object {
+        "Name": "DryRun",
+      },
+      "Value": Object {
+        "Ref": "DryRun",
+      },
+    },
+    "GraphicsLimit": Object {
+      "Export": Object {
+        "Name": "GraphicsLimit",
+      },
+      "Value": Object {
+        "Ref": "GraphicsLimit",
+      },
+    },
+    "GraphicsProLimit": Object {
+      "Export": Object {
+        "Name": "GraphicsProLimit",
+      },
+      "Value": Object {
+        "Ref": "GraphicsProLimit",
+      },
+    },
+    "LogLevel": Object {
+      "Export": Object {
+        "Name": "LogLevel",
+      },
+      "Value": Object {
+        "Ref": "LogLevel",
+      },
+    },
+    "PerformanceLimit": Object {
+      "Export": Object {
+        "Name": "PerformanceLimit",
+      },
+      "Value": Object {
+        "Ref": "PerformanceLimit",
+      },
+    },
+    "PowerLimit": Object {
+      "Export": Object {
+        "Name": "PowerLimit",
+      },
+      "Value": Object {
+        "Ref": "PowerLimit",
+      },
+    },
+    "PowerProLimit": Object {
+      "Export": Object {
+        "Name": "PowerProLimit",
+      },
+      "Value": Object {
+        "Ref": "PowerProLimit",
+      },
+    },
+    "SendAnonymousData": Object {
+      "Export": Object {
+        "Name": "SendAnonymousData",
+      },
+      "Value": Object {
+        "Fn::FindInMap": Array [
+          "Solution",
+          "Data",
+          "SendAnonymousUsageData",
+        ],
+      },
+    },
+    "SolutionID": Object {
+      "Export": Object {
+        "Name": "SolutionID",
+      },
+      "Value": Object {
+        "Fn::FindInMap": Array [
+          "Solution",
+          "Data",
+          "ID",
+        ],
+      },
+    },
+    "SolutionVersion": Object {
+      "Export": Object {
+        "Name": "SolutionVersion",
+      },
+      "Value": Object {
+        "Fn::FindInMap": Array [
+          "Solution",
+          "Data",
+          "Version",
+        ],
+      },
+    },
+    "StandardLimit": Object {
+      "Export": Object {
+        "Name": "StandardLimit",
+      },
+      "Value": Object {
+        "Ref": "StandardLimit",
+      },
+    },
+    "TestEndOfMonth": Object {
+      "Export": Object {
+        "Name": "TestEndOfMonth",
+      },
+      "Value": Object {
+        "Ref": "TestEndOfMonth",
+      },
+    },
+    "UUID": Object {
+      "Description": "Unique identifier for this solution",
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "UUIDGenerator",
+          "UUID",
+        ],
+      },
+    },
+    "ValueLimit": Object {
+      "Export": Object {
+        "Name": "ValueLimit",
+      },
+      "Value": Object {
+        "Ref": "ValueLimit",
+      },
+    },
+  },
+  "Parameters": Object {
+    "BootstrapVersion": Object {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "CreateNewVPC": Object {
+      "AllowedValues": Array [
+        "Yes",
+        "No",
+      ],
+      "Default": "Yes",
+      "Description": "Select \\"Yes\\" to deploy the solution in a new VPC.",
+      "Type": "String",
+    },
+    "DryRun": Object {
+      "AllowedValues": Array [
+        "Yes",
+        "No",
+      ],
+      "Default": "Yes",
+      "Description": "Solution will generate a change log, but not execute any changes.",
+      "Type": "String",
+    },
+    "EgressCIDR": Object {
+      "AllowedPattern": "(?:^$|(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})/(\\\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "0.0.0.0/0",
+      "Description": "The Cidir Block to restrict the ECS container outbound access",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+    "ExistingSecurityGroupId": Object {
+      "Default": "",
+      "Description": "Security Group Id to launch ECS task. Leave this blank is you selected \\"Yes\\" for \\"Create New VPC\\"",
+      "Type": "String",
+    },
+    "ExistingSubnet1Id": Object {
+      "Default": "",
+      "Description": "Subnet ID to launch ECS task. Leave this blank is you selected \\"Yes\\" for \\"Create New VPC\\"",
+      "Type": "String",
+    },
+    "ExistingSubnet2Id": Object {
+      "Default": "",
+      "Description": "Subnet ID to launch ECS task. Leave this blank is you selected \\"Yes\\" for \\"Create New VPC\\"",
+      "Type": "String",
+    },
+    "GraphicsLimit": Object {
+      "Default": 217,
+      "Description": "The number of hours a Graphics instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "GraphicsProLimit": Object {
+      "Default": 80,
+      "Description": "The number of hours a Graphics Pro instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "LogLevel": Object {
+      "AllowedValues": Array [
+        "CRITICAL",
+        "ERROR",
+        "INFO",
+        "WARNING",
+        "DEBUG",
+      ],
+      "Default": "INFO",
+      "Type": "String",
+    },
+    "ManagementAccountId": Object {
+      "Default": "",
+      "Description": "Account ID for the management account of the Organization. Leave blank for single account deployments.",
+      "Type": "String",
+    },
+    "NumberOfMonthsForTerminationCheck": Object {
+      "AllowedValues": Array [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+      ],
+      "Default": "1",
+      "Description": "Provide the number of months to check for inactive period before termination. Default value is 1 month.",
+      "Type": "String",
+    },
+    "OrganizationID": Object {
+      "AllowedPattern": "^$|^o-[a-z0-9]{10,32}$",
+      "Default": "",
+      "Description": "Organization ID to support multi account deployment. Leave blank for single account deployments.",
+      "Type": "String",
+    },
+    "PerformanceLimit": Object {
+      "Default": 83,
+      "Description": "The number of hours a Performance instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "PowerLimit": Object {
+      "Default": 83,
+      "Description": "The number of hours a Power instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "PowerProLimit": Object {
+      "Default": 80,
+      "Description": "The number of hours a Power Pro instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "Regions": Object {
+      "Default": "",
+      "Description": "The list of AWS regions which the solution will scan. Example - us-east-1, us-west-2. Leave blank to scan all regions.",
+      "Type": "String",
+    },
+    "StandardLimit": Object {
+      "Default": 85,
+      "Description": "The number of hours a Standard instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "Subnet1CIDR": Object {
+      "AllowedPattern": "(?:^$|(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})/(\\\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.10.0/24",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+    "Subnet2CIDR": Object {
+      "AllowedPattern": "(?:^$|(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})/(\\\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.20.0/24",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+    "TerminateUnusedWorkspaces": Object {
+      "AllowedValues": Array [
+        "Yes",
+        "No",
+        "Dry Run",
+      ],
+      "Default": "No",
+      "Description": "Select \\"Yes\\" to terminate Workspaces not used for a month.",
+      "Type": "String",
+    },
+    "TestEndOfMonth": Object {
+      "AllowedValues": Array [
+        "Yes",
+        "No",
+      ],
+      "Default": "No",
+      "Description": "Overrides date and forces the solution to run as if it is the end of the month.",
+      "Type": "String",
+    },
+    "ValueLimit": Object {
+      "Default": 81,
+      "Description": "The number of hours a Value instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Type": "Number",
+    },
+    "VpcCIDR": Object {
+      "AllowedPattern": "(?:^$|(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})\\\\.(\\\\d{1,3})/(\\\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.0.0/16",
+      "Description": "This VPC launches containers. Change addresses only if it conflicts with your network.",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "AppRegistryApplicationAttributeAssociation": Object {
+      "Properties": Object {
+        "Application": Object {
+          "Fn::GetAtt": Array [
+            "Application",
+            "Id",
+          ],
+        },
+        "AttributeGroup": Object {
+          "Fn::GetAtt": Array [
+            "DefaultApplicationAttributeGroup",
+            "Id",
+          ],
+        },
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroupAssociation",
+    },
+    "AppRegistryApplicationStackAssociation": Object {
+      "Properties": Object {
+        "Application": Object {
+          "Fn::GetAtt": Array [
+            "Application",
+            "Id",
+          ],
+        },
+        "Resource": Object {
+          "Ref": "AWS::StackId",
+        },
+        "ResourceType": "CFN_STACK",
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::ResourceAssociation",
+    },
+    "Application": Object {
+      "Properties": Object {
+        "Description": "Service Catalog application to track and manage all your resources for the solution workspaces-cost-optimizer",
+        "Name": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "AppRegistryApplicationName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::Region",
+              },
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+        "Tags": Object {
+          "ApplicationType": "AWS-Solutions",
+          "CloudFoundations:CostOptimizerForWorkspaces": Object {
+            "Ref": "AWS::StackName",
+          },
+          "SolutionDomain": "CloudFoundations",
+          "SolutionID": "SO0218",
+          "SolutionName": "workspaces-cost-optimizer",
+          "SolutionVersion": "v2.6.0",
+        },
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::Application",
+    },
+    "ApplicationInsightsConfiguration": Object {
+      "DependsOn": Array [
+        "Application",
+      ],
+      "Properties": Object {
+        "AutoConfigurationEnabled": true,
+        "CWEMonitorEnabled": true,
+        "OpsCenterEnabled": true,
+        "ResourceGroupName": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              "AWS_AppRegistry_Application",
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "AppRegistryApplicationName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::Region",
+              },
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApplicationInsights::Application",
+    },
+    "ApplicationShare": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "Properties": Object {
+        "AllowExternalPrincipals": false,
+        "Name": Object {
+          "Ref": "AWS::StackName",
+        },
+        "PermissionArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":ram::aws:permission/AWSRAMPermissionServiceCatalogAppRegistryApplicationAllowAssociation",
+              ],
+            ],
+          },
+        ],
+        "Principals": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":organizations::",
+                Object {
+                  "Ref": "ManagementAccountId",
+                },
+                ":organization/",
+                Object {
+                  "Ref": "OrganizationID",
+                },
+              ],
+            ],
+          },
+        ],
+        "ResourceArns": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "Application",
+              "Arn",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RAM::ResourceShare",
+    },
+    "CostOptimizerAdminPolicy": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W12",
+              "reason": "ecr:GetAuthorizationToken only supports * as the resource",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":log-group:/ecs/wco-task/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "workspaces:DescribeTags",
+                "workspaces:DescribeWorkspaces",
+                "workspaces:DescribeWorkspaceDirectories",
+                "workspaces:ModifyWorkspaceProperties",
+                "workspaces:TerminateWorkspaces",
+                "workspaces:DescribeWorkspacesConnectionStatus",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":directory/*",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":workspace/*",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":workspaces:*:",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":workspacebundle/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "s3:PutObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::",
+                    Object {
+                      "Ref": "CostOptimizerBucket",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "cloudwatch:GetMetricStatistics",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":iam::*:role/",
+                    Object {
+                      "Fn::FindInMap": Array [
+                        "Solution",
+                        "Data",
+                        "SpokeAccountWorkspacesRole",
+                      ],
+                    },
+                    "-",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CostOptimizerAdminPolicy",
+        "Roles": Array [
+          Object {
+            "Ref": "CostOptimizerAdminRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CostOptimizerAdminRole": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W28",
+              "reason": "Static naming is necessary for hub account to assume this role",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RoleName": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "RoleName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CostOptimizerBucket": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "LifecycleConfiguration": Object {
+          "Rules": Array [
+            Object {
+              "ExpirationInDays": 365,
+              "Id": "DeletionRule",
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": Object {
+          "DestinationBucketName": Object {
+            "Ref": "LogsBucket",
+          },
+          "LogFilePrefix": "wco_bucket/",
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "CostOptimizerCluster": Object {
+      "Properties": Object {
+        "ClusterName": Object {
+          "Fn::FindInMap": Array [
+            "Solution",
+            "Data",
+            "ClusterName",
+          ],
+        },
+        "ClusterSettings": Array [
+          Object {
+            "Name": "containerInsights",
+            "Value": "enabled",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::ECS::Cluster",
+    },
+    "CostOptimizerDynamoDBPolicy": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "dynamodb:Scan",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dynamodb:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    Object {
+                      "Ref": "SpokeAccountTable",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CostOptimizerDynamoDBPolicy",
+        "Roles": Array [
+          Object {
+            "Ref": "CostOptimizerAdminRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CostOptimizerLogs": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W84",
+              "reason": "KMS encryption unnecessary for log group",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "LogGroupName": Object {
+          "Fn::Join": Array [
+            "/",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "LogGroupName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 365,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "CostOptimizerTaskDefinition": Object {
+      "Properties": Object {
+        "ContainerDefinitions": Array [
+          Object {
+            "Cpu": 256,
+            "Environment": Array [
+              Object {
+                "Name": "LogLevel",
+                "Value": Object {
+                  "Ref": "LogLevel",
+                },
+              },
+              Object {
+                "Name": "DryRun",
+                "Value": Object {
+                  "Ref": "DryRun",
+                },
+              },
+              Object {
+                "Name": "TestEndOfMonth",
+                "Value": Object {
+                  "Ref": "TestEndOfMonth",
+                },
+              },
+              Object {
+                "Name": "SendAnonymousData",
+                "Value": Object {
+                  "Fn::FindInMap": Array [
+                    "Solution",
+                    "Data",
+                    "SendAnonymousUsageData",
+                  ],
+                },
+              },
+              Object {
+                "Name": "SolutionVersion",
+                "Value": Object {
+                  "Fn::FindInMap": Array [
+                    "Solution",
+                    "Data",
+                    "Version",
+                  ],
+                },
+              },
+              Object {
+                "Name": "SolutionID",
+                "Value": Object {
+                  "Fn::FindInMap": Array [
+                    "Solution",
+                    "Data",
+                    "ID",
+                  ],
+                },
+              },
+              Object {
+                "Name": "UUID",
+                "Value": Object {
+                  "Fn::GetAtt": Array [
+                    "UUIDGenerator",
+                    "UUID",
+                  ],
+                },
+              },
+              Object {
+                "Name": "BucketName",
+                "Value": Object {
+                  "Ref": "CostOptimizerBucket",
+                },
+              },
+              Object {
+                "Name": "ValueLimit",
+                "Value": Object {
+                  "Ref": "ValueLimit",
+                },
+              },
+              Object {
+                "Name": "StandardLimit",
+                "Value": Object {
+                  "Ref": "StandardLimit",
+                },
+              },
+              Object {
+                "Name": "PerformanceLimit",
+                "Value": Object {
+                  "Ref": "PerformanceLimit",
+                },
+              },
+              Object {
+                "Name": "PowerLimit",
+                "Value": Object {
+                  "Ref": "PowerLimit",
+                },
+              },
+              Object {
+                "Name": "PowerProLimit",
+                "Value": Object {
+                  "Ref": "PowerProLimit",
+                },
+              },
+              Object {
+                "Name": "GraphicsLimit",
+                "Value": Object {
+                  "Ref": "GraphicsLimit",
+                },
+              },
+              Object {
+                "Name": "GraphicsProLimit",
+                "Value": Object {
+                  "Ref": "GraphicsProLimit",
+                },
+              },
+              Object {
+                "Name": "MetricsEndpoint",
+                "Value": Object {
+                  "Fn::FindInMap": Array [
+                    "Solution",
+                    "Data",
+                    "MetricsURL",
+                  ],
+                },
+              },
+              Object {
+                "Name": "UserAgentString",
+                "Value": Object {
+                  "Fn::Sub": Array [
+                    "AwsSolution/\${SolutionID}/\${Version}",
+                    Object {
+                      "SolutionID": Object {
+                        "Fn::FindInMap": Array [
+                          "Solution",
+                          "Data",
+                          "ID",
+                        ],
+                      },
+                      "Version": Object {
+                        "Fn::FindInMap": Array [
+                          "Solution",
+                          "Data",
+                          "Version",
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              Object {
+                "Name": "AutoStopTimeoutHours",
+                "Value": Object {
+                  "Fn::FindInMap": Array [
+                    "Solution",
+                    "Data",
+                    "AutoStopTimeoutHours",
+                  ],
+                },
+              },
+              Object {
+                "Name": "Regions",
+                "Value": Object {
+                  "Ref": "Regions",
+                },
+              },
+              Object {
+                "Name": "TerminateUnusedWorkspaces",
+                "Value": Object {
+                  "Ref": "TerminateUnusedWorkspaces",
+                },
+              },
+              Object {
+                "Name": "SpokeAccountDynamoDBTable",
+                "Value": Object {
+                  "Fn::If": Array [
+                    "MultiAccountDeploymentCondition",
+                    Object {
+                      "Ref": "SpokeAccountTable",
+                    },
+                    Object {
+                      "Ref": "AWS::NoValue",
+                    },
+                  ],
+                },
+              },
+              Object {
+                "Name": "NumberOfMonthsForTerminationCheck",
+                "Value": Object {
+                  "Ref": "NumberOfMonthsForTerminationCheck",
+                },
+              },
+            ],
+            "Essential": true,
+            "Image": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "Image",
+              ],
+            },
+            "LogConfiguration": Object {
+              "LogDriver": "awslogs",
+              "Options": Object {
+                "awslogs-group": Object {
+                  "Ref": "CostOptimizerLogs",
+                },
+                "awslogs-region": Object {
+                  "Ref": "AWS::Region",
+                },
+                "awslogs-stream-prefix": "ecs",
+              },
+            },
+            "Name": "workspace-cost-optimizer",
+            "ReadonlyRootFilesystem": true,
+          },
+        ],
+        "Cpu": "256",
+        "ExecutionRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "CostOptimizerAdminRole",
+            "Arn",
+          ],
+        },
+        "Family": Object {
+          "Fn::FindInMap": Array [
+            "Solution",
+            "Data",
+            "TaskDefinitionName",
+          ],
+        },
+        "Memory": "1024",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": Array [
+          "FARGATE",
+        ],
+        "TaskRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "CostOptimizerAdminRole",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ECS::TaskDefinition",
+    },
+    "DefaultApplicationAttributeGroup": Object {
+      "Properties": Object {
+        "Attributes": Object {
+          "applicationType": "AWS-Solutions",
+          "solutionID": "SO0218",
+          "solutionName": "workspaces-cost-optimizer",
+          "version": "v2.6.0",
+        },
+        "Description": "Attribute group for solution information",
+        "Name": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "AppRegistryApplicationName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::Region",
+              },
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroup",
+    },
+    "DynamoDBGatewayEndpoint": Object {
+      "Condition": "CreateDynamoDBEndpointCondition",
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "dynamodb:Scan",
+              "Effect": "Allow",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dynamodb:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    Object {
+                      "Ref": "SpokeAccountTable",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RouteTableIds": Array [
+          Object {
+            "Ref": "MainRouteTable",
+          },
+        ],
+        "ServiceName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "com.amazonaws.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".dynamodb",
+            ],
+          ],
+        },
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::VPCEndpoint",
+    },
+    "FlowLog": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "DeliverLogsPermissionArn": Object {
+          "Fn::GetAtt": Array [
+            "FlowLogRole",
+            "Arn",
+          ],
+        },
+        "LogGroupName": Object {
+          "Ref": "FlowLogGroup",
+        },
+        "ResourceId": Object {
+          "Ref": "VPC",
+        },
+        "ResourceType": "VPC",
+        "TrafficType": "ALL",
+      },
+      "Type": "AWS::EC2::FlowLog",
+    },
+    "FlowLogGroup": Object {
+      "Condition": "CreateNewVPCCondition",
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W84",
+              "reason": "CloudWatch logs are encrypted by the service.",
+            },
+            Object {
+              "id": "W86",
+              "reason": "CloudWatch logs are set to never expire.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "FlowLogRole": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "vpc-flow-logs.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FlowLogsPolicy": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "FlowLogGroup",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "flowlogs-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "FlowLogRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "InternetGateway": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+          Object {
+            "Key": "Name",
+            "Value": "cost-optimizer-igw",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "InternetGatewayAttachment": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "InternetGatewayId": Object {
+          "Ref": "InternetGateway",
+        },
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "IntraVPCSecurityGroup": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W36",
+              "reason": "flagged as not having a Description, property is GroupDescription not Description",
+            },
+            Object {
+              "id": "W40",
+              "reason": "IpProtocol set to -1 (any) as ports are not known prior to running tests",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "GroupDescription": "Security group that allows inbound from the VPC and outbound to the Internet",
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "InvokeECSTaskPolicy": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ecs:RunTask",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ecs:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":task-definition/wco-task",
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ecs:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":task-definition/wco-task:*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "CostOptimizerAdminRole",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "InvokeECSTaskPolicy",
+        "Roles": Array [
+          Object {
+            "Ref": "InvokeECSTaskRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "InvokeECSTaskRole": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "LogsBucket": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W35",
+              "reason": " Access logging is not required for this bucket.",
+            },
+            Object {
+              "id": "W51",
+              "reason": "Policy is not required for this bucket.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "MainRouteTable": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "RegisterSpokeAccountsFunction": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "DependsOn": Array [
+        "RegisterSpokeAccountsFunctionLambdaRole",
+      ],
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W58",
+              "reason": "The lambda function has access to write logs",
+            },
+            Object {
+              "id": "W89",
+              "reason": "The lambda function does not need access to resources in VPC",
+            },
+            Object {
+              "id": "W92",
+              "reason": "ReservedConcurrentExecutions depends on the number of events for event bus",
+            },
+            Object {
+              "id": "W12",
+              "reason": "Resource * is necessary for xray:PutTraceSegments and xray:PutTelemetryRecords.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "solutions-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "S3Key": "workspaces-cost-optimizer/v2.6.0/register_spoke_lambda.zip",
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "DDB_TABLE_NAME": Object {
+              "Ref": "SpokeAccountTable",
+            },
+            "LOG_LEVEL": Object {
+              "Ref": "LogLevel",
+            },
+            "USER_AGENT_STRING": "AwsSolution/SO0218/v2.6.0",
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "-",
+            Array [
+              Object {
+                "Fn::FindInMap": Array [
+                  "Solution",
+                  "Data",
+                  "RegisterLambdaFunctionName",
+                ],
+              },
+              Object {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+        "Handler": "register_spoke_lambda/register_spoke_accounts.lambda_handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "RegisterSpokeAccountsFunctionLambdaRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.9",
+        "Timeout": 20,
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "RegisterSpokeAccountsFunctionLambdaPolicy": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":log-group:/",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    "/lambda/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dynamodb:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    Object {
+                      "Ref": "SpokeAccountTable",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "RegisterSpokeAccountsFunctionLambdaRole",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "InvokeECSTaskPolicy",
+        "Roles": Array [
+          Object {
+            "Ref": "RegisterSpokeAccountsFunctionLambdaRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "RegisterSpokeAccountsFunctionLambdaRole": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "RegisterSpokeAccountsFunctionResourcePolicy": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "F13",
+              "reason": "Lambda principal is a wildcard to allow persmissions to all accounts in the Organization.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "RegisterSpokeAccountsFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": Object {
+          "Ref": "OrganizationID",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "RouteToInternet": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "InternetGateway",
+        },
+        "RouteTableId": Object {
+          "Ref": "MainRouteTable",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "S3BucketPolicy": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W51",
+              "reason": "Policy is not required for this bucket.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "CostOptimizerBucket",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "CostOptimizerBucket",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "CostOptimizerBucket",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "S3GatewayEndpoint": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:PutObject",
+              "Effect": "Allow",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::",
+                    Object {
+                      "Ref": "CostOptimizerBucket",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RouteTableIds": Array [
+          Object {
+            "Ref": "MainRouteTable",
+          },
+        ],
+        "ServiceName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "com.amazonaws.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".s3",
+            ],
+          ],
+        },
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::VPCEndpoint",
+    },
+    "ScheduleRule": Object {
+      "Properties": Object {
+        "Description": "Rule to trigger WorkSpacesCostOptimizer function on a schedule.",
+        "ScheduleExpression": "cron(0 23 * * ? *)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "CostOptimizerCluster",
+                "Arn",
+              ],
+            },
+            "EcsParameters": Object {
+              "LaunchType": "FARGATE",
+              "NetworkConfiguration": Object {
+                "AwsVpcConfiguration": Object {
+                  "AssignPublicIp": "ENABLED",
+                  "SecurityGroups": Array [
+                    Object {
+                      "Fn::If": Array [
+                        "CreateNewVPCCondition",
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "IntraVPCSecurityGroup",
+                            "GroupId",
+                          ],
+                        },
+                        Object {
+                          "Ref": "ExistingSecurityGroupId",
+                        },
+                      ],
+                    },
+                  ],
+                  "Subnets": Array [
+                    Object {
+                      "Fn::If": Array [
+                        "CreateNewVPCCondition",
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "Subnet1",
+                            "SubnetId",
+                          ],
+                        },
+                        Object {
+                          "Ref": "AWS::NoValue",
+                        },
+                      ],
+                    },
+                    Object {
+                      "Fn::If": Array [
+                        "CreateNewVPCCondition",
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "Subnet2",
+                            "SubnetId",
+                          ],
+                        },
+                        Object {
+                          "Ref": "AWS::NoValue",
+                        },
+                      ],
+                    },
+                    Object {
+                      "Fn::If": Array [
+                        "UseExistingVPCCondition",
+                        Object {
+                          "Ref": "ExistingSubnet1Id",
+                        },
+                        Object {
+                          "Ref": "AWS::NoValue",
+                        },
+                      ],
+                    },
+                    Object {
+                      "Fn::If": Array [
+                        "UseExistingVPCCondition",
+                        Object {
+                          "Ref": "ExistingSubnet2Id",
+                        },
+                        Object {
+                          "Ref": "AWS::NoValue",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+              "PropagateTags": "TASK_DEFINITION",
+              "TaskDefinitionArn": Object {
+                "Fn::GetAtt": Array [
+                  "CostOptimizerTaskDefinition",
+                  "TaskDefinitionArn",
+                ],
+              },
+            },
+            "Id": "CostOptimizerTaskDefinition",
+            "RoleArn": Object {
+              "Fn::GetAtt": Array [
+                "InvokeECSTaskRole",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SecurityGroupEgress": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "CidrIp": Object {
+          "Ref": "EgressCIDR",
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "IntraVPCSecurityGroup",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "-1",
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "SolutionHelperFunction": Object {
+      "DependsOn": Array [
+        "SolutionHelperRole",
+      ],
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W58",
+              "reason": "The lambda function has access to write logs",
+            },
+            Object {
+              "id": "W89",
+              "reason": "The lambda function does not need access to resources in VPC",
+            },
+            Object {
+              "id": "W92",
+              "reason": "The lambda function only executes on stack creation and deletion and so does not need reserved concurrency.",
+            },
+            Object {
+              "id": "W12",
+              "reason": "Resource * is necessary for xray:PutTraceSegments and xray:PutTelemetryRecords.",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "solutions-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "S3Key": "workspaces-cost-optimizer/v2.6.0/uuid_generator.zip",
+        },
+        "Description": "Solution Helper Lambda Function",
+        "Environment": Object {
+          "Variables": Object {
+            "LOG_LEVEL": Object {
+              "Ref": "LogLevel",
+            },
+            "USER_AGENT_STRING": "AwsSolution/SO0218/v2.6.0",
+          },
+        },
+        "Handler": "uuid_generator/uuid_generator.lambda_handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "SolutionHelperRole",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.9",
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+        ],
+        "Timeout": 300,
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SolutionHelperPolicy": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":log-group:/",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    "/lambda/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "SolutionHelperRole",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": "cloudformation:DescribeStacks",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SolutionHelperPolicy",
+        "Roles": Array [
+          Object {
+            "Ref": "SolutionHelperRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SolutionHelperRole": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SpokeAccountTable": Object {
+      "Condition": "MultiAccountDeploymentCondition",
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "account_id",
+            "AttributeType": "S",
+          },
+          Object {
+            "AttributeName": "role_name",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "account_id",
+            "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "role_name",
+            "KeyType": "RANGE",
+          },
+        ],
+        "PointInTimeRecoverySpecification": Object {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": Object {
+          "SSEEnabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "Subnet1": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            0,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": Object {
+          "Ref": "Subnet1CIDR",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "cost-optimizer-vpc-subnet1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "Subnet1RouteTableAssociation": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "MainRouteTable",
+        },
+        "SubnetId": Object {
+          "Fn::GetAtt": Array [
+            "Subnet1",
+            "SubnetId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "Subnet2": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            1,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": Object {
+          "Ref": "Subnet2CIDR",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "cost-optimizer-vpc-subnet2",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "Subnet2RouteTableAssociation": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "MainRouteTable",
+        },
+        "SubnetId": Object {
+          "Fn::GetAtt": Array [
+            "Subnet2",
+            "SubnetId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "UUIDGenerator": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "DependsOn": Object {
+          "Fn::GetAtt": Array [
+            "SolutionHelperFunction",
+            "Arn",
+          ],
+        },
+        "Region": Object {
+          "Ref": "AWS::Region",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "SolutionHelperFunction",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::UUIDGenerator",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "UsageReportBucketResourcesAccessLoggingBucketPolicyE13961AA": Object {
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "LogsBucket",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "LogsBucket",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "LogsBucket",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "VPC": Object {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": Object {
+        "CidrBlock": Object {
+          "Ref": "VpcCIDR",
+        },
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": Array [
+          Object {
+            "Key": Object {
+              "Fn::FindInMap": Array [
+                "Solution",
+                "Data",
+                "TagKey",
+              ],
+            },
+            "Value": Object {
+              "Ref": "AWS::StackName",
+            },
+          },
+          Object {
+            "Key": "Name",
+            "Value": "cost-optimizer-vpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+  },
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  Object {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
