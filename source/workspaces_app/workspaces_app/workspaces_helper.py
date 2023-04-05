@@ -175,6 +175,7 @@ class WorkspacesHelper(object):
         workspace_terminated = ''
         log.debug(f'Getting the termination status for workspace: '
                   f'{workspace_id}, billable time: {billable_time} and tags {tags}')
+        log.debug(f"The value for last month check is {self.settings.get('dateTimeValues').get('current_month_last_day')}")
         try:
             if workspace_utils.is_terminate_workspace_enabled() and (
                     self.settings.get('dateTimeValues').get('current_month_last_day') or
@@ -255,7 +256,7 @@ class WorkspacesHelper(object):
             log.debug(f'Termination option for workspace {workspace_id} is set to DryRun. The report was updated but the'
                       ' terminate action was not called')
             workspace_terminated = 'Yes - Dry Run'
-        elif self.settings.get('terminateUnusedWorkspaces') == 'Yes' and not self.settings.get('isDryRun'):
+        elif self.settings.get('terminateUnusedWorkspaces') == 'Yes' and not self.settings.get('isDryRun') and self.settings.get('dateTimeValues').get('current_month_last_day'):
             log.debug(f'All the criteria for termination of workspace {workspace_id} are met. '
                       f'Calling the terminate action.')
             workspace_terminated = self.terminate_unused_workspace(workspace_id)

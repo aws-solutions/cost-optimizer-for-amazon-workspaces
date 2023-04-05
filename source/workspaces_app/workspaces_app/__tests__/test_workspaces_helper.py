@@ -566,6 +566,8 @@ def test_check_if_workspace_needs_to_be_terminated_returns_yes_is_dry_run_false(
     # 'terminateUnusedWorkspaces': 'Yes'
     # 'isDryRun': False
 
+    start_time = time.strftime("%Y-%m") + '-01T00:00:00Z'
+    end_time = time.strftime("%Y-%m") + '-02T00:00:00Z'
     settings = {
         'region': 'us-east-1',
         'hourlyLimits': 10,
@@ -573,7 +575,18 @@ def test_check_if_workspace_needs_to_be_terminated_returns_yes_is_dry_run_false(
         'isDryRun': False,
         'startTime': 1,
         'endTime': 2,
-        'terminateUnusedWorkspaces': 'Yes'
+        'terminateUnusedWorkspaces': 'Yes',
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": start_time,
+            "end_time_selected_date": end_time,
+            "current_month_last_day": True,
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
     }
     workspace_id = "123qwe123qwe"
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
@@ -652,6 +665,9 @@ def test_get_last_known_user_connection_timestamp_returns_resource_unavailable_f
 
 
 def test_get_termination_status_returns_empty_string_for_terminate_workspaces_no(session):
+    start_time = time.strftime("%Y-%m") + '-01T00:00:00Z'
+    end_time = time.strftime("%Y-%m") + '-02T00:00:00Z'
+
     workspace_utils.TERMINATE_UNUSED_WORKSPACES = 'No'
     settings = {
         'region': 'us-east-1',
@@ -660,7 +676,18 @@ def test_get_termination_status_returns_empty_string_for_terminate_workspaces_no
         'isDryRun': True,
         'startTime': 1,
         'endTime': 2,
-        'TerminateUnusedWorkspaces': 'No'
+        'TerminateUnusedWorkspaces': 'No',
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": start_time,
+            "end_time_selected_date": end_time,
+            "current_month_last_day": True,
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
     }
     workspace_id = "123qwe123qwe"
     billable_time = 0
@@ -755,6 +782,8 @@ def test_get_termination_status_returns_dry_run_for_terminate_workspaces_dry_run
 
 
 def test_get_termination_status_returns_empty_string_when_workspace_used(mocker, session):
+    start_time = time.strftime("%Y-%m") + '-01T00:00:00Z'
+    end_time = time.strftime("%Y-%m") + '-02T00:00:00Z'
     settings = {
         'region': 'us-east-1',
         'hourlyLimits': 10,
@@ -762,7 +791,18 @@ def test_get_termination_status_returns_empty_string_when_workspace_used(mocker,
         'isDryRun': True,
         'startTime': 1,
         'endTime': 2,
-        'TerminateUnusedWorkspaces': 'Dry Run'
+        'TerminateUnusedWorkspaces': 'Dry Run',
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": start_time,
+            "end_time_selected_date": end_time,
+            "current_month_last_day": True,
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
     }
     workspace_id = "123qwe123qwe"
     billable_time = 0
@@ -784,6 +824,8 @@ def test_get_termination_status_returns_empty_string_when_workspace_used(mocker,
 
 
 def test_get_termination_status_returns_empty_string_when_workspace_not_available_first_day(mocker, session):
+    start_time = time.strftime("%Y-%m") + '-01T00:00:00Z'
+    end_time = time.strftime("%Y-%m") + '-02T00:00:00Z'
     settings = {
         'region': 'us-east-1',
         'hourlyLimits': 10,
@@ -791,7 +833,18 @@ def test_get_termination_status_returns_empty_string_when_workspace_not_availabl
         'isDryRun': True,
         'startTime': 1,
         'endTime': 2,
-        'terminateUnusedWorkspaces': 'Dry Run'
+        'terminateUnusedWorkspaces': 'Dry Run',
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": start_time,
+            "end_time_selected_date": end_time,
+            "current_month_last_day": True,
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
     }
     workspace_id = "123qwe123qwe"
     billable_time = 0
@@ -1203,3 +1256,36 @@ def test_compare_usage_metrics_for_always_on_returns_no_change_for_end_of_month_
     workspace_helper.modify_workspace_properties.return_value = '-N-'
 
     assert workspace_helper.compare_usage_metrics_for_always_on('ws-112d', 10, 85, "ALWAYS_ON") == expected
+
+
+def test_check_if_workspace_needs_to_be_terminated_returns_empty_string_for_last_day_month_false(session):
+    # 'terminateUnusedWorkspaces': 'Dry Run'
+    # 'isDryRun': True
+
+    start_time = time.strftime("%Y-%m") + '-01T00:00:00Z'
+    end_time = time.strftime("%Y-%m") + '-02T00:00:00Z'
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': False,
+        'startTime': 1,
+        'endTime': 2,
+        'terminateUnusedWorkspaces': 'Yes',
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": start_time,
+            "end_time_selected_date": end_time,
+            "current_month_last_day": False,
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
+    }
+    workspace_id = "123qwe123qwe"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    assert result == ''
+

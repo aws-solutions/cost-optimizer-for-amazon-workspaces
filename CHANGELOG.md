@@ -3,8 +3,11 @@
  
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-
+ 
+## [2.6.1] - 2023-04
+ ### Added
+ - Added support to block customer misconfiguration for 'Terminate Unused Workspaces' feature. The feature will terminate workspaces only on the last day of the month to avoid accidental termination due to misconfiguration.
+ 
  ## [2.6.0] - 2023-03
  ### Added
  - Updated the solution to use CDK V2 to generate CloudFormation templates and support CDK deployments.
