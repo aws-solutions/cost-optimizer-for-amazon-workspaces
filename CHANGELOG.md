@@ -4,6 +4,11 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
+## [2.6.2] - 2023-04
+ ### Fixed
+ - Changed the Object Ownership for logging bucket from 'Object writer' to 'Bucket owner enforced' to mitigate the impact caused by new S3 default settings.
+ - Updated S3 bucket policy to support access logging.
+ 
 ## [2.6.1] - 2023-04
  ### Added
  - Added support to block customer misconfiguration for 'Terminate Unused Workspaces' feature. The feature will terminate workspaces only on the last day of the month to avoid accidental termination due to misconfiguration.
