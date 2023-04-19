@@ -3,7 +3,7 @@
 
 import {Construct} from "constructs";
 import * as cdk from "aws-cdk-lib";
-import { Bucket, BlockPublicAccess, BucketEncryption, BucketAccessControl, BucketPolicy } from "aws-cdk-lib/aws-s3";
+import { Bucket, BlockPublicAccess, BucketEncryption, BucketPolicy } from "aws-cdk-lib/aws-s3";
 import overrideLogicalId from "../cdk-helper/override-logical-id";
 import { addCfnNagSuppression } from "../cdk-helper/add-cfn-nag-suppression";
 
@@ -18,7 +18,6 @@ export class UsageReportBucketResources extends Construct {
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             encryption: BucketEncryption.S3_MANAGED,
             removalPolicy: cdk.RemovalPolicy.RETAIN,
-            accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
             enforceSSL: true
         })
         overrideLogicalId(accessLoggingBucket, 'LogsBucket')

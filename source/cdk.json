@@ -3,7 +3,8 @@
     "context": {
         "solution_id": "SO0018",
         "solution_name": "cost-optimizer-for-amazon-workspaces",
-        "solution_version": "%%VERSION%%"
+        "solution_version": "%%VERSION%%",
+        "@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy": true
     },
     "versionReporting": false
 }
