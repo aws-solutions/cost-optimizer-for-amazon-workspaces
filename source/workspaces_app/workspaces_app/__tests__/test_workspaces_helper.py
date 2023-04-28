@@ -11,6 +11,8 @@ from .. import workspaces_helper
 from ..utils import workspace_utils
 from botocore.stub import Stubber
 from dateutil.tz import tzutc
+from freezegun import freeze_time
+from ..utils import date_utils
 
 
 @pytest.fixture(scope='module')
@@ -596,23 +598,29 @@ def test_check_if_workspace_needs_to_be_terminated_returns_yes_is_dry_run_false(
     assert result == 'Yes'
 
 
+@freeze_time("2020-11-29 03:21:34")
 def test_check_if_workspace_used_for_selected_period_returns_false_if_timestamp_is_none():
     last_known_user_connection_timestamp = None
-    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp)
+    first_day_selected_month = date_utils.get_first_day_selected_month()
+    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month)
     assert result is False
 
 
+@freeze_time("2022-11-29 03:21:34")
 def test_check_if_workspace_used_for_selected_period_returns_false_if_timestamp_is_before_first_day():
     last_known_user_connection_timestamp = datetime.datetime.strptime('2021-01-10 19:35:15.524000+00:00',
                                                                       '%Y-%m-%d %H:%M:%S.%f+00:00')
-    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp)
+    first_day_selected_month = date_utils.get_first_day_selected_month()
+    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month)
     assert result is False
 
 
+@freeze_time("2020-11-29 03:21:34")
 def test_check_if_workspace_used_for_selected_period_returns_true_if_timestamp_is_first_day_selected_month():
     last_known_user_connection_timestamp = datetime.datetime.utcnow().today().replace(day=1, hour=0, minute=0, second=0,
                                                                                       microsecond=0)
-    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp)
+    first_day_selected_month = date_utils.get_first_day_selected_month()
+    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month)
     assert result is True
 
 
@@ -1288,4 +1296,20 @@ def test_check_if_workspace_needs_to_be_terminated_returns_empty_string_for_last
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
     assert result == ''
+
+
+@freeze_time('2023-03-31',  auto_tick_seconds=86400)
+def test_check_if_workspace_used_for_selected_period_returns_true_for_multi_day_processing():
+
+    first_day_selected_month = datetime.datetime(year=2023, month=3, day=1).date()
+    last_known_user_connection_timestamp = datetime.datetime.strptime('2023-03-20 19:35:15.524000+00:00', '%Y-%m-%d %H:%M:%S.%f+00:00')
+    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month)
+    assert result is True
+
+    result1 = date_utils.get_first_day_selected_month()
+    result2 = date_utils.get_first_day_selected_month()
+    assert result2 == datetime.date(2023, 4, 1)
+
+    result = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month)
+    assert result is True
 

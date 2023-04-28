@@ -5,7 +5,6 @@
 
 import logging
 import os
-from . import date_utils
 
 TERMINATE_UNUSED_WORKSPACES = os.getenv('TerminateUnusedWorkspaces')
 RESOURCE_UNAVAILABLE = 'ResourceUnavailable'
@@ -21,7 +20,7 @@ def is_terminate_workspace_enabled():
     return TERMINATE_UNUSED_WORKSPACES == "Yes" or TERMINATE_UNUSED_WORKSPACES == "Dry Run"
 
 
-def check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp):
+def check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, first_day_selected_month):
     """
     This method returns a boolean value to indicate if the workspace was used in selected period
     :param: last_known_user_connection_timestamp: Last known connection timestamp
@@ -36,7 +35,6 @@ def check_if_workspace_used_for_selected_period(last_known_user_connection_times
         return True
     else:
         log.debug("Last know timestamp value is not None. Processing further.")
-        first_day_selected_month = date_utils.get_first_day_selected_month()
         log.debug(f'First day for selected period is {first_day_selected_month}')
         last_known_user_connection_day = last_known_user_connection_timestamp.date()
         return last_known_user_connection_day >= first_day_selected_month

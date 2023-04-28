@@ -69,3 +69,11 @@ def test_get_date_time_values_for_processing_returns_all_the_correct_values():
         "date_today": '11/29/20',
         "date_for_s3_key": '2020/11/29/'
     }
+
+
+@freeze_time("2020-05-31 23:00:00", auto_tick_seconds=86400)
+def test_get_first_day_selected_month_returns_first_day_selected_month_then_returns_next_month_date():
+    result = date_utils.get_first_day_selected_month()
+    assert result == datetime.date(2020, 5, 1)
+    result = date_utils.get_first_day_selected_month()
+    assert result == datetime.date(2020, 6, 1)
