@@ -181,14 +181,15 @@ class WorkspacesHelper(object):
                     self.settings.get('dateTimeValues').get('current_month_last_day') or
                     (self.settings.get('testEndOfMonth'))
             ):
-                log.debug('Today is the last day of the month or the TestEndOfMonth parameter is set to yes.')
+                log.debug(f"The value for current_month_last_day is {self.settings.get('dateTimeValues').get('current_month_last_day')}")
+                log.debug(f"The value for testEndOfMonth is {(self.settings.get('testEndOfMonth'))}")
                 log.debug(f'Processing further for workspace id {workspace_id}')
                 last_known_user_connection_timestamp = self.get_last_known_user_connection_timestamp(workspace_id)
                 log.debug(f'Last known user connection time stamp is {last_known_user_connection_timestamp}')
                 workspace_available_on_first_day_of_selected_month = self.check_if_workspace_available_on_first_day_selected_month(workspace_id)
                 log.debug((f'The value for workspace available on first day of selected period is '
                            f'{workspace_available_on_first_day_of_selected_month}'))
-                workspace_used_in_selected_period = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp)
+                workspace_used_in_selected_period = workspace_utils.check_if_workspace_used_for_selected_period(last_known_user_connection_timestamp, self.settings.get('dateTimeValues').get('first_day_selected_month'))
                 log.debug(f'The value for workspace used in selected period is {workspace_used_in_selected_period}')
                 if workspace_available_on_first_day_of_selected_month and not workspace_used_in_selected_period:
                     workspace_terminated = self.check_if_workspace_needs_to_be_terminated(workspace_id)
