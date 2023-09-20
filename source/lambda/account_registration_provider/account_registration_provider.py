@@ -27,10 +27,10 @@ def invoke_register_lambda(request_type: str):
     payload = {
         'account_id': account_id,
         'request_type': request_type,
-        'role_arn': os.environ['MANAGEMENT_ROLE_ARN']
+        'role_arn': os.environ.get('MANAGEMENT_ROLE_ARN')
     }
     return boto3.client('lambda', config=boto_config).invoke(
-        FunctionName=os.environ['REGISTER_LAMBDA_ARN'],
+        FunctionName=os.environ.get('REGISTER_LAMBDA_ARN'),
         Payload=json.dumps(payload),
         InvocationType='RequestResponse'
     )

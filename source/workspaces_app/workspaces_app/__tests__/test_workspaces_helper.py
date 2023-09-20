@@ -128,6 +128,58 @@ def test_bundle_type_returned_process_workspace(mocker, session):
     assert result['billableTime'] == 100
 
 
+def test_bundle_type_returned_process_workspace_error_state(mocker, session):
+    workspace = {
+        'WorkspaceId': 'ws-68h123hty',
+        'DirectoryId': 'd-901230bb84',
+        'UserName': 'test_user',
+        'State': 'ERROR',
+        'BundleId': 'wsb-cl123qzj1',
+        'WorkspaceProperties': {
+            'RunningMode': 'ALWAYS_ON'
+        },
+        'ModificationStates': []
+    }
+
+    settings = {
+        'region': 'us-east-1',
+        'hourlyLimits': 10,
+        'testEndOfMonth': 'yes',
+        'isDryRun': True,
+        'startTime': 1,
+        'endTime': 2,
+        'dateTimeValues': {
+            "start_time_for_current_month": '',
+            "end_time_for_current_month": '',
+            "last_day_current_month": '',
+            "first_day_selected_month": '',
+            "start_time_selected_date": '',
+            "end_time_selected_date": '',
+            "current_month_last_day": '',
+            "date_today": '',
+            "date_for_s3_key": ''
+        }
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    mocker.patch.object(workspace_helper.metrics_helper, 'get_billable_hours')
+    workspace_helper.metrics_helper.get_billable_hours.return_value = 100
+    mocker.patch.object(workspace_helper, 'get_list_tags_for_workspace')
+    mocker.patch.object(workspace_utils, 'check_for_skip_tag')
+    workspace_utils.check_for_skip_tag.return_value = False
+    mocker.patch.object(workspace_helper, 'get_hourly_threshold_for_bundle_type')
+    workspace_helper.get_hourly_threshold_for_bundle_type.return_value = 5
+    mocker.patch.object(workspace_helper, 'compare_usage_metrics')
+    workspace_helper.compare_usage_metrics.return_value = {
+        'resultCode': '-N-',
+        'newMode': 'ALWAYS_ON'
+    }
+    mocker.patch.object(workspace_helper, 'get_termination_status')
+    result = workspace_helper.process_workspace(workspace)
+    assert result['bundleType'] is None
+    assert result['billableTime'] == 100
+
+
 def test_modify_workspace_properties_returns_always_on(session):
     settings = {
         'region': 'us-east-1',
@@ -270,6 +322,12 @@ def test_check_for_skip_tag_returns_true_for_skip_convert_tag():
 
 def test_check_for_skip_tag_returns_false_if_skip_convert_tag_absent():
     tags = [{'Key': 'nothing', 'Value': 'True'}]
+    result = workspace_utils.check_for_skip_tag(tags)
+    assert result is False
+
+
+def test_check_for_skip_tag_returns_false_if_tag_list_is_empty():
+    tags = []
     result = workspace_utils.check_for_skip_tag(tags)
     assert result is False
 

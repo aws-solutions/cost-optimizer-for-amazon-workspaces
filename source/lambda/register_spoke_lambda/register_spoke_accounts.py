@@ -14,7 +14,7 @@ LOG_LEVEL = str(os.getenv('LOG_LEVEL', 'INFO'))
 log = logging.getLogger()
 log.setLevel(LOG_LEVEL)
 
-DYNAMO_DB_TABLE_NAME = os.environ['DDB_TABLE_NAME']
+DYNAMO_DB_TABLE_NAME = os.environ.get('DDB_TABLE_NAME')
 STATUS_CODE_SUCCESS = 'Success'
 STATUS_CODE_FAILED = 'Failed'
 SUCCESS_MESSAGE = 'Successfully processed the request'

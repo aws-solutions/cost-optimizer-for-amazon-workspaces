@@ -84,9 +84,9 @@ export class RegisterSpokeAccountResources extends Construct {
 
         const registerSpokeAccountLambdaFunction = new lambda.Function(this, 'RegisterSpokeAccountLambdaFunction', {
             functionName: cdk.Fn.join("-", [props.registerSpokeAccountLambdaFunctionName, cdk.Aws.REGION]),
-            runtime: Runtime.PYTHON_3_9,
+            runtime: Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
-            timeout: Duration.seconds(20),
+            timeout: Duration.seconds(300),
             role: registerSpokeAccountsFunctionLambdaRole.withoutPolicyUpdates(),
             code: Code.fromBucket(deploymentSourceBucket, `${props.solutionName}/${props.solutionVersion}/register_spoke_lambda.zip`),
             handler: 'register_spoke_lambda/register_spoke_accounts.lambda_handler',

@@ -25,7 +25,8 @@ export interface VpcResourcesProps extends cdk.StackProps {
     egressCIDR: string,
     costOptimizerBucketName: string,
     spokeAccountTableName: string,
-    createDynamoDBEndpointCondition: CfnCondition
+    createDynamoDBEndpointCondition: CfnCondition,
+    ecsTaskRoleName: string
 };
 export class VpcResources extends Construct {
     public readonly vpc: CfnVPC
@@ -131,6 +132,14 @@ export class VpcResources extends Construct {
         })
         overrideLogicalId(subnet2RouteTableAssociation, 'Subnet2RouteTableAssociation')
 
+        const accountCondition = {
+            StringEquals: {
+              'aws:PrincipalArn': [ 
+                `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${props.ecsTaskRoleName}-${cdk.Aws.REGION}`
+            ],
+            },
+          };
+
         const s3EndPointPolicyDocument = new PolicyDocument({
             statements: [new PolicyStatement({
                 actions: [
@@ -138,9 +147,9 @@ export class VpcResources extends Construct {
                 ],
                 principals: [new AnyPrincipal],
                 resources: [
-                    `arn:${cdk.Aws.PARTITION}:s3:::${props.costOptimizerBucketName}/*`
-                ]
-                
+                    `arn:${cdk.Aws.PARTITION}:s3:::${props.costOptimizerBucketName}/*`,
+                ],
+                conditions:accountCondition
             })],
         });
         
@@ -160,7 +169,8 @@ export class VpcResources extends Construct {
                 principals: [new AnyPrincipal],
                 resources: [
                     `arn:${cdk.Aws.PARTITION}:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/${props.spokeAccountTableName}`
-                ]
+                ],
+                conditions:accountCondition
             })],
         });
 

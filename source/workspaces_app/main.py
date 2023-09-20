@@ -67,9 +67,10 @@ def ecs_handler() -> None:
                     RoleArn=account.role_name,
                     RoleSessionName='SessionName')
                 spoke_session = boto3.session.Session(
-                    aws_access_key_id=response['Credentials']['AccessKeyId'],
-                    aws_secret_access_key=response['Credentials']['SecretAccessKey'],
-                    aws_session_token=response['Credentials']['SessionToken'])
+                    aws_access_key_id=response.get('Credentials').get('AccessKeyId'),
+                    aws_secret_access_key=response.get('Credentials').get('SecretAccessKey'),
+                    aws_session_token=response.get('Credentials').get('SessionToken')
+                )
             else:
                 spoke_session = boto3.session.Session()
 
@@ -256,23 +257,26 @@ def process_directories(
     for region in workspaces_regions:
         list_directories = get_workspaces_directories(session, region)
         for directory in list_directories:
-            logger.debug("Processing the directory {}".format(directory))
-            directory_count = directory_count + 1
-            directory_params = {
-                "DirectoryId": directory["DirectoryId"],
-                "Region": region,
-                "DateTimeValues": date_time_values,
-                "AnonymousDataEndpoint": 'https://metrics.awssolutionsbuilder.com/generic'
-            }
-            directory_reader = DirectoryReader(session)
-            workspace_count, list_workspaces, directory_csv = directory_reader.process_directory(
-                region,
-                stack_parameters,
-                directory_params
-            )
-            total_workspaces = total_workspaces + workspace_count
-            list_workspaces_processed.append(list_workspaces)
-            aggregated_csv = aggregated_csv + directory_csv
+            try:
+                logger.debug("Processing the directory {}".format(directory))
+                directory_count = directory_count + 1
+                directory_params = {
+                    "DirectoryId": directory.get("DirectoryId"),
+                    "Region": region,
+                    "DateTimeValues": date_time_values,
+                    "AnonymousDataEndpoint": 'https://metrics.awssolutionsbuilder.com/generic'
+                }
+                directory_reader = DirectoryReader(session)
+                workspace_count, list_workspaces, directory_csv = directory_reader.process_directory(
+                    region,
+                    stack_parameters,
+                    directory_params
+                )
+                total_workspaces = total_workspaces + workspace_count
+                list_workspaces_processed.append(list_workspaces)
+                aggregated_csv = aggregated_csv + directory_csv
+            except Exception:
+                logger.error("Error while processing the directory {}".format(directory.get("DirectoryId")))
 
     return total_workspaces, aggregated_csv, directory_count, list_workspaces_processed
 

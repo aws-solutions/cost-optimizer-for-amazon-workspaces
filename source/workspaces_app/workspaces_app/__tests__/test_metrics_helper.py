@@ -173,6 +173,42 @@ def test_get_cloudwatch_metric_data_points(session):
     ]
 
 
+def test_get_cloudwatch_metric_data_points_empty_list(session):
+    region = 'us-east-1'
+    metrics_helper = MetricsHelper(session, region)
+    client_stubber = Stubber(metrics_helper.client)
+    workspace_id = '123qwer'
+    start_time = '2021-05-01T00:00:00Z'
+    end_time = '2021-05-06T00:00:00Z'
+    list_time_ranges = [
+        {'end_time': '2021-05-06T00:00:00Z', 'start_time': '2021-05-01T00:00:00Z'}
+    ]
+
+    response = {
+        'Label': 'UserConnected',
+        'Datapoints': []
+    }
+    expected_params = {
+        'Dimensions': [
+            {
+                'Name': 'WorkspaceId',
+                'Value': workspace_id
+            }
+        ],
+        'Namespace': 'AWS/WorkSpaces',
+        'MetricName': 'UserConnected',
+        'StartTime': start_time,
+        'EndTime': end_time,
+        'Period': 300,
+        'Statistics': ['Maximum']
+    }
+
+    client_stubber.add_response('get_metric_statistics', response, expected_params)
+    client_stubber.activate()
+    result = metrics_helper.get_cloudwatch_metric_data_points(workspace_id, list_time_ranges, "UserConnected")
+    assert result == []
+
+
 def test_get_cloudwatch_metric_data_points_none(session):
     region = 'us-east-1'
     metrics_helper = MetricsHelper(session, region)

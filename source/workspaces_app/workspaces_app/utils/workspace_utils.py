@@ -51,7 +51,7 @@ def check_for_skip_tag(tags):
         return True
     else:
         for tag_pair in tags:
-            if tag_pair['Key'].lower() == 'Skip_Convert'.lower():
+            if tag_pair.get('Key').lower() == 'Skip_Convert'.lower():
                 return True
 
     return False

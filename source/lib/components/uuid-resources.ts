@@ -78,7 +78,7 @@ export class UUIDResources extends Construct {
         });
 
         const uuidGeneratorLambdaFunction = new lambda.Function(this, 'UUIDGeneratorLambdaFunction', {
-            runtime: Runtime.PYTHON_3_9,
+            runtime: Runtime.PYTHON_3_11,
             description: 'Solution Helper Lambda Function',
             tracing: lambda.Tracing.ACTIVE,
             timeout: Duration.seconds(300),

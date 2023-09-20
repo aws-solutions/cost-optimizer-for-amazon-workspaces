@@ -3,7 +3,14 @@
  
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
- 
+
+## [2.6.3] - 2023-09
+ ### Fixed
+ - Added the bugfix to skip the processing of the workspaces in error state.
+ - Updated all the package versions to resolve security vulnerabilities.
+ - Updated the docker base image to the python 3.11.
+ - Updated all the lambda runtimes to python 3.11.
+
 ## [2.6.2] - 2023-04
  ### Fixed
  - Changed the Object Ownership for logging bucket from 'Object writer' to 'Bucket owner enforced' to mitigate the impact caused by new S3 default settings.
@@ -12,8 +19,8 @@
 ## [2.6.1] - 2023-04
  ### Added
  - Added support to block customer misconfiguration for 'Terminate Unused Workspaces' feature. The feature will terminate workspaces only on the last day of the month to avoid accidental termination due to misconfiguration.
- 
- ## [2.6.0] - 2023-03
+
+## [2.6.0] - 2023-03
  ### Added
  - Updated the solution to use CDK V2 to generate CloudFormation templates and support CDK deployments.
  - Updated the 'Terminate Workspace' feature to accept user input for number of months to check for before terminating unused workspaces.

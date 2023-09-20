@@ -53,7 +53,7 @@ class MetricsHelper():
                   format(workspace, start_time, end_time))
         list_time_ranges = self.get_list_time_ranges(start_time, end_time)
         list_metric_data_points_user_connected = \
-            self.get_cloudwatch_metric_data_points(workspace['WorkspaceId'], list_time_ranges, 'UserConnected')
+            self.get_cloudwatch_metric_data_points(workspace.get('WorkspaceId'), list_time_ranges, 'UserConnected')
         if list_metric_data_points_user_connected:
             list_user_session_data_points = self.get_list_user_session_data_points(list_metric_data_points_user_connected)
             list_user_sessions = self.get_user_sessions(list_user_session_data_points, workspace)
@@ -117,7 +117,7 @@ class MetricsHelper():
             except Exception as error:
                 log.error("Error occurred while processing workspace {}, {}".format(workspace_id, error))
                 return None
-            for metric_data in metrics['Datapoints']:
+            for metric_data in metrics.get('Datapoints', []):
                 list_data_points.append(metric_data)
         log.debug("The cloudwatch metrics list for workspace id {} is {}".format(workspace_id, list_data_points))
         return list_data_points
@@ -133,7 +133,7 @@ class MetricsHelper():
         list_user_session_data_points = []
         sorted_list_metric_data_points = sorted(list_metric_data_points, key=lambda x: x['Timestamp'])
         for metric in sorted_list_metric_data_points:
-            list_user_session_data_points.append(metric['Maximum'])
+            list_user_session_data_points.append(metric.get('Maximum'))
         log.debug("List of user sessions is {}".format(list_user_session_data_points))
         return list_user_session_data_points
 
@@ -147,10 +147,10 @@ class MetricsHelper():
         log.debug("Calculating user connected hours for workspace {} and user sessions {}".
                   format(workspace, list_user_sessions))
         user_connected_hours = 0
-        if workspace['WorkspaceProperties']['RunningMode'] == ALWAYS_ON:
+        if workspace.get('WorkspaceProperties').get('RunningMode') == ALWAYS_ON:
             idle_time_in_hours = get_autostop_timeout_hours()
         else:
-            idle_time_in_hours = workspace['WorkspaceProperties']['RunningModeAutoStopTimeoutInMinutes'] / 60
+            idle_time_in_hours = workspace.get('WorkspaceProperties').get('RunningModeAutoStopTimeoutInMinutes') / 60
 
         for session in list_user_sessions:
             user_connected_hours = user_connected_hours + session + idle_time_in_hours  ## ADD PATCHING HOURS TO WORKSPACES
@@ -199,10 +199,10 @@ class MetricsHelper():
         :param workspace:
         :return: the number of continuous zeros in user session to determine end of user session
         """
-        if workspace['WorkspaceProperties']['RunningMode'] == ALWAYS_ON:
+        if workspace.get('WorkspaceProperties').get('RunningMode') == ALWAYS_ON:
             # This constant represents the number of 5 minutes sessions in AUTO_STOP_TIMEOUT_HOURS
             number_zero_count = get_autostop_timeout_hours() * 60 / 5
         else:
-            number_zero_count = workspace['WorkspaceProperties']['RunningModeAutoStopTimeoutInMinutes'] / 5
+            number_zero_count = workspace.get('WorkspaceProperties').get('RunningModeAutoStopTimeoutInMinutes') / 5
         log.debug("The zero count for the workspace {} is {}".format(workspace, number_zero_count))
         return int(number_zero_count)
