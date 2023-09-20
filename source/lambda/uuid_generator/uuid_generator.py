@@ -63,7 +63,7 @@ def get_existing_uuid_from_current_stack(event):
 def describe_existing_stack(event):
     response = {}
     try:
-        response = cfn_client.describe_stacks(StackName=event['StackId'])
+        response = cfn_client.describe_stacks(StackName=event.get('StackId'))
     except Exception as e:
         logger.error(f'Error occurred when calling the describe stack operation {e}')
 

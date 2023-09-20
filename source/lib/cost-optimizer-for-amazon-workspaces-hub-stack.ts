@@ -351,7 +351,8 @@ export class CostOptimizerHubStack extends cdk.Stack {
             egressCIDR: egressCIDR.valueAsString,
             costOptimizerBucketName: reportingBucket.reportingBucket.bucketName,
             spokeAccountTableName: spokeAccountTable.tableName,
-            createDynamoDBEndpointCondition: createDynamoDBEndpointCondition
+            createDynamoDBEndpointCondition: createDynamoDBEndpointCondition,
+            ecsTaskRoleName: mappings.findInMap('Data','RoleName')
         }
 
         const costOptimizerVpc = new VpcResources(this, 'CostOptimizerVpc', costOptimizerVpcProps)

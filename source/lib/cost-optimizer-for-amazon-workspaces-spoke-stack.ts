@@ -184,7 +184,7 @@ export class CostOptimizerSpokeStack extends cdk.Stack {
 
         const accountRegistrationProviderLambdaFunction = new lambda.Function(this, 'AccountRegistrationProvider', {
             description: "WorkspacesCostOptimizer spoke account registration custom resource provider",
-            runtime: Runtime.PYTHON_3_9,
+            runtime: Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
             timeout: Duration.seconds(300),
             role: accountRegistrationProviderRole.withoutPolicyUpdates(),

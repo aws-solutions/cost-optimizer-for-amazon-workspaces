@@ -25,7 +25,7 @@ class DirectoryReader():
         log_body_directory_csv = ''
         is_dry_run = self.get_dry_run(stack_parameters)
         test_end_of_month = self.get_end_of_month(stack_parameters)
-        directory_id = directory_parameters['DirectoryId']
+        directory_id = directory_parameters.get('DirectoryId')
 
         report_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags,ReportDate,\n'
 
@@ -35,38 +35,38 @@ class DirectoryReader():
             {
                 'region': region,
                 'hourlyLimits': {
-                    'VALUE': stack_parameters['ValueLimit'],
-                    'STANDARD': stack_parameters['StandardLimit'],
-                    'PERFORMANCE': stack_parameters['PerformanceLimit'],
-                    'POWER': stack_parameters['PowerLimit'],
-                    'POWERPRO': stack_parameters['PowerProLimit'],
-                    'GRAPHICS': stack_parameters['GraphicsLimit'],
-                    'GRAPHICSPRO': stack_parameters['GraphicsProLimit']
+                    'VALUE': stack_parameters.get('ValueLimit'),
+                    'STANDARD': stack_parameters.get('StandardLimit'),
+                    'PERFORMANCE': stack_parameters.get('PerformanceLimit'),
+                    'POWER': stack_parameters.get('PowerLimit'),
+                    'POWERPRO': stack_parameters.get('PowerProLimit'),
+                    'GRAPHICS': stack_parameters.get('GraphicsLimit'),
+                    'GRAPHICSPRO': stack_parameters.get('GraphicsProLimit')
                 },
                 'testEndOfMonth': test_end_of_month,
                 'isDryRun': is_dry_run,
                 'dateTimeValues': directory_parameters.get('DateTimeValues'),
-                'terminateUnusedWorkspaces': stack_parameters['TerminateUnusedWorkspaces']
+                'terminateUnusedWorkspaces': stack_parameters.get('TerminateUnusedWorkspaces')
             }
         )
         list_workspaces = workspaces_helper.get_workspaces_for_directory(directory_id)
         for workspace in list_workspaces:
-            log.debug("Processing workspace {}".format(workspace))
-            workspace_count = workspace_count + 1
-            result = workspaces_helper.process_workspace(workspace)
-            report_csv = append_entry(report_csv, result)  # Append result data to the CSV
-            directory_csv = append_entry(directory_csv, result)  # Append result for aggregated report
             try:
+                log.debug("Processing workspace {}".format(workspace))
+                workspace_count = workspace_count + 1
+                result = workspaces_helper.process_workspace(workspace)
+                report_csv = append_entry(report_csv, result)  # Append result data to the CSV
+                directory_csv = append_entry(directory_csv, result)  # Append result for aggregated report
                 workspace_processed = {
-                    'previousMode': result['initialMode'],
-                    'newMode': result['newMode'],
-                    'bundleType': result['bundleType'],
-                    'hourlyThreshold': result['hourlyThreshold'],
-                    'billableTime': result['billableTime']
+                    'previousMode': result.get('initialMode'),
+                    'newMode': result.get('newMode'),
+                    'bundleType': result.get('bundleType'),
+                    'hourlyThreshold': result.get('hourlyThreshold'),
+                    'billableTime': result.get('billableTime')
                 }
                 list_processed_workspaces.append(workspace_processed)
             except Exception:
-                log.debug("Could not append workspace for metrics. Skipping this workspace")
+                log.error("Error processing the workspace {}".format(workspace.get('WorkspaceId')))
             log_body = expand_csv(report_csv)
             log_body_directory_csv = expand_csv(directory_csv)
             # Upload with default session, rather than delegated
@@ -75,10 +75,10 @@ class DirectoryReader():
 
     def get_account(self) -> str:
         sts_client = self._session.client('sts')
-        return sts_client.get_caller_identity()['Account']
+        return sts_client.get_caller_identity().get('Account')
 
     def get_dry_run(self, stack_parameters: dict) -> bool:
-        return stack_parameters['DryRun'] == 'Yes'
+        return stack_parameters.get('DryRun') == 'Yes'
 
     def get_end_of_month(self, stack_parameters: dict) -> bool:
-        return stack_parameters['TestEndOfMonth'] == 'Yes'
+        return stack_parameters.get('TestEndOfMonth') == 'Yes'

@@ -40,8 +40,8 @@ class DynamoDbAccountRegistry(AccountRegistry):
         except ClientError as exception:
             logger.error(
                 "Error scanning for accounts: %s: %s",
-                exception.response['Error']['Code'],
-                exception.response['Error']['Message'])
+                exception.response.get('Error').get('Code'),
+                exception.response.get('Error').get('Message'))
             raise
 
         return [AccountInfo(**item) for item in items]
@@ -52,7 +52,7 @@ class NullAccountRegistry(AccountRegistry):
 
 def get_account_registry(session: Session) -> AccountRegistry:
     boto_config = Config(
-        user_agent_extra=os.environ['UserAgentString'],
+        user_agent_extra=os.environ.get('UserAgentString'),
         retries={'mode': 'standard'})
     table_name: str = os.getenv('SpokeAccountDynamoDBTable')
     if table_name:

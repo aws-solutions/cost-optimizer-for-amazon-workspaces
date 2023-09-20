@@ -23,9 +23,9 @@ def send(event, context, response_status, response_data, physical_resource_id=No
         'Status': response_status,
         'Reason': reason or "See the details in CloudWatch Log Stream: {}".format(context.log_stream_name),
         'PhysicalResourceId': physical_resource_id or context.log_stream_name,
-        'StackId': event['StackId'],
-        'RequestId': event['RequestId'],
-        'LogicalResourceId': event['LogicalResourceId'],
+        'StackId': event.get('StackId'),
+        'RequestId': event.get('RequestId'),
+        'LogicalResourceId': event.get('LogicalResourceId'),
         'NoEcho': no_echo,
         'Data': response_data
     }

@@ -46,11 +46,12 @@ class WorkspacesHelper(object):
         :param workspace:
         :return: Object with the results of optimization
         """
-        workspace_id = workspace['WorkspaceId']
+        workspace_id = workspace.get('WorkspaceId')
         log.debug(f'workspaceID: {workspace_id}')
-        workspace_running_mode = workspace['WorkspaceProperties']['RunningMode']
+        workspace_running_mode = workspace.get('WorkspaceProperties').get('RunningMode')
         log.debug(f'workspaceRunningMode: {workspace_running_mode}')
-        workspace_bundle_type = workspace['WorkspaceProperties']['ComputeTypeName']
+        workspace_bundle_type = workspace.get('WorkspaceProperties').get('ComputeTypeName')
+
         log.debug(f'workspaceBundleType: {workspace_bundle_type}')
         billable_time = self.metrics_helper.get_billable_hours(
             self.settings.get('dateTimeValues').get('start_time_for_current_month'),
@@ -80,8 +81,8 @@ class WorkspacesHelper(object):
             'workspaceID': workspace_id,
             'billableTime': billable_time,
             'hourlyThreshold': hourly_threshold,
-            'optimizationResult': optimization_result['resultCode'],
-            'newMode': optimization_result['newMode'],
+            'optimizationResult': optimization_result.get('resultCode'),
+            'newMode': optimization_result.get('newMode'),
             'bundleType': workspace_bundle_type,
             'initialMode': workspace_running_mode,
             'userName': workspace.get('UserName', ''),
@@ -104,7 +105,7 @@ class WorkspacesHelper(object):
                 ResourceId=workspace_id
             )
             log.debug(workspace_tags)
-            tags = workspace_tags['TagList']
+            tags = workspace_tags.get('TagList', [])
         except botocore.exceptions.ClientError as error:
             log.error(f'Error {error} while getting tags for the workspace {workspace_id}')
             return None
