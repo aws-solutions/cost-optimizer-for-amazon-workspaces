@@ -8,6 +8,9 @@
  ### Fixed
  - Added the bugfix to skip the processing of the workspaces in error state.
  - Updated all the package versions to resolve security vulnerabilities.
+ - Patch Certifi vulnerability. Removal of e-Tugra root certificate [CVE-2023-37920](https://github.com/advisories/GHSA-xqr8-7jwr-rhp7)
+ - Patch Requests vulnerability. Leaking Proxy-Authorization headers [CVE-2023-32681](https://nvd.nist.gov/vuln/detail/CVE-2023-32681)
+ - Patch aws-cdk-lib vulnerability. EKS overly permissive trust policies [CVE-2023-35165](https://nvd.nist.gov/vuln/detail/CVE-2023-35165)
  - Updated the docker base image to the python 3.11.
  - Updated all the lambda runtimes to python 3.11.
 
