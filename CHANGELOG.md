@@ -11,6 +11,7 @@
  - Patch Certifi vulnerability. Removal of e-Tugra root certificate [CVE-2023-37920](https://github.com/advisories/GHSA-xqr8-7jwr-rhp7)
  - Patch Requests vulnerability. Leaking Proxy-Authorization headers [CVE-2023-32681](https://nvd.nist.gov/vuln/detail/CVE-2023-32681)
  - Patch aws-cdk-lib vulnerability. EKS overly permissive trust policies [CVE-2023-35165](https://nvd.nist.gov/vuln/detail/CVE-2023-35165)
+ - Patch ECR base image vulnerabilities, fixing the following: [CVE-2023-2650](https://nvd.nist.gov/vuln/detail/CVE-2023-2650) [CVE-2022-29458](https://nvd.nist.gov/vuln/detail/CVE-2022-29458) [CVE-2022-3821](https://nvd.nist.gov/vuln/detail/CVE-2022-3821) [CVE-2023-0465](https://nvd.nist.gov/vuln/detail/CVE-2023-0465) [CVE-2022-4415](https://nvd.nist.gov/vuln/detail/CVE-2022-4415) [CVE-2023-0464](https://nvd.nist.gov/vuln/detail/CVE-2023-0464)
  - Updated the docker base image to the python 3.11.
  - Updated all the lambda runtimes to python 3.11.
 
