@@ -12,7 +12,7 @@ import sys
 
 logger = logging.getLogger(__name__)
 log_level = getattr(logging, str(os.getenv('LOG_LEVEL', 'INFO')))
-logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=log_level)
+logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=log_level)  # NOSONAR
 
 boto_config = botocore.config.Config(
     retries={

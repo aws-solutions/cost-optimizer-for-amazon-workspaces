@@ -161,7 +161,7 @@ class WorkspacesHelper(object):
         except botocore.exceptions.ClientError as e:
             log.error(f'Error while getting the list of workspace for directory ID '
                       f'{directory_id}: Error: {e}')
-        log.debug(f'Returning the list of directories as {list_workspaces}')
+        log.debug(f'Returning the list of workspaces as {list_workspaces}')
         return list_workspaces
 
     def get_termination_status(self, workspace_id, billable_time, tags):

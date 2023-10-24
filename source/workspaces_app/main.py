@@ -33,7 +33,7 @@ boto_config = botocore.config.Config(
 def configure_logging() -> None:
     """Configure root logger level based on `LogLevel` environment variable."""
     log_level = getattr(logging, str(os.getenv('LogLevel', 'INFO')))
-    logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=log_level)
+    logging.basicConfig(stream=sys.stdout, format='%(levelname)s: %(message)s', level=log_level)  # NOSONAR
 
 
 def ecs_handler() -> None:

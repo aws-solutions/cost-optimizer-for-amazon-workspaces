@@ -1,11 +1,11 @@
-boto3==1.26.48
-botocore==1.29.48
+boto3==1.28.68
+botocore==1.31.68
 certifi==2023.7.22
 charset-normalizer==2.1.1
 idna==3.4
 jmespath==1.0.1
 python-dateutil==2.8.2
 requests==2.31.0
-s3transfer==0.6.0
+s3transfer==0.7.0
 six==1.16.0
-urllib3==1.26.14
+urllib3==2.0.7
