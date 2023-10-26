@@ -4,6 +4,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.4] - 2023-10
+ ### Fixed
+ - Updated @babel/traverse to mitigate [CVE-2023-45133](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/pull/61)
+ - Updated urllib3 to mitigate [CVE-2023-45803](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/pull/59)
+ - Updated the base python image in the Dockerfile used to fix the following CVEs: [CVE-2023-29491](https://nvd.nist.gov/vuln/detail/CVE-2023-29491), [CVE-2023-4911](https://nvd.nist.gov/vuln/detail/CVE-2023-4911), [CVE-2023-36054](https://nvd.nist.gov/vuln/detail/CVE-2023-36054), [CVE-2023-3446](https://nvd.nist.gov/vuln/detail/CVE-2023-3446), [CVE-2023-3817](https://nvd.nist.gov/vuln/detail/CVE-2023-3817).
+
 ## [2.6.3] - 2023-09
  ### Fixed
  - Added the bugfix to skip the processing of the workspaces in error state.

@@ -3,9 +3,9 @@ pytest>=7.2.0
 pytest-mock==3.10.0
 coverage==7.2.0
 requests==2.31.0
-boto3==1.26.48
+boto3==1.28.68
 attrs==v23.1.0
-botocore==1.29.48
+botocore==1.31.68
 certifi==2023.7.22
 charset-normalizer==2.1.1
 idna==3.4
@@ -15,8 +15,8 @@ packaging==23.0
 pluggy==1.0.0
 pyparsing==3.0.9
 python-dateutil==2.8.2
-s3transfer==0.6.0
+s3transfer==0.7.0
 six==1.16.0
 tomli==2.0.1
-urllib3==1.26.14
+urllib3==2.0.7
 freezegun==1.2.2
