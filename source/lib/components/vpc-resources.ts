@@ -118,6 +118,7 @@ export class VpcResources extends Construct {
             routeTableId: mainRouteTable.ref,
             gatewayId: internetGateway.ref
         })
+        routeToInternet.addDependency(internetGatewayAttachment)
         overrideLogicalId(routeToInternet, 'RouteToInternet')
 
         const subnet1RouteTableAssociation = new CfnSubnetRouteTableAssociation(this, 'Subnet1RouteTableAssociation', {
