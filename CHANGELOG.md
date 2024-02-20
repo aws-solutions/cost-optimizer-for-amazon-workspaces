@@ -4,6 +4,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.5] - 2024-02
+### Fixed
+- Updated the base python image in the Dockerfile used to mitigate [CVE-2023-47038](https://security-tracker.debian.org/tracker/CVE-2023-47038).
+- Update pip to mitigate [CVE-2023-5752](https://nvd.nist.gov/vuln/detail/CVE-2023-5752).
+- Add dependency to route to mitigate race condition between internet gateway and the route to the internet gateway.
+
 ## [2.6.4] - 2023-10
  ### Fixed
  - Updated @babel/traverse to mitigate [CVE-2023-45133](https://github.com/aws-solutions/cost-optimizer-for-amazon-workspaces/pull/61)

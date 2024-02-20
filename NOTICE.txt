@@ -31,6 +31,7 @@ boto3 under the Apache License 2.0
 attrs under the MIT License
 botocore under the Apache License 2.0
 certifi under the Mozilla Public License 2.0
+charset-normalizer under the MIT License
 idna under the BSD 3-Clause "New" or "Revised" License
 iniconfig under the MIT License
 jmespath under the MIT License
@@ -45,15 +46,8 @@ urllib3 under the MIT License
 freezegun under the Apache License Version 2.0
 pytest-cov under the MIT License
 pytest-env under the MIT License
-python-dateutil under the Apache License 2.0
-s3transfer under the Apache License 2.0
-six under the MIT License
 urllib3 under the MIT License
 virtualenv under the MIT License
 wheel under the MIT license
-wheel under the MIT license
 setuptools under the MIT license
-setuptools under the MIT license
-pip under the MIT license
-freezegun under the Apache License Version 2.0
 pip under the MIT license

@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.11.6-slim-bullseye
+FROM public.ecr.aws/docker/library/python:3.12.2-slim-bookworm
 COPY workspaces_app /workspaces_app
 
 WORKDIR /workspaces_app

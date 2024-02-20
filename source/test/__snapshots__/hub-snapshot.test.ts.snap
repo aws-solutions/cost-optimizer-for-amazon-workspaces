@@ -1944,6 +1944,9 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     },
     "RouteToInternet": {
       "Condition": "CreateNewVPCCondition",
+      "DependsOn": [
+        "InternetGatewayAttachment",
+      ],
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {
