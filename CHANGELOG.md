@@ -4,6 +4,17 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.6] - 2024-07
+### Fixed
+- Updated the base python image in the Dockerfile used to mitigate [CVE-2023-50387](https://security-tracker.debian.org/tracker/CVE-2023-50387), [CVE-2023-5678](https://security-tracker.debian.org/tracker/CVE-2023-5678), [CVE-2024-0727](https://security-tracker.debian.org/tracker/CVE-2024-0727), [CVE-2023-6129](https://security-tracker.debian.org/tracker/CVE-2023-6129) and several low severity vulnerabilities
+- Updated braces to mitigate [CVE-2024-4068](https://nvd.nist.gov/vuln/detail/CVE-2024-4068).
+- Updated IDNA to mitigate [CVE-2024-3651](https://nvd.nist.gov/vuln/detail/CVE-2024-3651).
+- Updated urllib3 to mitigate [CVE-2024-37891](https://nvd.nist.gov/vuln/detail/CVE-2024-37891).
+- Updated setuptools to mitigate [CVE-2024-6345](https://nvd.nist.gov/vuln/detail/CVE-2024-6345).
+- Updated requests to mitigate [CVE-2024-35195](https://nvd.nist.gov/vuln/detail/CVE-2024-35195).
+- Updated Certifi to mitigate [CVE-2024-39689](https://nvd.nist.gov/vuln/detail/CVE-2024-39689).
+- Updated boto3, botocore, s3transfer to resolve conflicting dependencies.
+
 ## [2.6.5] - 2024-02
 ### Fixed
 - Updated the base python image in the Dockerfile used to mitigate [CVE-2023-47038](https://security-tracker.debian.org/tracker/CVE-2023-47038).
