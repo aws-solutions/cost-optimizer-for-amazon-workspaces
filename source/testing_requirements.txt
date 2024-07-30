@@ -19,3 +19,4 @@ six==1.16.0
 tomli==2.0.1
 urllib3==2.2.2
 freezegun==1.2.2
+aws-lambda-powertools==2.39.1

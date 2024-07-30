@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
+
+# Standard Library
 import time
 import typing
 
@@ -17,11 +19,11 @@ class Timer:
         self._start_time: typing.Union[float, None] = None
 
     def start(self) -> None:
-        """Start the timer. """
+        """Start the timer."""
         self._start_time = time.perf_counter()
 
     def get_elapsed_time(self) -> float:
         """Get the time elapsed from the last call of `start` in seconds."""
         if not self._start_time:
-            raise TimerNotStartedException('Timer stopped without starting.')
+            raise TimerNotStartedException("Timer stopped without starting.")
         return time.perf_counter() - self._start_time

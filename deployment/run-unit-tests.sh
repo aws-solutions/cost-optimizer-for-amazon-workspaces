@@ -6,7 +6,8 @@ set -eo pipefail
 
 main() {
   # "$root_dir"/deployment/run-unit-tests.sh
-  local root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
+  local root_dir
+  root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
   local template_dir="$root_dir"/deployment
   local source_dir="$root_dir"/source
   local venv="$root_dir"/.venv
@@ -20,7 +21,7 @@ main() {
     "$source_dir"/testing_requirements.txt
   )
 
-  for requirements_file in ${requirements_files[@]}; do
+  for requirements_file in "${requirements_files[@]}"; do
     python3 -m pip install -r "$requirements_file"
   done
 
@@ -44,10 +45,10 @@ main() {
   rm "$source_dir"/lambda/account_registration_provider/cfnresponse.py
 
   # coverage reports generate with absolute path which would conflict with sonarqube
-  sed -i -e "s,<source>"$source_dir"</source>,<source>source</source>,g" "$coverage_dir"/wco.coverage.xml
-  
+  sed -i -e "s,<source>$source_dir</source>,<source>source</source>,g" "$coverage_dir"/wco.coverage.xml
+
   # Run the cdk snapshot test
-  
+
   cd "$source_dir"
   npm install
   npm run test
