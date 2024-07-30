@@ -21,21 +21,23 @@ pack_lambda() {
   local source_dir=$1; shift
   local package_name=$1; shift
   local build_dist_dir=$1; shift
-  local includes="$@"
+  local includes=( "$@" )
 
   local package_temp_dir="$build_dist_dir"/"$package_name"
   [[ -d "$package_temp_dir" ]] && rm -r "$package_temp_dir"
   mkdir -p "$package_temp_dir"
 
   cp -r "$source_dir"/"$package_name" "$package_temp_dir"
-  for include_file in ${includes[@]}; do
+  for include_file in "${includes[@]}"; do
     cp "$include_file" "$package_temp_dir"
   done
 
+  pip install -r "$source_dir"/requirements.txt -t "$package_temp_dir"
+
   pushd "$package_temp_dir"
   local exclude_dirs=("__pycache__" "__tests__")
-  for exclude_dir in ${exclude_dirs[@]}; do
-    find . -type d -name "$exclude_dir" | xargs rm -rf
+  for exclude_dir in "${exclude_dirs[@]}"; do
+    find . -type d -name "$exclude_dir" -print0 | xargs -0 rm -rf
   done
 
   echo "Packed lambda $package_name contents:"
@@ -69,7 +71,8 @@ main() {
   echo "solution = $solution"
   echo "version = $version"
 
-  local root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
+  local root_dir
+  root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
   local template_dir="$root_dir"/deployment
   local source_dir="$root_dir"/source
 
@@ -81,7 +84,7 @@ main() {
   header "[Init] Clean old dist and template folders"
 
   local clean_directories=("$template_dist_dir" "$build_dist_dir" "$wco_folder")
-  for dir in ${clean_directories[@]}; do
+  for dir in "${clean_directories[@]}"; do
     rm -rf "$dir"
     mkdir -p "$dir"
   done
@@ -103,18 +106,18 @@ main() {
     "s/PUBLIC_ECR_TAG/$PUBLIC_ECR_TAG/g"
   )
   replace_args=()
-  for regex in ${replace_regexes[@]}; do
+  for regex in "${replace_regexes[@]}"; do
     replace_args=(-e "$regex" "${replace_args[@]}")
   done
 
-  cd $source_dir
+  cd "$source_dir"
   npm install
   npx cdk synth cost-optimizer-for-amazon-workspaces >> "$template_dir"/cost-optimizer-for-amazon-workspaces.template
   npx cdk synth cost-optimizer-for-amazon-workspaces-spoke >> "$template_dir"/cost-optimizer-for-amazon-workspaces-spoke.template
   templates=(cost-optimizer-for-amazon-workspaces.template cost-optimizer-for-amazon-workspaces-spoke.template)
-  
-  for template in ${templates[@]}; do
-    sed ${replace_args[@]} "$template_dir"/"$template" > "$template_dist_dir"/"$template"
+
+  for template in "${templates[@]}"; do
+    sed "${replace_args[@]}" "$template_dir"/"$template" > "$template_dist_dir"/"$template"
     rm  "$template_dir"/"$template"
   done
 

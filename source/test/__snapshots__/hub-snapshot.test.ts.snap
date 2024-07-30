@@ -53,6 +53,14 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "No",
       ],
     },
+    "UseStableTagCondition": {
+      "Fn::Equals": [
+        {
+          "Ref": "UseStableTagging",
+        },
+        "Yes",
+      ],
+    },
     "managementIdInputParameter": {
       "Fn::Equals": [
         {
@@ -85,6 +93,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SendAnonymousUsageData": "True",
         "SolutionName": "Cost Optimizer for Amazon Workspaces",
         "SpokeAccountWorkspacesRole": "Workspaces-Admin-Spoke",
+        "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.6_stable",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
         "TaskDefinitionName": "wco-task",
         "Version": "v2.6.0",
@@ -107,8 +116,9 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "default": "Existing VPC Settings",
           },
           "Parameters": [
-            "ExistingSubnet1Id",
-            "ExistingSubnet2Id",
+            "ExistingPublicSubnetId",
+            "ExistingPrivateSubnetId",
+            "ExistingPrivateSubnet2Id",
             "ExistingSecurityGroupId",
           ],
         },
@@ -118,8 +128,9 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           "Parameters": [
             "VpcCIDR",
-            "Subnet1CIDR",
-            "Subnet2CIDR",
+            "PublicSubnetCIDR",
+            "PrivateSubnet1CIDR",
+            "PrivateSubnet2CIDR",
             "EgressCIDR",
           ],
         },
@@ -141,10 +152,18 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "ValueLimit",
             "StandardLimit",
             "PerformanceLimit",
-            "GraphicsLimit",
-            "GraphicsProLimit",
+            "GraphicsG4dnLimit",
+            "GraphicsProG4dnLimit",
             "PowerLimit",
             "PowerProLimit",
+          ],
+        },
+        {
+          "Label": {
+            "default": "Container Image",
+          },
+          "Parameters": [
+            "UseStableTagging",
           ],
         },
         {
@@ -184,14 +203,17 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "EgressCIDR": {
           "default": "AWS Fargate SecurityGroup CIDR Block",
         },
+        "ExistingPrivateSubnet2Id": {
+          "default": "Second Private Subnet ID",
+        },
+        "ExistingPrivateSubnetId": {
+          "default": "First Private Subnet ID",
+        },
+        "ExistingPublicSubnetId": {
+          "default": "Public Subnet ID",
+        },
         "ExistingSecurityGroupId": {
           "default": "Security group ID to launch ECS task",
-        },
-        "ExistingSubnet1Id": {
-          "default": "Subnet ID for first subnet",
-        },
-        "ExistingSubnet2Id": {
-          "default": "Subnet ID for second subnet",
         },
         "LogLevel": {
           "default": "Log Level",
@@ -205,20 +227,26 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "OrganizationID": {
           "default": "Organization ID for multi account deployment",
         },
+        "PrivateSubnet1CIDR": {
+          "default": "AWS Fargate Private Subnet 1 CIDR Block",
+        },
+        "PrivateSubnet2CIDR": {
+          "default": "AWS Fargate Private Subnet 2 CIDR Block",
+        },
+        "PublicSubnetCIDR": {
+          "default": "Public Subnet CIDR Block",
+        },
         "Regions": {
           "default": "List of AWS Regions",
-        },
-        "Subnet1CIDR": {
-          "default": "AWS Fargate Subnet 1 CIDR Block",
-        },
-        "Subnet2CIDR": {
-          "default": "AWS Fargate Subnet 2 CIDR Block",
         },
         "TerminateUnusedWorkspaces": {
           "default": "Terminate workspaces not used for a month",
         },
         "TestEndOfMonth": {
           "default": "Simulate End of Month Cleanup",
+        },
+        "UseStableTagging": {
+          "default": "Auto-update Container Image",
         },
         "VpcCIDR": {
           "default": "AWS Fargate VPC CIDR Block",
@@ -241,20 +269,20 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "Ref": "DryRun",
       },
     },
-    "GraphicsLimit": {
+    "GraphicsG4dnLimit": {
       "Export": {
-        "Name": "GraphicsLimit",
+        "Name": "GraphicsG4dnLimit",
       },
       "Value": {
-        "Ref": "GraphicsLimit",
+        "Ref": "GraphicsG4dnLimit",
       },
     },
-    "GraphicsProLimit": {
+    "GraphicsProG4dnLimit": {
       "Export": {
-        "Name": "GraphicsProLimit",
+        "Name": "GraphicsProG4dnLimit",
       },
       "Value": {
-        "Ref": "GraphicsProLimit",
+        "Ref": "GraphicsProG4dnLimit",
       },
     },
     "LogLevel": {
@@ -392,29 +420,34 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       "MinLength": 9,
       "Type": "String",
     },
+    "ExistingPrivateSubnet2Id": {
+      "Default": "",
+      "Description": "A second Private Subnet ID to launch ECS task. Leave this blank if you selected "Yes" for "Create New VPC"",
+      "Type": "String",
+    },
+    "ExistingPrivateSubnetId": {
+      "Default": "",
+      "Description": "A Private Subnet ID to launch ECS task. Leave this blank if you selected "Yes" for "Create New VPC"",
+      "Type": "String",
+    },
+    "ExistingPublicSubnetId": {
+      "Default": "",
+      "Description": "A public Subnet ID to launch the gateway. Leave this blank if you selected "Yes" for "Create New VPC"",
+      "Type": "String",
+    },
     "ExistingSecurityGroupId": {
       "Default": "",
       "Description": "Security Group Id to launch ECS task. Leave this blank is you selected "Yes" for "Create New VPC"",
       "Type": "String",
     },
-    "ExistingSubnet1Id": {
-      "Default": "",
-      "Description": "Subnet ID to launch ECS task. Leave this blank is you selected "Yes" for "Create New VPC"",
-      "Type": "String",
-    },
-    "ExistingSubnet2Id": {
-      "Default": "",
-      "Description": "Subnet ID to launch ECS task. Leave this blank is you selected "Yes" for "Create New VPC"",
-      "Type": "String",
-    },
-    "GraphicsLimit": {
-      "Default": 217,
-      "Description": "The number of hours a Graphics instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+    "GraphicsG4dnLimit": {
+      "Default": 334,
+      "Description": "The number of hours a Graphics.g4dn instance can run in a month before being converted to ALWAYS_ON. Default is 334.",
       "Type": "Number",
     },
-    "GraphicsProLimit": {
+    "GraphicsProG4dnLimit": {
       "Default": 80,
-      "Description": "The number of hours a Graphics Pro instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Description": "The number of hours a GraphicsPro.g4dn instance can run in a month before being converted to ALWAYS_ON. Default is 80.",
       "Type": "Number",
     },
     "LogLevel": {
@@ -462,19 +495,46 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       "Type": "String",
     },
     "PerformanceLimit": {
-      "Default": 83,
-      "Description": "The number of hours a Performance instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Default": 80,
+      "Description": "The number of hours a Performance instance can run in a month before being converted to ALWAYS_ON. Default is 80.",
       "Type": "Number",
     },
     "PowerLimit": {
-      "Default": 83,
-      "Description": "The number of hours a Power instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Default": 92,
+      "Description": "The number of hours a Power instance can run in a month before being converted to ALWAYS_ON. Default is 92.",
       "Type": "Number",
     },
     "PowerProLimit": {
-      "Default": 80,
-      "Description": "The number of hours a Power Pro instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Default": 78,
+      "Description": "The number of hours a Power Pro instance can run in a month before being converted to ALWAYS_ON. Default is 78.",
       "Type": "Number",
+    },
+    "PrivateSubnet1CIDR": {
+      "AllowedPattern": "(?:^$|(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.30.0/24",
+      "Description": "CIDR block for the first private subnet. This subnet is for launching the container that should not be directly accessible from the internet.",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+    "PrivateSubnet2CIDR": {
+      "AllowedPattern": "(?:^$|(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.40.0/24",
+      "Description": "CIDR block for the second private subnet. Use this for high availability across multiple subnets.",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
+    },
+    "PublicSubnetCIDR": {
+      "AllowedPattern": "(?:^$|(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2}))",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
+      "Default": "10.215.10.0/24",
+      "Description": "CIDR block for the public subnet. This subnet hosts internet-facing resources and NAT Gateway, enabling private subnets to access the internet indirectly.",
+      "MaxLength": 18,
+      "MinLength": 9,
+      "Type": "String",
     },
     "Regions": {
       "Default": "",
@@ -483,24 +543,8 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     },
     "StandardLimit": {
       "Default": 85,
-      "Description": "The number of hours a Standard instance can run in a month before being converted to ALWAYS_ON. Default is 81.",
+      "Description": "The number of hours a Standard instance can run in a month before being converted to ALWAYS_ON. Default is 85.",
       "Type": "Number",
-    },
-    "Subnet1CIDR": {
-      "AllowedPattern": "(?:^$|(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2}))",
-      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
-      "Default": "10.215.10.0/24",
-      "MaxLength": 18,
-      "MinLength": 9,
-      "Type": "String",
-    },
-    "Subnet2CIDR": {
-      "AllowedPattern": "(?:^$|(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2}))",
-      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x.",
-      "Default": "10.215.20.0/24",
-      "MaxLength": 18,
-      "MinLength": 9,
-      "Type": "String",
     },
     "TerminateUnusedWorkspaces": {
       "AllowedValues": [
@@ -519,6 +563,15 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       ],
       "Default": "No",
       "Description": "Overrides date and forces the solution to run as if it is the end of the month.",
+      "Type": "String",
+    },
+    "UseStableTagging": {
+      "AllowedValues": [
+        "Yes",
+        "No",
+      ],
+      "Default": "Yes",
+      "Description": "Automatically use the most up to date and secure image up until the next minor release. Selecting 'No' will pull the image as originally released, without any security updates.",
       "Type": "String",
     },
     "ValueLimit": {
@@ -695,8 +748,12 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "cfn_nag": {
           "rules_to_suppress": [
             {
+              "id": "W76",
+              "reason": "Admin policy needed for Fargate container",
+            },
+            {
               "id": "W12",
-              "reason": "ecr:GetAuthorizationToken only supports * as the resource",
+              "reason": "getMetricData and getMetricStatistics requires * policy",
             },
           ],
         },
@@ -731,11 +788,6 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                   ],
                 ],
               },
-            },
-            {
-              "Action": "ecr:GetAuthorizationToken",
-              "Effect": "Allow",
-              "Resource": "*",
             },
             {
               "Action": [
@@ -799,7 +851,10 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             },
             {
-              "Action": "s3:PutObject",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+              ],
               "Effect": "Allow",
               "Resource": {
                 "Fn::Join": [
@@ -819,7 +874,39 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               },
             },
             {
-              "Action": "cloudwatch:GetMetricStatistics",
+              "Action": "s3:ListBucket",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::",
+                    {
+                      "Ref": "CostOptimizerBucket",
+                    },
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:GetMetricData",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Condition": {
+                "StringEquals": {
+                  "cloudwatch:namespace": "WorkspacesCostOptimizer",
+                },
+              },
               "Effect": "Allow",
               "Resource": "*",
             },
@@ -850,6 +937,39 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                 ],
               },
             },
+            {
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UsageTable28300137",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            {
+              "Action": "dynamodb:BatchWriteItem",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UserSessionTableCD18DD22",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
           ],
           "Version": "2012-10-17",
         },
@@ -870,6 +990,11 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               "id": "W28",
               "reason": "Static naming is necessary for hub account to assume this role",
             },
+          ],
+        },
+        "guard": {
+          "SuppressedRules": [
+            "CFN_NO_EXPLICIT_RESOURCE_NAMES",
           ],
         },
       },
@@ -908,6 +1033,16 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     },
     "CostOptimizerBucket": {
       "DeletionPolicy": "Retain",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W51",
+              "reason": "Policy is not required for this bucket.",
+            },
+          ],
+        },
+      },
       "Properties": {
         "BucketEncryption": {
           "ServerSideEncryptionConfiguration": [
@@ -1154,15 +1289,15 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                 },
               },
               {
-                "Name": "GraphicsLimit",
+                "Name": "GraphicsG4dnLimit",
                 "Value": {
-                  "Ref": "GraphicsLimit",
+                  "Ref": "GraphicsG4dnLimit",
                 },
               },
               {
-                "Name": "GraphicsProLimit",
+                "Name": "GraphicsProG4dnLimit",
                 "Value": {
-                  "Ref": "GraphicsProLimit",
+                  "Ref": "GraphicsProG4dnLimit",
                 },
               },
               {
@@ -1236,6 +1371,18 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                 },
               },
               {
+                "Name": "UsageTable",
+                "Value": {
+                  "Ref": "UsageTable28300137",
+                },
+              },
+              {
+                "Name": "UserSessionTable",
+                "Value": {
+                  "Ref": "UserSessionTableCD18DD22",
+                },
+              },
+              {
                 "Name": "NumberOfMonthsForTerminationCheck",
                 "Value": {
                   "Ref": "NumberOfMonthsForTerminationCheck",
@@ -1244,10 +1391,22 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             ],
             "Essential": true,
             "Image": {
-              "Fn::FindInMap": [
-                "Solution",
-                "Data",
-                "Image",
+              "Fn::If": [
+                "UseStableTagCondition",
+                {
+                  "Fn::FindInMap": [
+                    "Solution",
+                    "Data",
+                    "StableImage",
+                  ],
+                },
+                {
+                  "Fn::FindInMap": [
+                    "Solution",
+                    "Data",
+                    "Image",
+                  ],
+                },
               ],
             },
             "LogConfiguration": {
@@ -1293,6 +1452,13 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
       },
       "Type": "AWS::ECS::TaskDefinition",
+    },
+    "CostOptimizerVpcNatGatewayEIP022C0087": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "Domain": "vpc",
+      },
+      "Type": "AWS::EC2::EIP",
     },
     "DefaultApplicationAttributeGroup": {
       "Properties": {
@@ -1364,6 +1530,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                       ],
                     },
                   ],
+                  "aws:SecureTransport": "true",
                 },
               },
               "Effect": "Allow",
@@ -1394,12 +1561,143 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                 ],
               },
             },
+            {
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:GetItem",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalArn": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":iam::",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":role/",
+                          {
+                            "Fn::FindInMap": [
+                              "Solution",
+                              "Data",
+                              "RoleName",
+                            ],
+                          },
+                          "-",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                  "aws:SecureTransport": "true",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dynamodb:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    {
+                      "Ref": "UsageTable28300137",
+                    },
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "dynamodb:BatchWriteItem",
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalArn": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":iam::",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":role/",
+                          {
+                            "Fn::FindInMap": [
+                              "Solution",
+                              "Data",
+                              "RoleName",
+                            ],
+                          },
+                          "-",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                  "aws:SecureTransport": "true",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dynamodb:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    {
+                      "Ref": "UserSessionTableCD18DD22",
+                    },
+                  ],
+                ],
+              },
+            },
           ],
           "Version": "2012-10-17",
         },
         "RouteTableIds": [
           {
-            "Ref": "MainRouteTable",
+            "Ref": "MainRoutePrivateTable",
           },
         ],
         "ServiceName": {
@@ -1564,6 +1862,11 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             },
           ],
         },
+        "guard": {
+          "SuppressedRules": [
+            "SECURITY_GROUP_MISSING_EGRESS_RULE",
+          ],
+        },
       },
       "Properties": {
         "GroupDescription": "Security group that allows inbound from the VPC and outbound to the Internet",
@@ -1706,7 +2009,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
-    "MainRouteTable": {
+    "MainRoutePrivateTable": {
       "Condition": "CreateNewVPCCondition",
       "Properties": {
         "VpcId": {
@@ -1714,6 +2017,156 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
       },
       "Type": "AWS::EC2::RouteTable",
+    },
+    "NatGateway": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "CostOptimizerVpcNatGatewayEIP022C0087",
+            "AllocationId",
+          ],
+        },
+        "SubnetId": {
+          "Ref": "Subnet1",
+        },
+      },
+      "Type": "AWS::EC2::NatGateway",
+    },
+    "PrivateRouteToInternet": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway",
+        },
+        "RouteTableId": {
+          "Ref": "MainRoutePrivateTable",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "PrivateSubnet1": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": {
+          "Ref": "PrivateSubnet1CIDR",
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "cost-optimizer-vpc-private-subnet-1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "PrivateSubnet1RouteTableAssociation": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MainRoutePrivateTable",
+        },
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "PrivateSubnet1",
+            "SubnetId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "PrivateSubnet2": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": {
+          "Ref": "PrivateSubnet2CIDR",
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "cost-optimizer-vpc-private-subnet-2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "PrivateSubnet2RouteTableAssociation": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MainRoutePrivateTable",
+        },
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "PrivateSubnet2",
+            "SubnetId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "PublicRouteTable": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "PublicRouteToInternet": {
+      "Condition": "CreateNewVPCCondition",
+      "DependsOn": [
+        "InternetGatewayAttachment",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway",
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "PublicSubnetRouteTableAssociation": {
+      "Condition": "CreateNewVPCCondition",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable",
+        },
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "Subnet1",
+            "SubnetId",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
     "RegisterSpokeAccountsFunction": {
       "Condition": "MultiAccountDeploymentCondition",
@@ -1802,6 +2255,16 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     },
     "RegisterSpokeAccountsFunctionLambdaPolicy": {
       "Condition": "MultiAccountDeploymentCondition",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W12",
+              "reason": "X-ray requires * policy",
+            },
+          ],
+        },
+      },
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -1942,33 +2405,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "RouteToInternet": {
-      "Condition": "CreateNewVPCCondition",
-      "DependsOn": [
-        "InternetGatewayAttachment",
-      ],
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "GatewayId": {
-          "Ref": "InternetGateway",
-        },
-        "RouteTableId": {
-          "Ref": "MainRouteTable",
-        },
-      },
-      "Type": "AWS::EC2::Route",
-    },
     "S3BucketPolicy": {
-      "Metadata": {
-        "cfn_nag": {
-          "rules_to_suppress": [
-            {
-              "id": "W51",
-              "reason": "Policy is not required for this bucket.",
-            },
-          ],
-        },
-      },
       "Properties": {
         "Bucket": {
           "Ref": "CostOptimizerBucket",
@@ -2021,7 +2458,67 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": "s3:PutObject",
+              "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalArn": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":iam::",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":role/",
+                          {
+                            "Fn::FindInMap": [
+                              "Solution",
+                              "Data",
+                              "RoleName",
+                            ],
+                          },
+                          "-",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                  "aws:SecureTransport": "true",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::",
+                    {
+                      "Ref": "CostOptimizerBucket",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:ListBucket",
               "Condition": {
                 "StringEquals": {
                   "aws:PrincipalArn": [
@@ -2071,7 +2568,6 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                     {
                       "Ref": "CostOptimizerBucket",
                     },
-                    "/*",
                   ],
                 ],
               },
@@ -2081,7 +2577,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
         "RouteTableIds": [
           {
-            "Ref": "MainRouteTable",
+            "Ref": "MainRoutePrivateTable",
           },
         ],
         "ServiceName": {
@@ -2119,7 +2615,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               "LaunchType": "FARGATE",
               "NetworkConfiguration": {
                 "AwsVpcConfiguration": {
-                  "AssignPublicIp": "ENABLED",
+                  "AssignPublicIp": "DISABLED",
                   "SecurityGroups": [
                     {
                       "Fn::If": [
@@ -2142,7 +2638,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                         "CreateNewVPCCondition",
                         {
                           "Fn::GetAtt": [
-                            "Subnet1",
+                            "PrivateSubnet1",
                             "SubnetId",
                           ],
                         },
@@ -2156,7 +2652,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                         "CreateNewVPCCondition",
                         {
                           "Fn::GetAtt": [
-                            "Subnet2",
+                            "PrivateSubnet2",
                             "SubnetId",
                           ],
                         },
@@ -2169,7 +2665,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                       "Fn::If": [
                         "UseExistingVPCCondition",
                         {
-                          "Ref": "ExistingSubnet1Id",
+                          "Ref": "ExistingPrivateSubnetId",
                         },
                         {
                           "Ref": "AWS::NoValue",
@@ -2180,7 +2676,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                       "Fn::If": [
                         "UseExistingVPCCondition",
                         {
-                          "Ref": "ExistingSubnet2Id",
+                          "Ref": "ExistingPrivateSubnet2Id",
                         },
                         {
                           "Ref": "AWS::NoValue",
@@ -2216,6 +2712,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "CidrIp": {
           "Ref": "EgressCIDR",
         },
+        "Description": "allow egress from cidr",
         "GroupId": {
           "Fn::GetAtt": [
             "IntraVPCSecurityGroup",
@@ -2306,6 +2803,16 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       "Type": "AWS::Lambda::Function",
     },
     "SolutionHelperPolicy": {
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W12",
+              "reason": "X-ray requires * policy",
+            },
+          ],
+        },
+      },
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -2354,7 +2861,30 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             {
               "Action": "cloudformation:DescribeStacks",
               "Effect": "Allow",
-              "Resource": "*",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":stack/",
+                    {
+                      "Ref": "AWS::StackName",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
             },
             {
               "Action": [
@@ -2396,6 +2926,13 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     "SpokeAccountTable": {
       "Condition": "MultiAccountDeploymentCondition",
       "DeletionPolicy": "Retain",
+      "Metadata": {
+        "guard": {
+          "SuppressedRules": [
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+          ],
+        },
+      },
       "Properties": {
         "AttributeDefinitions": [
           {
@@ -2440,12 +2977,12 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
         },
         "CidrBlock": {
-          "Ref": "Subnet1CIDR",
+          "Ref": "PublicSubnetCIDR",
         },
         "Tags": [
           {
             "Key": "Name",
-            "Value": "cost-optimizer-vpc-subnet1",
+            "Value": "cost-optimizer-vpc-public-subnet",
           },
         ],
         "VpcId": {
@@ -2453,62 +2990,6 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
       },
       "Type": "AWS::EC2::Subnet",
-    },
-    "Subnet1RouteTableAssociation": {
-      "Condition": "CreateNewVPCCondition",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "MainRouteTable",
-        },
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Subnet1",
-            "SubnetId",
-          ],
-        },
-      },
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-    },
-    "Subnet2": {
-      "Condition": "CreateNewVPCCondition",
-      "Properties": {
-        "AvailabilityZone": {
-          "Fn::Select": [
-            1,
-            {
-              "Fn::GetAZs": "",
-            },
-          ],
-        },
-        "CidrBlock": {
-          "Ref": "Subnet2CIDR",
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "cost-optimizer-vpc-subnet2",
-          },
-        ],
-        "VpcId": {
-          "Ref": "VPC",
-        },
-      },
-      "Type": "AWS::EC2::Subnet",
-    },
-    "Subnet2RouteTableAssociation": {
-      "Condition": "CreateNewVPCCondition",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "MainRouteTable",
-        },
-        "SubnetId": {
-          "Fn::GetAtt": [
-            "Subnet2",
-            "SubnetId",
-          ],
-        },
-      },
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
     "UUIDGenerator": {
       "DeletionPolicy": "Delete",
@@ -2579,6 +3060,88 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       },
       "Type": "AWS::S3::BucketPolicy",
     },
+    "UsageTable28300137": {
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "guard": {
+          "SuppressedRules": [
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+          ],
+        },
+      },
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "WorkspaceId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "Region",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "WorkspaceId",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "Region",
+            "KeyType": "RANGE",
+          },
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": {
+          "SSEEnabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UserSessionTableCD18DD22": {
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "guard": {
+          "SuppressedRules": [
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+          ],
+        },
+      },
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "WorkspaceId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "SessionTime",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "WorkspaceId",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "SessionTime",
+            "KeyType": "RANGE",
+          },
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": {
+          "SSEEnabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
     "VPC": {
       "Condition": "CreateNewVPCCondition",
       "Properties": {
@@ -2608,6 +3171,79 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         ],
       },
       "Type": "AWS::EC2::VPC",
+    },
+    "WorkspacesDashboardResourcesWorkspacesCostOptimizerDashboard0F703011": {
+      "Properties": {
+        "DashboardBody": {
+          "Fn::Join": [
+            "",
+            [
+              "{"start":"-P30D","periodOverride":"inherit","widgets":[{"type":"text","width":24,"height":1,"x":0,"y":0,"properties":{"markdown":"# WorkSpaces Overview"}},{"type":"metric","width":6,"height":6,"x":0,"y":1,"properties":{"view":"singleValue","title":"Total number of WorkSpaces Monitored in the last 24 hours","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["WorkspacesCostOptimizer","TotalWorkspaces",{"label":"Total Workspaces","period":86400,"stat":"Maximum"}]]}},{"type":"metric","width":6,"height":6,"x":6,"y":1,"properties":{"view":"pie","title":"WorkSpaces Billing Mode Distribution in the last 24 hours","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["WorkspacesCostOptimizer","HourlyBilledWorkspaces",{"label":"Hourly Billed","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","MonthlyBilledWorkspaces",{"label":"Monthly Billed","period":86400,"stat":"Maximum"}]],"yAxis":{},"setPeriodToTimeRange":false}},{"type":"metric","width":12,"height":6,"x":12,"y":1,"properties":{"view":"timeSeries","title":"WorkSpaces Billing Mode Distribution Over Time","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","stacked":true,"metrics":[["WorkspacesCostOptimizer","HourlyBilledWorkspaces",{"color":"#ff7f0e","label":"Hourly Billed","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","MonthlyBilledWorkspaces",{"color":"#1f77b4","label":"Monthly Billed","period":86400,"stat":"Maximum"}]],"yAxis":{"left":{"label":"Number of WorkSpaces","showUnits":false,"min":0}},"legend":{"position":"bottom"}}},{"type":"metric","width":6,"height":6,"x":0,"y":7,"properties":{"view":"singleValue","title":"Billing Mode Conversions","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["WorkspacesCostOptimizer","MonthlyToHourlyConversions","DryRun","No",{"label":"Monthly to Hourly","stat":"Sum"}],["WorkspacesCostOptimizer","HourlyToMonthlyConversions","DryRun","No",{"label":"Hourly to Monthly","stat":"Sum"}]],"setPeriodToTimeRange":true}},{"type":"metric","width":6,"height":6,"x":6,"y":7,"properties":{"view":"singleValue","title":"Total Terminated Workspaces","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["WorkspacesCostOptimizer","TerminatedWorkspaces","TerminationStatus","Terminated",{"label":"Terminated Workspaces","stat":"Sum"}]],"setPeriodToTimeRange":true}},{"type":"metric","width":12,"height":6,"x":12,"y":7,"properties":{"view":"timeSeries","title":"Total Terminated Workspaces Over Time","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","stacked":true,"metrics":[["WorkspacesCostOptimizer","TerminatedWorkspaces","TerminationStatus","Terminated",{"color":"#2ca02c","label":"Actual Terminations","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","TerminatedWorkspaces","TerminationStatus","DryRun",{"color":"#9467bd","label":"Dry Run Terminations","period":86400,"stat":"Maximum"}]],"yAxis":{"left":{"label":"Number of Workspaces","showUnits":false,"min":0}},"legend":{"position":"bottom"}}},{"type":"metric","width":12,"height":6,"x":0,"y":13,"properties":{"view":"timeSeries","title":"Unconverted Workspaces","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","stacked":true,"metrics":[["WorkspacesCostOptimizer","ConversionErrors",{"color":"#d62728","label":"Conversion Failures","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","ConversionSkips",{"color":"#7f7f7f","label":"Skip_Convert tagged Workspaces","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","MonthlyToHourlyConversions","DryRun","Yes",{"color":"#2ca02c","label":"Monthly to Hourly (Dry Run)","stat":"Maximum"}],["WorkspacesCostOptimizer","HourlyToMonthlyConversions","DryRun","Yes",{"color":"#1f77b4","label":"Hourly to Monthly (Dry Run)","stat":"Maximum"}]],"yAxis":{"left":{"label":"Number of WorkSpaces","showUnits":false,"min":0}},"legend":{"position":"bottom"}}},{"type":"metric","width":12,"height":6,"x":12,"y":13,"properties":{"view":"timeSeries","title":"Hourly to Monthly Billing Mode Conversions Over Time","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","stacked":true,"metrics":[["WorkspacesCostOptimizer","HourlyToMonthlyConversions","DryRun","Yes",{"color":"#1f77b4","label":"Dry Run","period":86400,"stat":"Maximum"}],["WorkspacesCostOptimizer","HourlyToMonthlyConversions","DryRun","No",{"color":"#2ca02c","label":"Actual","period":86400,"stat":"Maximum"}]],"yAxis":{"left":{"label":"Number of Conversions","showUnits":false,"min":0}},"legend":{"position":"bottom"}}},{"type":"metric","width":24,"height":6,"x":0,"y":19,"properties":{"view":"timeSeries","title":"ECS Task Execution Time","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["WorkspacesCostOptimizer","EcsTaskExecutionTime",{"period":86400,"stat":"Maximum"}]],"yAxis":{"left":{"label":"Minutes","showUnits":false,"min":0}},"legend":{"position":"bottom"}}}]}",
+            ],
+          ],
+        },
+        "DashboardName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName",
+              },
+              "Dashboard",
+              {
+                "Fn::Select": [
+                  2,
+                  {
+                    "Fn::Split": [
+                      "/",
+                      {
+                        "Ref": "AWS::StackId",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::CloudWatch::Dashboard",
     },
   },
   "Rules": {

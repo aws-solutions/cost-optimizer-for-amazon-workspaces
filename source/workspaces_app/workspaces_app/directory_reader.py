@@ -3,82 +3,160 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import boto3
-import logging
+# Standard Library
+import datetime
+import os
+import time
 import typing
-from .workspaces_helper import WorkspacesHelper
+
+# AWS Libraries
+import boto3
+from aws_lambda_powertools import Logger
+
+# Cost Optimizer for Amazon Workspaces
+from .utils.dashboard_metrics import DashboardMetrics
 from .utils.s3_utils import upload_report
-from .utils.report_builder import expand_csv, append_entry
+from .utils.usage_table_dao import UsageTableDAO
+from .workspace_record import WorkspaceDescription, WorkspaceRecord
+from .workspaces_helper import WorkspacesHelper
+
+# Initialize logger
+logger = Logger(service="directory_reader")
+log_level = os.getenv("LogLevel", "INFO")
+logger.setLevel(log_level)
 
 
-log = logging.getLogger(__name__)
-
-
-class DirectoryReader():
-    def __init__(self, session: boto3.session.Session) -> None:
+class DirectoryReader:
+    def __init__(self, session: boto3.session.Session, region: str) -> None:
         self._session = session
+        self.region = region
+        self.usage_table_dao = UsageTableDAO(
+            boto3.session.Session(), os.environ.get("UsageTable"), region
+        )  # provide default session so as not to use assumed role session
 
-    def process_directory(self, region: str, stack_parameters: dict, directory_parameters: dict) -> typing.Tuple[int, typing.List[dict], str]:
+    def process_directory(
+        self,
+        stack_parameters: dict,
+        directory_parameters: dict,
+        dashboard_metrics: DashboardMetrics,
+    ) -> typing.Tuple[int, typing.List[dict], str]:
         workspace_count = 0
         list_processed_workspaces = []
-        directory_csv = ''
-        log_body_directory_csv = ''
+        directory_csv = ""
         is_dry_run = self.get_dry_run(stack_parameters)
         test_end_of_month = self.get_end_of_month(stack_parameters)
-        directory_id = directory_parameters.get('DirectoryId')
-
-        report_csv = 'WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,Tags,ReportDate,\n'
+        directory_id = directory_parameters.get("DirectoryId")
+        report_csv = WorkspaceRecord.csv_header()
 
         # List of bundles with specific hourly limits
         workspaces_helper = WorkspacesHelper(
             self._session,
             {
-                'region': region,
-                'hourlyLimits': {
-                    'VALUE': stack_parameters.get('ValueLimit'),
-                    'STANDARD': stack_parameters.get('StandardLimit'),
-                    'PERFORMANCE': stack_parameters.get('PerformanceLimit'),
-                    'POWER': stack_parameters.get('PowerLimit'),
-                    'POWERPRO': stack_parameters.get('PowerProLimit'),
-                    'GRAPHICS': stack_parameters.get('GraphicsLimit'),
-                    'GRAPHICSPRO': stack_parameters.get('GraphicsProLimit')
+                "region": self.region,
+                "usageTable": stack_parameters.get("UsageTable"),
+                "userSessionTable": stack_parameters.get("UserSessionTable"),
+                "hourlyLimits": {
+                    "VALUE": stack_parameters.get("ValueLimit"),
+                    "STANDARD": stack_parameters.get("StandardLimit"),
+                    "PERFORMANCE": stack_parameters.get("PerformanceLimit"),
+                    "POWER": stack_parameters.get("PowerLimit"),
+                    "POWERPRO": stack_parameters.get("PowerProLimit"),
+                    "GRAPHICS_G4DN": stack_parameters.get("GraphicsG4dnLimit"),
+                    "GRAPHICSPRO_G4DN": stack_parameters.get("GraphicsProG4dnLimit"),
                 },
-                'testEndOfMonth': test_end_of_month,
-                'isDryRun': is_dry_run,
-                'dateTimeValues': directory_parameters.get('DateTimeValues'),
-                'terminateUnusedWorkspaces': stack_parameters.get('TerminateUnusedWorkspaces')
-            }
+                "testEndOfMonth": test_end_of_month,
+                "isDryRun": is_dry_run,
+                "dateTimeValues": directory_parameters.get("DateTimeValues"),
+                "terminateUnusedWorkspaces": stack_parameters.get(
+                    "TerminateUnusedWorkspaces"
+                ),
+            },
         )
         list_workspaces = workspaces_helper.get_workspaces_for_directory(directory_id)
         for workspace in list_workspaces:
             try:
-                log.debug("Processing workspace {}".format(workspace))
+                logger.debug("Processing workspace {}".format(workspace))
+                bundle_type = workspace.get("WorkspaceProperties").get(
+                    "ComputeTypeName"
+                )
+                usage_threshold = (
+                    workspaces_helper.get_hourly_threshold_for_bundle_type(bundle_type)
+                )
+                account = self.get_account()
                 workspace_count = workspace_count + 1
-                result = workspaces_helper.process_workspace(workspace)
-                report_csv = append_entry(report_csv, result)  # Append result data to the CSV
-                directory_csv = append_entry(directory_csv, result)  # Append result for aggregated report
+                ws_description = WorkspaceDescription(
+                    account=account,
+                    region=self.region,
+                    directory_id=directory_id,
+                    workspace_id=workspace.get("WorkspaceId"),
+                    initial_mode=workspace.get("WorkspaceProperties").get(
+                        "RunningMode"
+                    ),
+                    usage_threshold=usage_threshold,
+                    bundle_type=bundle_type,
+                    username=workspace.get("UserName", ""),
+                    computer_name=workspace.get("ComputerName", ""),
+                )
+                ws_record = self.usage_table_dao.get_workspace_ddb_item(ws_description)
+                if isinstance(ws_record, WorkspaceRecord) and self.is_prev_month_data(
+                    ws_record
+                ):
+                    # If the current month is different from the last reported month,
+                    # treat it as if there is no previous data available
+                    ws_record = ws_description
+
+                new_ws_record = workspaces_helper.process_workspace(
+                    ws_record,
+                    workspace.get("WorkspaceProperties").get(
+                        "RunningModeAutoStopTimeoutInMinutes"
+                    ),
+                    dashboard_metrics,
+                )
+                report_csv += new_ws_record.to_csv()
+                directory_csv += new_ws_record.to_csv()
                 workspace_processed = {
-                    'previousMode': result.get('initialMode'),
-                    'newMode': result.get('newMode'),
-                    'bundleType': result.get('bundleType'),
-                    'hourlyThreshold': result.get('hourlyThreshold'),
-                    'billableTime': result.get('billableTime')
+                    "previousMode": new_ws_record.description.initial_mode,
+                    "newMode": new_ws_record.billing_data.new_mode,
+                    "bundleType": new_ws_record.description.bundle_type,
+                    "hourlyThreshold": new_ws_record.description.usage_threshold,
+                    "billableTime": new_ws_record.billing_data.billable_hours,
                 }
                 list_processed_workspaces.append(workspace_processed)
-            except Exception:
-                log.error("Error processing the workspace {}".format(workspace.get('WorkspaceId')))
-            log_body = expand_csv(report_csv)
-            log_body_directory_csv = expand_csv(directory_csv)
+                self.usage_table_dao.update_ddb_item(new_ws_record)
+            except Exception as e:
+                logger.exception(
+                    f"Error processing the workspace {workspace.get('WorkspaceId')}: {e}"
+                )
             # Upload with default session, rather than delegated
-            upload_report(boto3.session.Session(), directory_parameters.get('DateTimeValues'), stack_parameters, log_body, directory_id, region, self.get_account())
-        return workspace_count, list_processed_workspaces, log_body_directory_csv
+            upload_report(
+                boto3.session.Session(),
+                directory_parameters.get("DateTimeValues"),
+                stack_parameters,
+                report_csv,
+                directory_id,
+                self.region,
+                self.get_account(),
+            )
+        return workspace_count, list_processed_workspaces, directory_csv
 
     def get_account(self) -> str:
-        sts_client = self._session.client('sts')
-        return sts_client.get_caller_identity().get('Account')
+        sts_client = self._session.client("sts")
+        return sts_client.get_caller_identity().get("Account")
 
-    def get_dry_run(self, stack_parameters: dict) -> bool:
-        return stack_parameters.get('DryRun') == 'Yes'
+    def get_dry_run(self, stack_parameters: dict[str, any]) -> bool:
+        return stack_parameters.get("DryRun") == "Yes"
 
-    def get_end_of_month(self, stack_parameters: dict) -> bool:
-        return stack_parameters.get('TestEndOfMonth') == 'Yes'
+    def get_end_of_month(self, stack_parameters: dict[str, any]) -> bool:
+        return stack_parameters.get("TestEndOfMonth") == "Yes"
+
+    def is_prev_month_data(self, ws_record: WorkspaceRecord) -> bool:
+        current_month = time.gmtime().tm_mon
+        last_reported_month = datetime.datetime.strptime(
+            ws_record.last_reported_metric_period, "%Y-%m-%dT%H:%M:%SZ"
+        ).month
+        is_prev_month_data = current_month != last_reported_month
+        if current_month != last_reported_month:
+            logger.debug(
+                f"For workspace {ws_record.description.workspace_id}, the current month({current_month}) is different from last reported month({last_reported_month})"
+            )
+        return is_prev_month_data

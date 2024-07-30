@@ -39,7 +39,7 @@ Deploy via [CDKv2](https://docs.aws.amazon.com/cdk/v2/guide/home.html) with [npm
 git clone git@github.com:aws-solutions/cost-optimizer-for-amazon-workspaces.git
 
 
-cd source 
+cd source
 
 npm install
 
@@ -67,10 +67,10 @@ Clone the repository
 git clone git@github.com:aws-solutions/cost-optimizer-for-amazon-workspaces.git
 ```
 
-Create a distribution S3 bucket with the format `MY-BUCKET-<aws_region>`. The solution's cdk will expect the 
+Create a distribution S3 bucket with the format `MY-BUCKET-<aws_region>`. The solution's cdk will expect the
 source code to be located in this bucket. `<aws_region>` is where you are testing the customized solution.
 
-Note: When you create a bucket, a randomized value unique to your environment is recommended for the bucket name. 
+Note: When you create a bucket, a randomized value unique to your environment is recommended for the bucket name.
 As a best practice, enable the server side encryption and also block public access to the bucket.
 
 ```
@@ -135,7 +135,7 @@ npm run synth
 
 #  source/cdk.out/{cost-optimizer-for-amazon-workspaces.template.json, cost-optimizer-for-amazon-workspaces-spoke.template.json}
 ```
- 
+
 
 
 <a name="file-structure"></a>
