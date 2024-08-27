@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Standard Library
-from dataclasses import fields
 from decimal import Decimal
 
 # Third Party Libraries
@@ -35,7 +34,6 @@ def ws_description():
         username="test-user",
         computer_name="test-computer",
         initial_mode="test-mode",
-        tags=["tag1", "tag2"],
     )
 
 
@@ -75,6 +73,7 @@ def ws_record(ws_description, ws_billing_data, ws_metrics):
         report_date="test-report-date",
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
+        tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
     )
 
 
@@ -155,7 +154,7 @@ def ddb_item(ws_record):
             "N": str(ws_record.performance_metrics.udp_packet_loss_rate.count)
         },
         "Tags": {
-            "L": list(map(lambda x: {"S": x}, ws_record.description.tags)),
+            "S": ws_record.tags,
         },
         "ReportDate": {"S": ws_record.report_date},
         "LastReportedMetricPeriod": {"S": ws_record.last_reported_metric_period},
@@ -245,11 +244,10 @@ def test_ddb_attr_to_class_field_with_caps():
     assert result == "test_string"
 
 
-def test_weighted_avg_post_init_sets_weighted_avg_field(ws_metrics):
-    fields = vars(ws_metrics)
-    for field in fields:
-        value = getattr(ws_metrics, field)
-        assert value.weighted_avg == value.avg * value.count
+def test_weighted_avg(ws_metrics):
+    weighted_avg = ws_metrics.cpu_usage.weighted_avg()
+
+    assert weighted_avg == ws_metrics.cpu_usage.avg * ws_metrics.cpu_usage.count
 
 
 def test_weighted_average_merge(ws_metrics):
@@ -258,12 +256,11 @@ def test_weighted_average_merge(ws_metrics):
 
     merged_wa = wa_1.merge(wa_2)
     expected_count = wa_1.count + wa_2.count
-    expected_avg = Decimal((wa_1.weighted_avg + wa_2.weighted_avg) / expected_count)
+    expected_avg = Decimal((wa_1.weighted_avg() + wa_2.weighted_avg()) / expected_count)
     assert merged_wa.avg == expected_avg
     assert merged_wa.count == expected_count
-    assert merged_wa.weighted_avg == expected_count * expected_avg
 
 
 def test_to_csv(ws_record):
-    expected = "test-ws-id,20,100,ToHourly,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,\"['tag1', 'tag2']\",test-report-date\n"
+    expected = "test-ws-id,20,100,ToHourly,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],test-report-date\n"
     assert ws_record.to_csv() == expected

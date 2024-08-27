@@ -40,7 +40,6 @@ def ws_description(**kwargs):
         "username": "test-user",
         "computer_name": "test-computer",
         "initial_mode": "test-mode",
-        "tags": ["tag1", "tag2"],
     }
     filtered_args = {
         key: value for key, value in kwargs.items() if key in default_args.keys()
@@ -57,11 +56,6 @@ def ws_billing_data():
         workspace_terminated="",
         change_reported="No change",
     )
-
-
-@pytest.fixture()
-def weighted_avg():
-    return WeightedAverage(Decimal("93.42"), 67)
 
 
 @pytest.fixture()
@@ -83,8 +77,9 @@ def ws_record(ws_billing_data, ws_metrics):
         billing_data=ws_billing_data,
         performance_metrics=ws_metrics,
         report_date="test-report-date",
-        last_reported_metric_period="test-last-period",
+        last_reported_metric_period="2024-08-29T00:00:00Z",
         last_known_user_connection="test-last-connection",
+        tags="[{'key1': 'tag1'}, {'key2': 'value2'}]",
     )
 
 
@@ -111,7 +106,7 @@ def test_skip_tag_true_process_standard_workspace(mocker, session, ws_record):
     }
 
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    mocker.patch.object(
+    mock_get_billable_hours = mocker.patch.object(
         workspace_helper.metrics_helper, "get_billable_hours_and_performance"
     )
     workspace_helper.metrics_helper.get_billable_hours_and_performance.return_value = {
@@ -127,6 +122,8 @@ def test_skip_tag_true_process_standard_workspace(mocker, session, ws_record):
     assert (
         result.billing_data.new_mode == "test-mode"
     )  # The old mode should not be changed as the skip tag is True
+    # test that previous data was used
+    assert mock_get_billable_hours.call_args.args == ("", "", ws_record, 60)
 
 
 def test_bundle_type_returned_process_workspace(mocker, session, ws_record):
@@ -151,7 +148,7 @@ def test_bundle_type_returned_process_workspace(mocker, session, ws_record):
     }
 
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    mocker.patch.object(
+    mock_get_billable_hours = mocker.patch.object(
         workspace_helper.metrics_helper, "get_billable_hours_and_performance"
     )
     workspace_helper.metrics_helper.get_billable_hours_and_performance.return_value = {
@@ -173,6 +170,8 @@ def test_bundle_type_returned_process_workspace(mocker, session, ws_record):
     )
     mock_termination_status.return_value = "", "last-known-time"
     dashboard_metrics = DashboardMetrics()
+    # set ws_record last reported data to prior to v2.7.1 release
+    ws_record.last_reported_metric_period = "2024-08-27T00:00:00Z"
     result = workspace_helper.process_workspace(ws_record, 60, dashboard_metrics)
     assert result.description.bundle_type == "test-bundle"
     assert result.billing_data.billable_hours == 100
@@ -180,6 +179,8 @@ def test_bundle_type_returned_process_workspace(mocker, session, ws_record):
     assert result.billing_data.new_mode == "ALWAYS_ON"
     assert result.billing_data.change_reported == "-N-"
     assert result.performance_metrics == ws_record.performance_metrics
+    # test that previous data was not used
+    assert mock_get_billable_hours.call_args.args == ("", "", ws_record.description, 60)
 
 
 def test_modify_workspace_properties_returns_always_on(session):
@@ -1599,16 +1600,18 @@ def test_process_workspace_with_metrics(mocker, session, ws_record):
     assert dashboard_metrics.billing_metrics.monthly_billed == 0
 
     # Test case 3: Skip convert tag
+    tags = [{"Key": "skip_convert", "Value": "True"}]
     mocker.patch.object(
         workspace_helper,
         "get_list_tags_for_workspace",
-        return_value=[{"Key": "skip_convert", "Value": "True"}],
+        return_value=tags,
     )
     dashboard_metrics = DashboardMetrics()
     result = workspace_helper.process_workspace(ws_record, 60, dashboard_metrics)
 
     assert result.billing_data.change_reported == "-S-"
     assert dashboard_metrics.conversion_metrics.conversion_skips == 1
+    assert result.tags == "".join(('"', str(tags), '"'))
 
     # Test case 4: Error case
     mocker.patch.object(

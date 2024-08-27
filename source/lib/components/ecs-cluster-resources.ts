@@ -403,6 +403,10 @@ export class EcsClusterResources extends Construct {
               name: "NumberOfMonthsForTerminationCheck",
               value: props.numberOfmonthsForTerminationCheck,
             },
+            {
+              name: "ImageVersion",
+              value: image,
+            },
           ],
         },
       ],

@@ -1388,6 +1388,28 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                   "Ref": "NumberOfMonthsForTerminationCheck",
                 },
               },
+              {
+                "Name": "ImageVersion",
+                "Value": {
+                  "Fn::If": [
+                    "UseStableTagCondition",
+                    {
+                      "Fn::FindInMap": [
+                        "Solution",
+                        "Data",
+                        "StableImage",
+                      ],
+                    },
+                    {
+                      "Fn::FindInMap": [
+                        "Solution",
+                        "Data",
+                        "Image",
+                      ],
+                    },
+                  ],
+                },
+              },
             ],
             "Essential": true,
             "Image": {

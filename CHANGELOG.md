@@ -4,6 +4,17 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.1] - 2024-08
+### Added
+- Security.md file
+
+### Fixed
+- Workspace analysis failing when pervious data is recorded in database but empty.
+- Workspace analysis failing when timestamps from user connected data doesn't exist in other metric data.
+- Workspace only reporting 24 hour period
+- Workspace not reporting tags
+- Updated micromatch to mitigate [CVE-2024-4067](https://avd.aquasec.com/nvd/2024/cve-2024-4067).
+
 ## [2.7.0] - 2024-07
 ### Added
 - Workspace performance metrics
@@ -13,6 +24,7 @@
 - Powertools logging
 - Operational insights CloudWatch dashboard
 - Support for G4DN workspaces
+
 ### Fixed
 - sts token expired after one hour
 

@@ -73,7 +73,6 @@ def ws_description(**kwargs):
         "username": "test-user",
         "computer_name": "test-computer",
         "initial_mode": "test-mode",
-        "tags": ["tag1", "tag2"],
     }
     filtered_args = {
         key: value for key, value in kwargs.items() if key in default_args.keys()
@@ -118,6 +117,7 @@ def ws_record(ws_billing_data, ws_metrics):
         report_date="test-report-date",
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
+        tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
     )
 
 
@@ -203,7 +203,7 @@ def test_process_directory_without_ddb_item(
         unittest.mock.ANY, unittest.mock.ANY, dashboard_metrics
     )
     report_header = "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,ReportDate,\n"
-    list_processed_workspaces = "test-ws-id,20,100,No change,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,\"['tag1', 'tag2']\",test-report-date\n"
+    list_processed_workspaces = "test-ws-id,20,100,No change,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],test-report-date\n"
     header_field_count = len(str.split(report_header, ","))
     data_field_count = len(str.split(list_processed_workspaces, ","))
     assert header_field_count == data_field_count

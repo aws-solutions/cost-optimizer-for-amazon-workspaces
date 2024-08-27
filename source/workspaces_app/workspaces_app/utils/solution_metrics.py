@@ -56,6 +56,7 @@ class SolutionMetricsHelper:
                 execution_time: int = -1
 
             solution_version = get_solution_version()
+            image_version = get_image_version()
 
             metrics_data = {
                 "List_of_Workspaces": workspaces,
@@ -65,6 +66,7 @@ class SolutionMetricsHelper:
                 "Stack_Parameters": self._stack_parameters,
                 "ECS_Task_Execution_Time": execution_time,
                 "SolutionVersion": solution_version,
+                "ImageVersion": image_version,
             }
 
             solution_id = get_solution_id()
@@ -117,3 +119,7 @@ def get_uuid() -> str:
 
 def get_solution_version() -> str:
     return os.getenv("SolutionVersion", "Unknown")
+
+
+def get_image_version() -> str:
+    return os.getenv("ImageVersion", "Unknown")
