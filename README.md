@@ -148,6 +148,7 @@ npm run synth
 ├── LICENSE.txt
 ├── NOTICE.txt
 ├── README.md
+├── SECURITY.md
 ├── buildspec.yml
 ├── deployment
 │   ├── build-open-source-dist.sh

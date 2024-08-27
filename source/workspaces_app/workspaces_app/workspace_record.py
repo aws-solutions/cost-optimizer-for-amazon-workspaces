@@ -28,35 +28,37 @@ class WeightedAverage:
     avg: Decimal
     count: int
 
-    def __post_init__(self):
-        if self.avg is not None:
-            object.__setattr__(self, "weighted_avg", self.avg * self.count)
+    def weighted_avg(self):
+        return self.avg * self.count
 
     def merge(self, other_wa: "WeightedAverage") -> "WeightedAverage":
-        if other_wa is not None and other_wa.avg is not None:
-            merged_count = self.count + other_wa.count
-            merged_avg = Decimal(
-                str((self.weighted_avg + other_wa.weighted_avg) / merged_count)
-            )
-            return WeightedAverage(avg=merged_avg, count=merged_count)
-        else:
-            return self
+        merged_count = self.count + other_wa.count
+        merged_avg = Decimal(
+            str((self.weighted_avg() + other_wa.weighted_avg()) / merged_count)
+        )
+        return WeightedAverage(avg=merged_avg, count=merged_count)
 
 
 @dataclass(frozen=True)
 class WorkspacePerformanceMetrics:
-    in_session_latency: WeightedAverage
-    cpu_usage: WeightedAverage
-    memory_usage: WeightedAverage
-    root_volume_disk_usage: WeightedAverage
-    user_volume_disk_usage: WeightedAverage
-    udp_packet_loss_rate: WeightedAverage
+    in_session_latency: WeightedAverage | None
+    cpu_usage: WeightedAverage | None
+    memory_usage: WeightedAverage | None
+    root_volume_disk_usage: WeightedAverage | None
+    user_volume_disk_usage: WeightedAverage | None
+    udp_packet_loss_rate: WeightedAverage | None
 
     def to_json(self) -> dict[str, any]:
         class_as_dict = asdict(self)
         class_as_json = {}
         for key, value in class_as_dict.items():
-            class_as_json |= {key: value.get("avg"), key + "_count": value.get("count")}
+            if value is not None:
+                class_as_json |= {
+                    key: value.get("avg"),
+                    key + "_count": value.get("count"),
+                }
+            else:  # there is no data for the performance metric
+                class_as_json |= {key: None, key + "_count": 0}
         return class_as_json
 
     @classmethod
@@ -70,9 +72,12 @@ class WorkspacePerformanceMetrics:
             count_key = key + "_count"
 
             if all(key in json for key in [key, count_key]):
-                performance_metrics |= {
-                    key: WeightedAverage(avg=json[key], count=json[count_key])
-                }
+                if json[key] is not None:
+                    performance_metrics |= {
+                        key: WeightedAverage(avg=json[key], count=json[count_key])
+                    }
+                else:
+                    performance_metrics |= {key: None}
             else:
                 raise KeyError(
                     "JSON does not contain all keys needed to create a WorkspacePerformanceMetrics instance"
@@ -103,7 +108,6 @@ class WorkspaceDescription:
     username: str
     computer_name: str
     initial_mode: str
-    tags: list[str] = field(default_factory=list)
 
     def to_json(self) -> dict[str, any]:
         return asdict(self)
@@ -156,6 +160,7 @@ class WorkspaceRecord:
     report_date: str = ""
     last_reported_metric_period: str = ""
     last_known_user_connection: str = ""
+    tags: str = ""
 
     def to_json(self) -> dict[str, any]:
         return {
@@ -165,6 +170,7 @@ class WorkspaceRecord:
             "report_date": self.report_date,
             "last_reported_metric_period": self.last_reported_metric_period,
             "last_known_user_connection": self.last_known_user_connection,
+            "tags": self.tags,
         }
 
     def to_ddb_obj(self) -> dict[str, any]:
@@ -186,6 +192,7 @@ class WorkspaceRecord:
         This method returns the workspace record as a string for use with a csv
         :return: a string representation of the workspace
         """
+
         raw_csv = ",".join(
             (
                 self.description.workspace_id,
@@ -199,13 +206,17 @@ class WorkspaceRecord:
                 self.description.computer_name,
                 self.description.directory_id,
                 self.billing_data.workspace_terminated,
-                str(self.performance_metrics.in_session_latency.avg),
-                str(self.performance_metrics.cpu_usage.avg),
-                str(self.performance_metrics.memory_usage.avg),
-                str(self.performance_metrics.root_volume_disk_usage.avg),
-                str(self.performance_metrics.user_volume_disk_usage.avg),
-                str(self.performance_metrics.udp_packet_loss_rate.avg),
-                "".join(('"', str(self.description.tags), '"')),
+                str(getattr(self.performance_metrics.in_session_latency, "avg", "")),
+                str(getattr(self.performance_metrics.cpu_usage, "avg", "")),
+                str(getattr(self.performance_metrics.memory_usage, "avg", "")),
+                str(
+                    getattr(self.performance_metrics.root_volume_disk_usage, "avg", "")
+                ),
+                str(
+                    getattr(self.performance_metrics.user_volume_disk_usage, "avg", "")
+                ),
+                str(getattr(self.performance_metrics.udp_packet_loss_rate, "avg", "")),
+                self.tags,
                 self.report_date
                 + "\n",  # Adding quotes to the string to help with csv format
             )
@@ -240,6 +251,7 @@ class WorkspaceRecord:
             last_reported_metric_period=ddb_as_json["last_reported_metric_period"],
             last_known_user_connection=ddb_as_json["last_known_user_connection"],
             performance_metrics=WorkspacePerformanceMetrics.from_json(ddb_as_json),
+            tags=ddb_as_json["tags"],
         )
 
     @staticmethod

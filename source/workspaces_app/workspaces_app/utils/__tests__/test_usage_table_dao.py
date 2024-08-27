@@ -33,7 +33,6 @@ def ws_description():
         username="test-user",
         computer_name="test-computer",
         initial_mode="test-mode",
-        tags=["tag1", "tag2"],
     )
 
 
@@ -45,11 +44,6 @@ def ws_billing_data():
         workspace_terminated="",
         change_reported="No change",
     )
-
-
-@pytest.fixture()
-def weighted_avg():
-    return WeightedAverage(Decimal("93.42"), 67)
 
 
 @pytest.fixture()
@@ -73,6 +67,7 @@ def ws_record(ws_description, ws_billing_data, ws_metrics):
         report_date="test-report-date",
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
+        tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
     )
 
 
@@ -156,7 +151,7 @@ def workspace_ddb_item(ws_record):
             "N": str(perf_metrics.udp_packet_loss_rate.count),
         },
         "Tags": {
-            "L": list(map(lambda x: {"S": x}, description.tags)),
+            "S": ws_record.tags,
         },
         "ReportDate": {"S": ws_record.report_date},
         "LastReportedMetricPeriod": {"S": ws_record.last_reported_metric_period},

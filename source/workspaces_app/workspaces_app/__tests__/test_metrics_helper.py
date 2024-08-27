@@ -46,7 +46,6 @@ def ws_description(**kwargs):
         "username": "test-user",
         "computer_name": "test-computer",
         "initial_mode": "test-mode",
-        "tags": ["tag1", "tag2"],
     }
     filtered_args = {
         key: value for key, value in kwargs.items() if key in default_args.keys()
@@ -91,6 +90,7 @@ def ws_record(ws_billing_data, ws_metrics):
         report_date="test-report-date",
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
+        tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
     )
 
 
@@ -180,13 +180,18 @@ def performance_metric_factory(length, start):
 
 def metric_data_factory(indices, length, start):
     metrics = {}
+    user_connected_timestamps = user_session_timestamps_factory(length)
     timestamps = user_session_timestamps_factory(length)
     for metric in METRIC_LIST:
         if metric == "UserConnected":
             data = user_connected_data_factory(indices, length)
+            metrics[metric.lower()] = {
+                "timestamps": user_connected_timestamps,
+                "values": data,
+            }
         else:
             data = performance_metric_factory(length, start)
-        metrics[metric.lower()] = {"timestamps": timestamps, "values": data}
+            metrics[metric.lower()] = {"timestamps": timestamps, "values": data}
     return metrics
 
 
@@ -241,9 +246,14 @@ def expected_sessions_factory(user_session_data, active_indices, zero_limit):
             session.setdefault("active_sessions", []).append(
                 user_session_data["cpuusage"]["timestamps"][active_index]
             )
-            expected_avg = WeightedAverage(
+            current_avg = WeightedAverage(
                 user_session_data["cpuusage"]["values"][active_index], 1
-            ).merge(expected_avg)
+            )
+            expected_avg = (
+                current_avg.merge(expected_avg)
+                if expected_avg is not None
+                else current_avg
+            )
     if session:
         duration_hours = math.ceil(
             (session["active_sessions"][-1] - session["active_sessions"][0]).seconds
@@ -691,7 +701,7 @@ def test_get_billable_hours_and_performance(mocker, session, ws_record, metric_d
         metrics_helper, "get_list_data_points", return_value=metric_data
     )
     mocker.patch.object(metrics_helper, "get_user_connected_hours")
-    mocker.patch.object(metrics_helper, "get_user_sessions")
+    mock_user_session = mocker.patch.object(metrics_helper, "get_user_sessions")
     mocker.patch.object(metrics_helper.session_table, "update_ddb_items"),
     spy_get_time_range = mocker.spy(metrics_helper, "get_time_range")
     spy_get_cloudwatch_metric_data_points = mocker.spy(
@@ -712,7 +722,13 @@ def test_get_billable_hours_and_performance(mocker, session, ws_record, metric_d
     )
     spy_get_cloudwatch_metric_data_points.assert_called_once()
     spy_get_list_data_points.assert_called_once()
-    spy_get_user_connected_hours.assert_called_once()
+    spy_get_user_connected_hours.assert_called_once_with(
+        mock_user_session(),
+        ws_record.description.workspace_id,
+        ws_record.description.initial_mode,
+        60,
+        ws_record.billing_data.billable_hours,
+    )
     spy_get_user_sessions.assert_called_once()
 
 
@@ -807,6 +823,9 @@ def test_get_user_sessions(session, ws_record):
     total_values = 26
     start_value = 1
     user_session_data = metric_data_factory(active_indices, total_values, start_value)
+    user_session_data["userconnected"]["timestamps"][-1] += datetime.timedelta(
+        minutes=5
+    )
     result = metrics_helper.get_user_sessions(
         user_session_data,
         ws_description(),
@@ -1436,7 +1455,7 @@ def test_get_user_sessions_32(session, ws_record):
 def test_process_performance_metrics(session, ws_record, metric_data):
     metrics_helper = MetricsHelper(session, "us-east-1", "test-table")
     current_weighted_avg = mean(metric_data["cpuusage"]["values"]) * 3
-    previous_weighted_avg = ws_record.performance_metrics.cpu_usage.weighted_avg
+    previous_weighted_avg = ws_record.performance_metrics.cpu_usage.weighted_avg()
     expected_avg = Decimal(
         (current_weighted_avg + previous_weighted_avg)
         / (ws_record.performance_metrics.cpu_usage.count + 3),
@@ -1462,9 +1481,8 @@ def test_process_performance_metrics_with_no_available_data_in_last_report(
     assert result.memory_usage.avg == Decimal("5")
     assert result.memory_usage.count == 3
 
-    # test when current dat doesn't exist
-    assert result.udp_packet_loss_rate.avg == None
-    assert result.udp_packet_loss_rate.count == 0
+    # test when current data doesn't exist
+    assert result.udp_packet_loss_rate == None
 
 
 def test_process_performance_metrics_with_zero_avg(session, ws_record, metric_data):

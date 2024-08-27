@@ -122,7 +122,9 @@ class MetricsHelper:
                 ws_description.workspace_id,
                 ws_description.initial_mode,
                 autostop_timeout_minutes,
-                getattr(ws_record, "billable_hours", None),
+                getattr(
+                    getattr(ws_record, "billing_data", None), "billable_hours", None
+                ),
             )
             performance_metrics = self.process_performance_metrics(
                 metric_data_points, getattr(ws_record, "performance_metrics", None)
@@ -280,7 +282,9 @@ class MetricsHelper:
                 user_connected_hours + session.duration_hours + idle_time_in_hours
             )  ## ADD PATCHING HOURS TO WORKSPACES
 
-        user_connected_hours = user_connected_hours + (previous_billable_hours or 0)
+        user_connected_hours = Decimal(str(user_connected_hours)) + (
+            previous_billable_hours or 0
+        )
         return int(user_connected_hours)
 
     def get_user_sessions(
@@ -444,7 +448,7 @@ class MetricsHelper:
             metric = self.metric_id_to_name(metric_id)
             metric_running_average = session_metrics.get(metric)
             idx = bisect.bisect_left(data["timestamps"], time)
-            if data.get("timestamps") and data["timestamps"][idx] == time:
+            if idx < len(data["timestamps"]) and data["timestamps"][idx] == time:
                 average_at_time = Decimal(str(data["values"][idx]))
                 average_at_time = WeightedAverage(average_at_time, 1)
 
@@ -478,13 +482,21 @@ class MetricsHelper:
                 current_avg = (
                     Decimal(str(mean(data_values))) if current_count > 0 else None
                 )
-                current_metric = WeightedAverage(avg=current_avg, count=current_count)
+                current_metric = (
+                    WeightedAverage(avg=current_avg, count=current_count)
+                    if current_count
+                    else None
+                )
                 prev_metric = getattr(prev_metrics, ws_record_field, None)
-                if prev_metric:
+                if prev_metric is not None and current_metric is not None:
                     performance_metrics |= {
                         ws_record_field: prev_metric.merge(current_metric)
                     }
-                else:
+                elif prev_metric is not None:
+                    performance_metrics |= {ws_record_field: prev_metric}
+                elif current_metric is not None:
                     performance_metrics |= {ws_record_field: current_metric}
+                else:
+                    performance_metrics |= {ws_record_field: None}
 
         return WorkspacePerformanceMetrics(**performance_metrics)

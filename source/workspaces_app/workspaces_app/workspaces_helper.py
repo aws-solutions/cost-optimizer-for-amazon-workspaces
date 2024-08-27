@@ -7,6 +7,7 @@
 import os
 import time
 import typing
+from datetime import datetime
 
 # AWS Libraries
 import boto3
@@ -68,6 +69,18 @@ class WorkspacesHelper(object):
             if isinstance(ws_record, WorkspaceDescription)
             else ws_record.description
         )
+
+        # if last reported date was date before release, treat it as if
+        # there was no previous data
+        if isinstance(ws_record, WorkspaceRecord):
+            last_reported_period = ws_record.last_reported_metric_period
+            last_reported_period = datetime.strptime(
+                last_reported_period, "%Y-%m-%dT%H:%M:%SZ"
+            )
+            release_271_date = datetime(2024, 8, 28)
+            if last_reported_period < release_271_date:
+                ws_record = ws_record.description
+
         workspace_id = description.workspace_id
         logger.debug(f"workspaceID: {workspace_id}")
         workspace_running_mode = description.initial_mode
@@ -138,6 +151,7 @@ class WorkspacesHelper(object):
                 "end_time_for_current_month"
             ),
             last_known_user_connection=last_known_user_connection,
+            tags="".join(('"', str(tags), '"')),
         )
 
     def get_hourly_threshold_for_bundle_type(self, bundle_type):
