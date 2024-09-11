@@ -57,6 +57,7 @@ export interface EcsClusterResourcesProps extends cdk.StackProps {
   readonly newPrivateSubnet2Id: string;
   readonly numberOfmonthsForTerminationCheck: string;
   readonly stableTagCondition: string;
+  readonly stableTagInUse: string;
 }
 
 export class EcsClusterResources extends Construct {
@@ -406,6 +407,10 @@ export class EcsClusterResources extends Construct {
             {
               name: "ImageVersion",
               value: image,
+            },
+            {
+              name: "StableTag",
+              value: props.stableTagInUse,
             },
           ],
         },

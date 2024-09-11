@@ -1410,6 +1410,12 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
                   ],
                 },
               },
+              {
+                "Name": "StableTag",
+                "Value": {
+                  "Ref": "UseStableTagging",
+                },
+              },
             ],
             "Essential": true,
             "Image": {

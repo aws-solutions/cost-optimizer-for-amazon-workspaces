@@ -540,6 +540,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       newPrivateSubnet2Id: costOptimizerVpc.privateSubnet2.attrSubnetId,
       numberOfmonthsForTerminationCheck: numberOfMonthsForTerminationCheck.valueAsString,
       stableTagCondition: stableTagCondition.logicalId,
+      stableTagInUse: stableTagging.valueAsString,
     };
 
     new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);

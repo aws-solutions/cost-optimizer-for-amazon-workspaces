@@ -6,6 +6,7 @@
 # Standard Library
 import os
 import time
+from itertools import batched
 
 # AWS Libraries
 import boto3
@@ -48,33 +49,31 @@ class UserSessionDAO:
             list_ddb_items = [
                 UserSession.to_ddb_obj(session) for session in user_sessions
             ]
-            response = self.client.batch_write_item(
-                RequestItems={
-                    self.table_name: [
-                        {"PutRequest": {"Item": item}} for item in list_ddb_items
-                    ]
-                }
-            )
-            retries = 0
-            max_retries = 5
-            while response.get("UnprocessedItems") and retries < max_retries:
-                retries += 1
-                time.sleep(2**retries + 10)
+            for batch in batched(list_ddb_items, 25):
                 response = self.client.batch_write_item(
                     RequestItems={
                         self.table_name: [
-                            {"PutRequest": {"Item": item}} for item in list_ddb_items
+                            {"PutRequest": {"Item": item}} for item in batch
                         ]
                     }
                 )
-            if retries >= max_retries:
-                logger.exception(
-                    "Unable to write the following user sessions to the table: {}".format(
-                        response.get("UnprocessedItems")
+                retries = 0
+                max_retries = 5
+                while response.get("UnprocessedItems") and retries < max_retries:
+                    retries += 1
+                    time.sleep(2**retries + 10)
+                    response = self.client.batch_write_item(
+                        RequestItems=response.get("UnprocessedItems")
                     )
-                )
+                if retries >= max_retries:
+                    logger.exception(
+                        "Unable to write the following user sessions to the table: {}, retries left: {}".format(
+                            response.get("UnprocessedItems"), max_retries - retries
+                        )
+                    )
         except Exception as e:
             logger.exception(
-                "Exception occurred while updating the usage table. Error: {}".format(e)
+                "Exception occurred while updating the user session table. Error: {}".format(
+                    e
+                )
             )
-            raise e

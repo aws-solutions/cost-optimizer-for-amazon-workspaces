@@ -57,6 +57,7 @@ class SolutionMetricsHelper:
 
             solution_version = get_solution_version()
             image_version = get_image_version()
+            stable_tag = get_stable_tag()
 
             metrics_data = {
                 "List_of_Workspaces": workspaces,
@@ -67,6 +68,7 @@ class SolutionMetricsHelper:
                 "ECS_Task_Execution_Time": execution_time,
                 "SolutionVersion": solution_version,
                 "ImageVersion": image_version,
+                "StableTag": stable_tag,
             }
 
             solution_id = get_solution_id()
@@ -123,3 +125,7 @@ def get_solution_version() -> str:
 
 def get_image_version() -> str:
     return os.getenv("ImageVersion", "Unknown")
+
+
+def get_stable_tag() -> str:
+    return os.getenv("StableTag", "Unknown")

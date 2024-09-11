@@ -115,8 +115,8 @@ def ws_record(ws_billing_data, ws_metrics):
         billing_data=ws_billing_data,
         performance_metrics=ws_metrics,
         report_date="test-report-date",
-        last_reported_metric_period="test-last-period",
-        last_known_user_connection="test-last-connection",
+        last_reported_metric_period="2024-09-03T00:00:00Z",
+        last_known_user_connection="2024-09-02T00:00:00Z",
         tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
     )
 
@@ -235,7 +235,9 @@ def test_get_end_of_month(session):
 @unittest.mock.patch("boto3.session.Session")
 @unittest.mock.patch(DirectoryReader.__module__ + ".upload_report")
 @unittest.mock.patch(DirectoryReader.__module__ + ".WorkspacesHelper")
+@unittest.mock.patch(DirectoryReader.__module__ + ".UsageTableDAO")
 def test_process_directory_with_multiple_graphics_workspaces(
+    mock_usage_table_dao,
     MockWorkspacesHelper,
     mock_session,
     stack_parameters,
@@ -248,6 +250,7 @@ def test_process_directory_with_multiple_graphics_workspaces(
             "WorkspaceId": "ws-graphics1",
             "DirectoryId": "foobarbazqux",
             "UserName": "graphics_user",
+            "ComputerName": "cpu1",
             "State": "AVAILABLE",
             "WorkspaceProperties": {
                 "RunningMode": "AUTO_STOP",
@@ -258,6 +261,7 @@ def test_process_directory_with_multiple_graphics_workspaces(
             "WorkspaceId": "ws-graphicsPro1",
             "DirectoryId": "foobarbazqux",
             "UserName": "graphicsPro_user",
+            "ComputerName": "cpu2",
             "State": "AVAILABLE",
             "WorkspaceProperties": {
                 "RunningMode": "AUTO_STOP",
@@ -268,26 +272,45 @@ def test_process_directory_with_multiple_graphics_workspaces(
     MockWorkspacesHelper.return_value.get_workspaces_for_directory.return_value = (
         graphics_workspaces
     )
+    MockWorkspacesHelper.return_value.get_hourly_threshold_for_bundle_type.return_value = Decimal(
+        "100"
+    )
     ws_records = [copy.deepcopy(ws_record), copy.deepcopy(ws_record)]
     for idx, record in enumerate(ws_records):
         record.description = ws_description(
             **{
+                "username": graphics_workspaces[idx]["UserName"],
+                "directory_id": graphics_workspaces[idx]["DirectoryId"],
                 "bundle_type": graphics_workspaces[idx]["WorkspaceProperties"][
                     "ComputeTypeName"
                 ],
+                "initial_mode": graphics_workspaces[idx]["WorkspaceProperties"][
+                    "RunningMode"
+                ],
                 "workspace_id": graphics_workspaces[idx]["WorkspaceId"],
+                "computer_name": graphics_workspaces[idx]["ComputerName"],
             }
         )
-
-    mock_session.client.return_value.get_item.return_value = {}
+    mock_session.client.return_value.get_caller_identity.return_value = {
+        "Account": ws_record.description.account
+    }
     mock_process_workspace = MockWorkspacesHelper.return_value.process_workspace
     mock_process_workspace.side_effect = ws_records
     region = "us-east-1"
+    mock_usage_table_dao.return_value.get_workspace_ddb_item.side_effect = [
+        ws_records[0].description,
+        ws_records[1].description,
+    ]
     directory_reader = DirectoryReader(mock_session, region)
     result = directory_reader.process_directory(
         stack_parameters, directory_parameters, dashboard_metrics
     )
-    mock_process_workspace.has_calls([(ws_records[0], None), (ws_records[1], None)])
+    mock_process_workspace.assert_has_calls(
+        [
+            unittest.mock.call(ws_records[0].description, None, dashboard_metrics),
+            unittest.mock.call(ws_records[1].description, None, dashboard_metrics),
+        ]
+    )
     assert len(mock_process_workspace.call_args_list) == 2
     assert result[0] == 2
     assert result[1][0]["bundleType"] == "GRAPHICS_G4DN"
