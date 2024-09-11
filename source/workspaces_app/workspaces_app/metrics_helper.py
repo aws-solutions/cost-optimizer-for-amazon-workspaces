@@ -488,15 +488,33 @@ class MetricsHelper:
                     else None
                 )
                 prev_metric = getattr(prev_metrics, ws_record_field, None)
-                if prev_metric is not None and current_metric is not None:
-                    performance_metrics |= {
-                        ws_record_field: prev_metric.merge(current_metric)
-                    }
-                elif prev_metric is not None:
-                    performance_metrics |= {ws_record_field: prev_metric}
-                elif current_metric is not None:
-                    performance_metrics |= {ws_record_field: current_metric}
-                else:
-                    performance_metrics |= {ws_record_field: None}
+                combined_metric = self.combine_current_perf_metric_with_previous(
+                    prev_metric, current_metric
+                )
+                performance_metrics |= {ws_record_field: combined_metric}
 
         return WorkspacePerformanceMetrics(**performance_metrics)
+
+    def combine_current_perf_metric_with_previous(
+        self,
+        prev_metric: WeightedAverage | None,
+        current_metric: WeightedAverage | None,
+    ) -> WeightedAverage | None:
+        """
+        This method combines two WeightedAverages if both exist.
+        :param previous_metric: The average of previously analyzed data
+        :param current_metric: The average of the data retrieved from the current analysis
+        :return: Returns the combination of the weighted averages if possible
+        """
+        # previous and current data exist, calculate weighted average
+        if prev_metric is not None and current_metric is not None:
+            return prev_metric.merge(current_metric)
+        # no current metric data, return previous
+        elif prev_metric is not None:
+            return prev_metric
+        # no previous metric data, return the current data
+        elif current_metric is not None:
+            return current_metric
+        # no data
+        else:
+            return None

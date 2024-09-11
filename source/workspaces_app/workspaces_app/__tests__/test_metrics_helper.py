@@ -809,9 +809,9 @@ def test_get_billable_hours_and_performance_none(mocker, session, ws_record):
 
     spy_get_time_range.assert_called_once()
     spy_get_cloudwatch_metric_data_points.assert_called_once()
-    spy_get_list_data_points.not_called()
-    spy_get_user_connected_hours.not_called()
-    spy_get_user_sessions.not_called()
+    spy_get_list_data_points.assert_not_called()
+    spy_get_user_connected_hours.assert_not_called()
+    spy_get_user_sessions.assert_not_called()
 
     assert result == None
 
