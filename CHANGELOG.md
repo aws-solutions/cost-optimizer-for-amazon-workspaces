@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.3] - 2024-10
+### Fixed
+- Update base python image to mitigate [CVE-2024-45490](https://security-tracker.debian.org/tracker/CVE-2024-45490), [CVE-2024-45491](https://security-tracker.debian.org/tracker/CVE-2024-45491), [CVE-2024-45492](https://security-tracker.debian.org/tracker/CVE-2024-45492), [CVE-2023-7104](https://security-tracker.debian.org/tracker/CVE-2023-7104)
+
 ## [2.7.2] - 2024-09
 ### Fixed
 - Some user sesssions not appearing in session table due to batchWrite API limit being reached
