@@ -210,12 +210,11 @@ npm run synth
     │   └── cost-optimizer-for-amazon-workspaces-spoke-stack.ts
     ├── package.json
     ├── package-lock.json
-    ├── testing_requirements.txt
+    ├── poetry.lock
+    ├── pyproject.toml
     ├── tsconfig.json
     └── workspaces_app
         ├── main.py
-        ├── requirements.txt
-        ├── setup_requirements.txt
         ├── test_workspaces_app.py
         └── workspaces_app
             ├── __init__.py
