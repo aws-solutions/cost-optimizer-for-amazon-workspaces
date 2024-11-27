@@ -1,10 +1,24 @@
 FROM public.ecr.aws/docker/library/python:3.12.7-slim-bookworm
-COPY workspaces_app /workspaces_app
 
-WORKDIR /workspaces_app
+# Set up a non-root user
 RUN adduser -uid 1001 nonroot
+
+# Set the working directory
+WORKDIR /workspaces_app
+
+# Copy only the files needed to install dependencies
+COPY pyproject.toml poetry.lock ./
+
+# Install poetry and dependencies
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --only main --no-root
+
+# Copy the rest of the application code
+COPY workspaces_app ./workspaces_app
+
+# Switch to non-root user
 USER nonroot
 
-RUN pip install -r ./setup_requirements.txt
-RUN pip install -r ./requirements.txt
-CMD python3 ./main.py
+# Run the application
+CMD ["python", "./workspaces_app/main.py"]

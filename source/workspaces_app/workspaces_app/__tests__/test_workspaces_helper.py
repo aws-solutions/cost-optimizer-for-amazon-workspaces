@@ -725,11 +725,9 @@ def test_check_if_workspace_used_for_selected_period_returns_false_if_timestamp_
 
 @freeze_time("2020-11-29 03:21:34")
 def test_check_if_workspace_used_for_selected_period_returns_true_if_timestamp_is_first_day_selected_month():
-    last_known_user_connection_timestamp = (
-        datetime.datetime.utcnow()
-        .today()
-        .replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    )
+    last_known_user_connection_timestamp = datetime.datetime.now(
+        datetime.timezone.utc
+    ).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     first_day_selected_month = date_utils.get_first_day_selected_month()
     result = workspace_utils.check_if_workspace_used_for_selected_period(
         last_known_user_connection_timestamp, first_day_selected_month

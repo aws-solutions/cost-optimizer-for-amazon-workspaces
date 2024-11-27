@@ -10,20 +10,13 @@ main() {
   root_dir=$(dirname "$(cd -P -- "$(dirname "$0")" && pwd -P)")
   local template_dir="$root_dir"/deployment
   local source_dir="$root_dir"/source
-  local venv="$root_dir"/.venv
 
-  [[ ! -d "$venv" ]] && python3 -m venv "$venv"
-  source "$venv"/bin/activate
-  unset AWS_PROFILE
-  python3 -m pip install --upgrade pip setuptools wheel
-
-  local requirements_files=(
-    "$source_dir"/testing_requirements.txt
-  )
-
-  for requirements_file in "${requirements_files[@]}"; do
-    python3 -m pip install -r "$requirements_file"
-  done
+  echo "Installing python packages including development dependencies"
+  cd "$source_dir"
+  "$POETRY_HOME"/bin/poetry install --with dev
+  
+  # Activate the virtual environment.
+  source $("$POETRY_HOME"/bin/poetry env info --path)/bin/activate
 
   local coverage_dir="$template_dir"/test/coverage-reports
   rm -rf "$coverage_dir"
@@ -53,6 +46,7 @@ main() {
   npm install
   npm run test
 
+  # Deactivate the virtual environment
   deactivate
 }
 

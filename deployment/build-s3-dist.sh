@@ -32,6 +32,12 @@ pack_lambda() {
     cp "$include_file" "$package_temp_dir"
   done
 
+  # Generate requirements.txt using Poetry
+  pushd "$source_dir"
+  "$POETRY_HOME"/bin/poetry export --without dev -f requirements.txt --output requirements.txt --without-hashes
+  popd
+
+  # Install dependencies from the generated requirements.txt
   pip install -r "$source_dir"/requirements.txt -t "$package_temp_dir"
 
   pushd "$package_temp_dir"
@@ -132,6 +138,8 @@ main() {
 
   cp "$source_dir"/Dockerfile "$wco_folder"
   cp "$source_dir"/.dockerignore "$wco_folder"
+  cp "$source_dir"/pyproject.toml "$wco_folder"
+  cp "$source_dir"/poetry.lock "$wco_folder"
   cp -r "$source_dir"/workspaces_app "$wco_folder"
   cp -r "$source_dir"/docker "$wco_folder"
 }
