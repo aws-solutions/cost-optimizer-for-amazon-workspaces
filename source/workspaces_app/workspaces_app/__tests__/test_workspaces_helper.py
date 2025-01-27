@@ -618,8 +618,11 @@ def test_check_if_workspace_needs_to_be_terminated_returns_dry_run_is_dry_run_tr
         "terminateUnusedWorkspaces": "Dry Run",
     }
     workspace_id = "123qwe123qwe"
+    billable_time = 0
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
     assert result == "Yes - Dry Run"
 
 
@@ -639,8 +642,11 @@ def test_check_if_workspace_needs_to_be_terminated_returns_dry_run_is_dry_run_fa
         "terminateUnusedWorkspaces": "Dry Run",
     }
     workspace_id = "123qwe123qwe"
+    billable_time = 0
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
     assert result == "Yes - Dry Run"
 
 
@@ -660,8 +666,11 @@ def test_check_if_workspace_needs_to_be_terminated_returns_empty_string_is_dry_r
         "terminateUnusedWorkspaces": "Yes",
     }
     workspace_id = "123qwe123qwe"
+    billable_time = 0
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
     assert result == ""
 
 
@@ -694,10 +703,13 @@ def test_check_if_workspace_needs_to_be_terminated_returns_yes_is_dry_run_false(
         },
     }
     workspace_id = "123qwe123qwe"
+    billable_time = 0
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     mocker.patch.object(workspace_helper, "terminate_unused_workspace")
     workspace_helper.terminate_unused_workspace.return_value = "Yes"
-    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
     assert result == "Yes"
 
 
@@ -735,6 +747,31 @@ def test_check_if_workspace_used_for_selected_period_returns_true_if_timestamp_i
     assert result is True
 
 
+@freeze_time("2025-01-15 12:00:00")
+def test_check_if_workspace_needs_to_be_terminated_returns_empty_string_with_billable_time(
+    session,
+):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": "yes",
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+        "terminateUnusedWorkspaces": "Dry Run",
+        "dateTimeValues": {
+            "current_month_last_day": True,
+        },
+    }
+    workspace_id = "123qwe123qwe"
+    billable_time = 5
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
+    assert result == ""
+
+
 def test_get_last_known_user_connection_timestamp_returns_last_connected_time_value(
     session,
 ):
@@ -766,6 +803,50 @@ def test_get_last_known_user_connection_timestamp_returns_last_connected_time_va
     assert (
         result == last_known_user_connection_timestamp
     ), last_known_user_connection_timestamp
+    client_stubber.deactivate()
+
+
+def test_get_last_known_user_connection_timestamp_handles_pagination(session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": "yes",
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-12345678"
+    last_known_timestamp = datetime.datetime(
+        2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc
+    )
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    response1 = {"WorkspacesConnectionStatus": [], "NextToken": "next-token"}
+    expected_params1 = {"WorkspaceIds": [workspace_id]}
+
+    response2 = {
+        "WorkspacesConnectionStatus": [
+            {
+                "WorkspaceId": workspace_id,
+                "LastKnownUserConnectionTimestamp": last_known_timestamp,
+            }
+        ]
+    }
+    expected_params2 = {"WorkspaceIds": [workspace_id], "NextToken": "next-token"}
+
+    client_stubber.add_response(
+        "describe_workspaces_connection_status", response1, expected_params1
+    )
+    client_stubber.add_response(
+        "describe_workspaces_connection_status", response2, expected_params2
+    )
+    client_stubber.activate()
+
+    result = workspace_helper.get_last_known_user_connection_timestamp(workspace_id)
+
+    assert result == last_known_timestamp
     client_stubber.deactivate()
 
 
@@ -1038,6 +1119,60 @@ def test_get_termination_status_returns_empty_string_when_workspace_not_availabl
     )
     result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
     assert result == ("", time.strftime("%Y-%m-%d", test_time.timetuple()))
+
+
+def test_get_termination_status_with_billable_hours(mocker, session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+        "TerminateUnusedWorkspaces": "Dry Run",
+        "dateTimeValues": {
+            "start_time_for_current_month": "",
+            "end_time_for_current_month": "",
+            "last_day_current_month": "",
+            "first_day_selected_month": "2025-01-01",
+            "start_time_selected_date": "2025-01-01T00:00:00Z",
+            "end_time_selected_date": "2025-01-02T00:00:00Z",
+            "current_month_last_day": True,
+            "date_today": "",
+            "date_for_s3_key": "",
+        },
+    }
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    workspace_id = "ws-12345678"
+    billable_time = 10
+    tags = [{"Key": "TestTag", "Value": "TestValue"}]
+
+    mock_timestamp = datetime.datetime(2025, 1, 15, 12, 0, 0)
+    mocker.patch.object(
+        workspace_helper,
+        "get_last_known_user_connection_timestamp",
+        return_value=mock_timestamp,
+    )
+    mocker.patch.object(
+        workspace_utils, "is_terminate_workspace_enabled", return_value=True
+    )
+    mocker.patch.object(
+        workspace_helper, "check_if_workspace_available_on_first_day_selected_month"
+    )
+    mocker.patch.object(workspace_utils, "check_if_workspace_used_for_selected_period")
+    mocker.patch.object(workspace_helper, "check_if_workspace_needs_to_be_terminated")
+
+    result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
+
+    assert result == ("", "2025-01-15")
+    workspace_helper.get_last_known_user_connection_timestamp.assert_called_once_with(
+        workspace_id
+    )
+    workspace_utils.is_terminate_workspace_enabled.assert_called_once()
+    workspace_helper.check_if_workspace_available_on_first_day_selected_month.assert_called_once()
+    workspace_utils.check_if_workspace_used_for_selected_period.assert_called_once()
+    workspace_helper.check_if_workspace_needs_to_be_terminated.assert_not_called()
 
 
 def test_get_workspaces_for_directory_use_next_token(session):
@@ -1486,8 +1621,11 @@ def test_check_if_workspace_needs_to_be_terminated_returns_empty_string_for_last
         },
     }
     workspace_id = "123qwe123qwe"
+    billable_time = 0
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
-    result = workspace_helper.check_if_workspace_needs_to_be_terminated(workspace_id)
+    result = workspace_helper.check_if_workspace_needs_to_be_terminated(
+        workspace_id, billable_time
+    )
     assert result == ""
 
 
