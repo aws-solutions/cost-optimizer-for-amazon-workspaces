@@ -295,7 +295,9 @@ class WorkspacesHelper(object):
                     and not workspace_used_in_selected_period
                 ):
                     workspace_terminated = (
-                        self.check_if_workspace_needs_to_be_terminated(workspace_id)
+                        self.check_if_workspace_needs_to_be_terminated(
+                            workspace_id, billable_time
+                        )
                     )
         except Exception as error:
             logger.exception(
@@ -324,15 +326,42 @@ class WorkspacesHelper(object):
             response = self.workspaces_client.describe_workspaces_connection_status(
                 WorkspaceIds=[workspace_id]
             )
-            last_known_timestamp = response["WorkspacesConnectionStatus"][0].get(
-                "LastKnownUserConnectionTimestamp"
+
+            workspaces_connection_status = response.get(
+                "WorkspacesConnectionStatus", []
             )
+            if workspaces_connection_status:
+                last_known_timestamp = workspaces_connection_status[0].get(
+                    "LastKnownUserConnectionTimestamp"
+                )
+            elif response.get("NextToken"):
+                # Handle the rare case where the first response is empty but has a NextToken
+                logger.warning(
+                    f"Unexpected pagination for single workspace query: {workspace_id}"
+                )
+                while response.get("NextToken"):
+                    response = (
+                        self.workspaces_client.describe_workspaces_connection_status(
+                            WorkspaceIds=[workspace_id], NextToken=response["NextToken"]
+                        )
+                    )
+                    workspaces_connection_status = response.get(
+                        "WorkspacesConnectionStatus", []
+                    )
+                    if workspaces_connection_status:
+                        last_known_timestamp = workspaces_connection_status[0].get(
+                            "LastKnownUserConnectionTimestamp"
+                        )
+                        break
+
         except Exception as error:
             logger.exception(
                 f"Setting the value for last_known_timestamp to ResourceUnavailable due to the error {error}"
             )
             last_known_timestamp = "ResourceUnavailable"
-        logger.debug(f"Returning the last known timestamp as {last_known_timestamp}")
+        logger.debug(
+            f"Returning the last known timestamp for the workspace_id {workspace_id} as {last_known_timestamp}"
+        )
         return last_known_timestamp
 
     def check_if_workspace_available_on_first_day_selected_month(self, workspace_id):
@@ -370,13 +399,22 @@ class WorkspacesHelper(object):
         )
         return workspace_available
 
-    def check_if_workspace_needs_to_be_terminated(self, workspace_id):
+    def check_if_workspace_needs_to_be_terminated(self, workspace_id, billable_time):
         """
-        This method checks if the workspace needs to terminated based on the usage
-        :param workspace_id:
-        :return: A string value 'Yes' if the workspace is terminated and an empty string '' if not terminated
+        This method checks if the workspace needs to be terminated based on usage and settings
+        :param workspace_id: The ID of the workspace
+        :param billable_time: The billable time for the workspace
+        :return: A string value 'Yes' if the workspace is terminated, 'Yes - Dry Run' for dry run, and an empty string '' if not terminated
         """
         workspace_terminated = ""
+
+        # Check if there are billable hours
+        if billable_time > 0:
+            logger.debug(
+                f"Workspace {workspace_id} has {billable_time} billable hours. Skipping termination."
+            )
+            return workspace_terminated
+
         if self.settings.get("terminateUnusedWorkspaces") == "Dry Run":
             logger.debug(
                 f"Termination option for workspace {workspace_id} is set to DryRun. The report was updated but the"

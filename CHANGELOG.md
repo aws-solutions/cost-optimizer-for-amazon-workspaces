@@ -4,6 +4,11 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.5] - 2025-01
+### Fixed
+- Updated aws-lambda-powertools from version 2.39.1 to 3.4.1
+- Improved handling of workspace termination logic
+
 ## [2.7.4] - 2024-11
 ### Fixed
 - Upgrade cross-spawn to mitigate [CVE-2024-21538](https://nvd.nist.gov/vuln/detail/CVE-2024-21538)
