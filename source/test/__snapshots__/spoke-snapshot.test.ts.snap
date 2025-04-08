@@ -2,7 +2,7 @@
 
 exports[`spoke stack synth matches the existing snapshot 1`] = `
 {
-  "Description": "(SO0018) - The AWS CloudFormation spoke template for deployment of the workspaces-cost-optimizer, Version: v2.6.0",
+  "Description": "(SO0018) - The AWS CloudFormation spoke template for deployment of the workspaces-cost-optimizer, Version: v2.7.6",
   "Mappings": {
     "Solution": {
       "Data": {
@@ -12,7 +12,7 @@ exports[`spoke stack synth matches the existing snapshot 1`] = `
         "ID": "SO0018",
         "SpokeAccountWorkspacesRole": "Workspaces-Admin-Spoke",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
-        "Version": "v2.6.0",
+        "Version": "v2.7.6",
       },
     },
   },
@@ -150,7 +150,7 @@ exports[`spoke stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.6.0/account_registration_provider.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.7.6/account_registration_provider.zip",
         },
         "Description": "WorkspacesCostOptimizer spoke account registration custom resource provider",
         "Environment": {
@@ -195,7 +195,7 @@ exports[`spoke stack synth matches the existing snapshot 1`] = `
                 ],
               ],
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.6.0",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.6",
           },
         },
         "Handler": "account_registration_provider.account_registration_provider.event_handler",
@@ -368,112 +368,6 @@ exports[`spoke stack synth matches the existing snapshot 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "AppRegistryApplicationAttributeAssociation": {
-      "Properties": {
-        "Application": {
-          "Fn::Join": [
-            "-",
-            [
-              "workspaces-cost-optimizer",
-              {
-                "Ref": "AWS::Region",
-              },
-              {
-                "Ref": "HubAccountId",
-              },
-            ],
-          ],
-        },
-        "AttributeGroup": {
-          "Fn::GetAtt": [
-            "DefaultApplicationAttributes",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroupAssociation",
-    },
-    "AppRegistryApplicationStackAssociation": {
-      "Properties": {
-        "Application": {
-          "Fn::Join": [
-            "-",
-            [
-              "workspaces-cost-optimizer",
-              {
-                "Ref": "AWS::Region",
-              },
-              {
-                "Ref": "HubAccountId",
-              },
-            ],
-          ],
-        },
-        "Resource": {
-          "Ref": "AWS::StackId",
-        },
-        "ResourceType": "CFN_STACK",
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::ResourceAssociation",
-    },
-    "ApplicationInsightsConfiguration": {
-      "Properties": {
-        "AutoConfigurationEnabled": true,
-        "CWEMonitorEnabled": true,
-        "OpsCenterEnabled": true,
-        "ResourceGroupName": {
-          "Fn::Join": [
-            "",
-            [
-              "AWS_CloudFormation_Stack-",
-              {
-                "Ref": "AWS::StackName",
-              },
-            ],
-          ],
-        },
-        "Tags": [
-          {
-            "Key": "CloudFoundations:CostOptimizerForWorkspaces",
-            "Value": {
-              "Ref": "AWS::StackName",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::ApplicationInsights::Application",
-    },
-    "DefaultApplicationAttributes": {
-      "Properties": {
-        "Attributes": {
-          "applicationType": "AWS-Solutions",
-          "solutionID": "SO0018",
-          "solutionName": "workspaces-cost-optimizer",
-          "version": "v2.6.0",
-        },
-        "Description": "Attribute group for solution information",
-        "Name": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "AWS::Region",
-              },
-              "-",
-              {
-                "Ref": "AWS::StackName",
-              },
-            ],
-          ],
-        },
-        "Tags": {
-          "CloudFoundations:CostOptimizerForWorkspaces": {
-            "Ref": "AWS::StackName",
-          },
-        },
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroup",
     },
     "WorkSpacesManagementRole": {
       "Metadata": {

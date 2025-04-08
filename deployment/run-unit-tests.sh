@@ -14,7 +14,7 @@ main() {
   echo "Installing python packages including development dependencies"
   cd "$source_dir"
   "$POETRY_HOME"/bin/poetry install --with dev
-  
+
   # Activate the virtual environment.
   source $("$POETRY_HOME"/bin/poetry env info --path)/bin/activate
 

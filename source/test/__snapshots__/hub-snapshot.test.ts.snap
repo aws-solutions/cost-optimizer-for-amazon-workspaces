@@ -84,7 +84,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "AppRegistryApplicationName": "workspaces-cost-optimizer",
         "AutoStopTimeoutHours": 1,
         "ClusterName": "cost-optimizer-cluster",
-        "ID": "SO0218",
+        "ID": "SO0018",
         "Image": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:PUBLIC_ECR_TAG",
         "LogGroupName": "/ecs/wco-task",
         "MetricsURL": "https://metrics.awssolutionsbuilder.com/generic",
@@ -93,10 +93,10 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SendAnonymousUsageData": "True",
         "SolutionName": "Cost Optimizer for Amazon Workspaces",
         "SpokeAccountWorkspacesRole": "Workspaces-Admin-Spoke",
-        "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.6_stable",
+        "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.7_stable",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
         "TaskDefinitionName": "wco-task",
-        "Version": "v2.6.0",
+        "Version": "v2.7.6",
       },
     },
   },
@@ -590,38 +590,6 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     },
   },
   "Resources": {
-    "AppRegistryApplicationAttributeAssociation": {
-      "Properties": {
-        "Application": {
-          "Fn::GetAtt": [
-            "Application",
-            "Id",
-          ],
-        },
-        "AttributeGroup": {
-          "Fn::GetAtt": [
-            "DefaultApplicationAttributeGroup",
-            "Id",
-          ],
-        },
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroupAssociation",
-    },
-    "AppRegistryApplicationStackAssociation": {
-      "Properties": {
-        "Application": {
-          "Fn::GetAtt": [
-            "Application",
-            "Id",
-          ],
-        },
-        "Resource": {
-          "Ref": "AWS::StackId",
-        },
-        "ResourceType": "CFN_STACK",
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::ResourceAssociation",
-    },
     "Application": {
       "Properties": {
         "Description": "Service Catalog application to track and manage all your resources for the solution workspaces-cost-optimizer",
@@ -646,102 +614,17 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
         },
         "Tags": {
-          "ApplicationType": "AWS-Solutions",
           "CloudFoundations:CostOptimizerForWorkspaces": {
             "Ref": "AWS::StackName",
           },
-          "SolutionDomain": "CloudFoundations",
-          "SolutionID": "SO0218",
-          "SolutionName": "workspaces-cost-optimizer",
-          "SolutionVersion": "v2.6.0",
+          "Solutions:ApplicationType": "AWS-Solutions",
+          "Solutions:SolutionDomain": "CloudFoundations",
+          "Solutions:SolutionID": "SO0018",
+          "Solutions:SolutionName": "workspaces-cost-optimizer",
+          "Solutions:SolutionVersion": "v2.7.6",
         },
       },
       "Type": "AWS::ServiceCatalogAppRegistry::Application",
-    },
-    "ApplicationInsightsConfiguration": {
-      "DependsOn": [
-        "Application",
-      ],
-      "Properties": {
-        "AutoConfigurationEnabled": true,
-        "CWEMonitorEnabled": true,
-        "OpsCenterEnabled": true,
-        "ResourceGroupName": {
-          "Fn::Join": [
-            "-",
-            [
-              "AWS_AppRegistry_Application",
-              {
-                "Fn::FindInMap": [
-                  "Solution",
-                  "Data",
-                  "AppRegistryApplicationName",
-                ],
-              },
-              {
-                "Ref": "AWS::Region",
-              },
-              {
-                "Ref": "AWS::AccountId",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApplicationInsights::Application",
-    },
-    "ApplicationShare": {
-      "Condition": "MultiAccountDeploymentCondition",
-      "Properties": {
-        "AllowExternalPrincipals": false,
-        "Name": {
-          "Ref": "AWS::StackName",
-        },
-        "PermissionArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":ram::aws:permission/AWSRAMPermissionServiceCatalogAppRegistryApplicationAllowAssociation",
-              ],
-            ],
-          },
-        ],
-        "Principals": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":organizations::",
-                {
-                  "Ref": "ManagementAccountId",
-                },
-                ":organization/",
-                {
-                  "Ref": "OrganizationID",
-                },
-              ],
-            ],
-          },
-        ],
-        "ResourceArns": [
-          {
-            "Fn::GetAtt": [
-              "Application",
-              "Arn",
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::RAM::ResourceShare",
     },
     "CostOptimizerAdminPolicy": {
       "Metadata": {
@@ -1028,6 +911,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             ],
           ],
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -1074,6 +980,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           "IgnorePublicAcls": true,
           "RestrictPublicBuckets": true,
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
@@ -1105,6 +1034,27 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "Value": {
               "Ref": "AWS::StackName",
             },
+          },
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
       },
@@ -1185,6 +1135,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
         },
         "RetentionInDays": 365,
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain",
@@ -1472,6 +1445,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "RequiresCompatibilities": [
           "FARGATE",
         ],
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "TaskRoleArn": {
           "Fn::GetAtt": [
             "CostOptimizerAdminRole",
@@ -1485,40 +1481,31 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       "Condition": "CreateNewVPCCondition",
       "Properties": {
         "Domain": "vpc",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::EC2::EIP",
-    },
-    "DefaultApplicationAttributeGroup": {
-      "Properties": {
-        "Attributes": {
-          "applicationType": "AWS-Solutions",
-          "solutionID": "SO0218",
-          "solutionName": "workspaces-cost-optimizer",
-          "version": "v2.6.0",
-        },
-        "Description": "Attribute group for solution information",
-        "Name": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Fn::FindInMap": [
-                  "Solution",
-                  "Data",
-                  "AppRegistryApplicationName",
-                ],
-              },
-              {
-                "Ref": "AWS::Region",
-              },
-              {
-                "Ref": "AWS::AccountId",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ServiceCatalogAppRegistry::AttributeGroup",
     },
     "DynamoDBGatewayEndpoint": {
       "Condition": "CreateDynamoDBEndpointCondition",
@@ -1740,6 +1727,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             ],
           ],
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "VpcId": {
           "Ref": "VPC",
         },
@@ -1762,6 +1772,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           "Ref": "VPC",
         },
         "ResourceType": "VPC",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "TrafficType": "ALL",
       },
       "Type": "AWS::EC2::FlowLog",
@@ -1785,6 +1818,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       },
       "Properties": {
         "RetentionInDays": 731,
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain",
@@ -1804,6 +1860,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -1856,8 +1935,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             },
           },
           {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
             "Key": "Name",
             "Value": "cost-optimizer-igw",
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
       },
@@ -1898,6 +1998,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
       },
       "Properties": {
         "GroupDescription": "Security group that allows inbound from the VPC and outbound to the Internet",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "VpcId": {
           "Ref": "VPC",
         },
@@ -1990,6 +2113,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -2033,6 +2179,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           "IgnorePublicAcls": true,
           "RestrictPublicBuckets": true,
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
@@ -2040,6 +2209,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     "MainRoutePrivateTable": {
       "Condition": "CreateNewVPCCondition",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "VpcId": {
           "Ref": "VPC",
         },
@@ -2058,6 +2250,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SubnetId": {
           "Ref": "Subnet1",
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::EC2::NatGateway",
     },
@@ -2090,8 +2305,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
         "Tags": [
           {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
             "Key": "Name",
             "Value": "cost-optimizer-vpc-private-subnet-1",
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
         "VpcId": {
@@ -2131,8 +2367,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
         "Tags": [
           {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
             "Key": "Name",
             "Value": "cost-optimizer-vpc-private-subnet-2",
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
         "VpcId": {
@@ -2159,6 +2416,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
     "PublicRouteTable": {
       "Condition": "CreateNewVPCCondition",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "VpcId": {
           "Ref": "VPC",
         },
@@ -2236,7 +2516,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.6.0/register_spoke_lambda.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.7.6/register_spoke_lambda.zip",
         },
         "Environment": {
           "Variables": {
@@ -2246,7 +2526,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0218/v2.6.0",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.6",
           },
         },
         "FunctionName": {
@@ -2274,6 +2554,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
         },
         "Runtime": "python3.11",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "Timeout": 300,
         "TracingConfig": {
           "Mode": "Active",
@@ -2403,6 +2706,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -2620,6 +2946,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             ],
           ],
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
         "VpcId": {
           "Ref": "VPC",
         },
@@ -2790,7 +3139,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.6.0/uuid_generator.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.7.6/uuid_generator.zip",
         },
         "Description": "Solution Helper Lambda Function",
         "Environment": {
@@ -2798,7 +3147,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0218/v2.6.0",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.6",
           },
         },
         "Handler": "uuid_generator/uuid_generator.lambda_handler",
@@ -2821,6 +3170,27 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "Value": {
               "Ref": "AWS::StackName",
             },
+          },
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
         "Timeout": 300,
@@ -2948,6 +3318,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
@@ -2989,6 +3382,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SSESpecification": {
           "SSEEnabled": true,
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -3009,8 +3425,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         },
         "Tags": [
           {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
             "Key": "Name",
             "Value": "cost-optimizer-vpc-public-subnet",
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
         "VpcId": {
@@ -3125,6 +3562,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SSESpecification": {
           "SSEEnabled": true,
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -3166,6 +3626,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "SSESpecification": {
           "SSEEnabled": true,
         },
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
+          },
+        ],
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -3193,8 +3676,29 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             },
           },
           {
+            "Key": "awsApplication",
+            "Value": {
+              "Fn::GetAtt": [
+                "Application",
+                "ApplicationTagValue",
+              ],
+            },
+          },
+          {
             "Key": "Name",
             "Value": "cost-optimizer-vpc",
+          },
+          {
+            "Key": "SolutionIdKey",
+            "Value": "SO0018",
+          },
+          {
+            "Key": "SolutionNameKey",
+            "Value": "workspaces-cost-optimizer",
+          },
+          {
+            "Key": "SolutionVersionKey",
+            "Value": "v2.7.6",
           },
         ],
       },

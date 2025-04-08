@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cost-optimizer-for-amazon-workspaces"
-version = "2.7.5"
+version = "2.7.6"
 description = "Cost Optimizer for Amazon Workspaces (SO0018)"
 authors = ["AWS Solutions"]
 license = "Apache-2.0"
