@@ -11,11 +11,11 @@ import {
 
 export const props: CostOptimizerHubStackProps = {
   solutionBucketName: "solutions",
-  solutionId: "SO0218",
+  solutionId: "SO0018",
   solutionName: "workspaces-cost-optimizer",
   solutionProvider: "AWS Solutions",
   solutionTradeMarkName: "workspaces-cost-optimizer",
-  solutionVersion: "v2.6.0",
+  solutionVersion: "v2.7.6",
 };
 
 /*

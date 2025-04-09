@@ -4,6 +4,13 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.6] - 2025-04
+### Added
+- Updated AppRegistry implementation to use tag-based approach instead of CFN-based association.
+
+### Fixed
+- Update base python image to mitigate [CVE-2025-0395](https://nvd.nist.gov/vuln/detail/CVE-2025-0395), [CVE-2024-12133](https://nvd.nist.gov/vuln/detail/CVE-2024-12133), [CVE-2024-12243](https://nvd.nist.gov/vuln/detail/CVE-2024-12243)
+
 ## [2.7.5] - 2025-01
 ### Fixed
 - Updated aws-lambda-powertools from version 2.39.1 to 3.4.1

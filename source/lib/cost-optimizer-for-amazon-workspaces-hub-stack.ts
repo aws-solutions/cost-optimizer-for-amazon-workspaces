@@ -413,7 +413,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
     const reportingBucket = new UsageReportBucketResources(this, "UsageReportBucketResources");
 
     const spokeAccountTable = new Table(this, "SpokeAccountTable", {
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       encryption: TableEncryption.AWS_MANAGED,
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -435,7 +435,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       sortKey: { name: "Region", type: AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       encryption: TableEncryption.AWS_MANAGED,
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
     const usageTableNode = usageTable.node.findChild("Resource") as cdk.aws_dynamodb.CfnTable;
@@ -450,7 +450,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       sortKey: { name: "SessionTime", type: AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       encryption: TableEncryption.AWS_MANAGED,
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
     const sessionTableNode = userSessionTable.node.findChild("Resource") as cdk.aws_dynamodb.CfnTable;
@@ -543,7 +543,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       stableTagInUse: stableTagging.valueAsString,
     };
 
-    new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);
+    const ecsClusterResources = new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);
 
     const registerSpokeAccountProps: RegisterSpokeAccountResourcesProps = {
       solutionId: props.solutionId,
@@ -577,12 +577,30 @@ export class CostOptimizerHubStack extends cdk.Stack {
       solutionVersion: props.solutionVersion,
       applicationType: "AWS-Solutions",
       appRegistryApplicationName: mappings.findInMap("Data", "AppRegistryApplicationName"),
-      managementAccountId: managementAccountId.valueAsString,
-      orgId: organizationID.valueAsString,
-      multiAccountDeploymentCondition: multiAccountDeploymentCondition,
     };
 
-    new AppRegistryHubResources(this, "AppRegistryHubResources", appRegistryHubProps);
+    const appRegistry = new AppRegistryHubResources(this, "AppRegistryHubResources", appRegistryHubProps);
+
+    // Function to add tags to a construct
+    const addTags = (construct: Construct) => {
+      cdk.Tags.of(construct).add("SolutionIdKey", props.solutionId);
+      cdk.Tags.of(construct).add("SolutionNameKey", props.solutionName);
+      cdk.Tags.of(construct).add("SolutionVersionKey", props.solutionVersion);
+      cdk.Tags.of(construct).add("awsApplication", appRegistry.applicationTagValue);
+    };
+
+    [
+      reportingBucket,
+      costOptimizerVpc,
+      ecsClusterResources,
+      uuidGenerator,
+      registerSpokeAccountFunction,
+      spokeAccountTable,
+      usageTable,
+      userSessionTable,
+    ].forEach((resource) => {
+      if (resource) addTags(resource);
+    });
 
     // Outputs
     new CfnOutput(this, "BucketNameOutput", {

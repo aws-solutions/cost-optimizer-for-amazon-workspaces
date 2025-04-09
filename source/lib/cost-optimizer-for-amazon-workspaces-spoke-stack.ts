@@ -8,7 +8,6 @@ import { Policy, Role, PolicyDocument, PolicyStatement, ServicePrincipal, ArnPri
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
-import { AppRegistrySpokeResources, AppRegistrySpokeResourcesProps } from "./components/app-registry-spoke-resources";
 import overrideLogicalId from "./cdk-helper/override-logical-id";
 import { addCfnNagSuppression } from "./cdk-helper/add-cfn-nag-suppression";
 export interface CostOptimizerSpokeStackProps extends cdk.StackProps {
@@ -271,17 +270,6 @@ export class CostOptimizerSpokeStack extends cdk.Stack {
     });
     customResource.node.addDependency(accountRegistrationProviderRolePolicy);
     overrideLogicalId(customResource, "AccountRegistration");
-
-    const appRegistrySpokeResourcesProps: AppRegistrySpokeResourcesProps = {
-      solutionId: props.solutionId,
-      solutionName: props.solutionName,
-      solutionVersion: props.solutionVersion,
-      hubAccountId: hubAccountId.valueAsString,
-      appRegistryApplicationName: "workspaces-cost-optimizer",
-      applicationType: "AWS-Solutions",
-    };
-
-    new AppRegistrySpokeResources(this, "AppRegistrySpokeResources", appRegistrySpokeResourcesProps);
 
     new CfnOutput(this, "SolutionIDOutput", {
       value: mappings.findInMap("Data", "ID"),
