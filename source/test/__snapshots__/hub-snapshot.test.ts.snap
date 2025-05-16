@@ -96,7 +96,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.7_stable",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
         "TaskDefinitionName": "wco-task",
-        "Version": "v2.7.6",
+        "Version": "v2.7.7",
       },
     },
   },
@@ -621,7 +621,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           "Solutions:SolutionDomain": "CloudFoundations",
           "Solutions:SolutionID": "SO0018",
           "Solutions:SolutionName": "workspaces-cost-optimizer",
-          "Solutions:SolutionVersion": "v2.7.6",
+          "Solutions:SolutionVersion": "v2.7.7",
         },
       },
       "Type": "AWS::ServiceCatalogAppRegistry::Application",
@@ -931,7 +931,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1000,7 +1000,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1054,7 +1054,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1155,7 +1155,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1465,7 +1465,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "TaskRoleArn": {
@@ -1501,7 +1501,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1747,7 +1747,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -1792,7 +1792,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "TrafficType": "ALL",
@@ -1838,7 +1838,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1880,7 +1880,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -1957,7 +1957,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -2018,7 +2018,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -2133,7 +2133,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -2199,7 +2199,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -2229,7 +2229,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -2270,7 +2270,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -2327,7 +2327,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -2389,7 +2389,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -2436,7 +2436,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -2516,7 +2516,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.7.6/register_spoke_lambda.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.7.7/register_spoke_lambda.zip",
         },
         "Environment": {
           "Variables": {
@@ -2526,7 +2526,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.6",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.7",
           },
         },
         "FunctionName": {
@@ -2574,7 +2574,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "Timeout": 300,
@@ -2726,7 +2726,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -2966,7 +2966,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -3139,7 +3139,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.7.6/uuid_generator.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.7.7/uuid_generator.zip",
         },
         "Description": "Solution Helper Lambda Function",
         "Environment": {
@@ -3147,7 +3147,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.6",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.7.7",
           },
         },
         "Handler": "uuid_generator/uuid_generator.lambda_handler",
@@ -3190,7 +3190,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "Timeout": 300,
@@ -3338,7 +3338,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -3402,7 +3402,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -3447,7 +3447,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
         "VpcId": {
@@ -3582,7 +3582,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -3646,7 +3646,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },
@@ -3698,7 +3698,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
           },
           {
             "Key": "SolutionVersionKey",
-            "Value": "v2.7.6",
+            "Value": "v2.7.7",
           },
         ],
       },

@@ -1,6 +1,6 @@
 {
   "name": "cost-optimizer-for-amazon-workspaces",
-  "version": "2.7.6",
+  "version": "2.7.7",
   "description": "Cost Optimizer for Amazon Workspaces (SO0018)",
   "license": "Apache-2.0",
   "repository": {
@@ -18,10 +18,10 @@
     "test": "jest --coverage",
     "license-report": "license-report --output=csv --delimiter=' under ' --fields=name --fields=licenseType",
     "cdk": "cdk",
-    "bootstrap": "SOLUTION_VERSION=v2.7.6 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk bootstrap",
-    "deploy": "SOLUTION_VERSION=v2.7.6 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces",
-    "deploySpoke": "SOLUTION_VERSION=v2.7.6 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces-spoke",
-    "synth": "SOLUTION_VERSION=v2.7.6 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces DIST_OUTPUT_BUCKET=solutions-reference cdk synth"
+    "bootstrap": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk bootstrap",
+    "deploy": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces",
+    "deploySpoke": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces-spoke",
+    "synth": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces DIST_OUTPUT_BUCKET=solutions-reference cdk synth"
   },
   "devDependencies": {
     "@aws-cdk/assert": "2.68.0",
@@ -30,6 +30,7 @@
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "aws-cdk": "^2.1004.0",
+    "aws-cdk-lib": "^2.189.1",
     "cdk-nag": "^2.27.124",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -47,7 +48,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.187.0",
+    "aws-cdk-lib": "^2.189.1",
     "constructs": "^10.4.2"
   },
   "jest": {
