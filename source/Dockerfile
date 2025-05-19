@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.12.9-slim-bookworm
+FROM public.ecr.aws/docker/library/python:3.12.10-slim-bookworm
 
 # Set up a non-root user
 RUN adduser -uid 1001 nonroot

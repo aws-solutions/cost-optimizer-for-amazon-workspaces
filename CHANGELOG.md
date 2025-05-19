@@ -4,6 +4,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.7] - 2025-05
+### Updated
+- Update base python image to mitigate [CVE-2024-56406](https://nvd.nist.gov/vuln/detail/CVE-2024-56406)
+- Upgraded aws-cdk-lib to version 2.189.1
+
+
 ## [2.7.6] - 2025-04
 ### Added
 - Updated AppRegistry implementation to use tag-based approach instead of CFN-based association.
