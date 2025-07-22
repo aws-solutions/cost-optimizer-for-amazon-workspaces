@@ -151,63 +151,62 @@ npm run synth
 ├── SECURITY.md
 ├── buildspec.yml
 ├── deployment
-│   ├── build-open-source-dist.sh
-│   ├── build-s3-dist.sh
-│   ├── run-unit-tests.sh
-│   └── upload-s3-dist.sh
+│   ├── build-open-source-dist.sh
+│   ├── build-s3-dist.sh
+│   ├── run-unit-tests.sh
+│   └── upload-s3-dist.sh
 └── source
     ├── Dockerfile
     ├── bin
-    │   └── cost-optimizer-for-amazon-workspaces-solution.ts
+    │   └── cost-optimizer-for-amazon-workspaces-solution.ts
     ├── cdk.json
     ├── lambda
-    │   ├── account_registration_provider
-    │   │   ├── __init__.py
-    │   │   ├── __tests__
-    │   │   │   ├── __init__.py
-    │   │   │   ├── conftest.py
-    │   │   │   └── test_account_registration_provider.py
-    │   │   └── account_registration_provider.py
-    │   ├── register_spoke_lambda
-    │   │   ├── __init__.py
-    │   │   ├── __tests__
-    │   │   │   ├── __init__.py
-    │   │   │   ├── conftest.py
-    │   │   │   ├── test_dynamodb.py
-    │   │   │   ├── test_register_spoke_accounts.py
-    │   │   │   └── test_request_event.py
-    │   │   ├── dynamodb_table.py
-    │   │   ├── register_spoke_accounts.py
-    │   │   └── request_event.py
-    │   ├── utils
-    │   │   ├── __tests__
-    │   │   │   ├── __init__.py
-    │   │   │   ├── conftest.py
-    │   │   │   └── test_cfnresponse.py
-    │   │   └── cfnresponse.py
-    │   └── uuid_helper
-    │       ├── __init__.py
-    │       ├── __tests__
-    │       │   ├── __init__.py
-    │       │   ├── conftest.py
-    │       │   └── test_uuid_helper.py
-    │       └── uuid_helper.py
+    │   ├── account_registration_provider
+    │   │   ├── __init__.py
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   └── test_account_registration_provider.py
+    │   │   └── account_registration_provider.py
+    │   ├── register_spoke_lambda
+    │   │   ├── __init__.py
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   ├── test_dynamodb.py
+    │   │   │   ├── test_register_spoke_accounts.py
+    │   │   │   └── test_request_event.py
+    │   │   ├── dynamodb_table.py
+    │   │   ├── register_spoke_accounts.py
+    │   │   └── request_event.py
+    │   ├── utils
+    │   │   ├── __tests__
+    │   │   │   ├── __init__.py
+    │   │   │   ├── conftest.py
+    │   │   │   └── test_cfnresponse.py
+    │   │   └── cfnresponse.py
+    │   └── uuid_generator
+    │       ├── __init__.py
+    │       ├── __tests__
+    │       │   ├── __init__.py
+    │       │   ├── conftest.py
+    │       │   └── test_uuid_generator.py
+    │       └── uuid_generator.py
     ├── lib
-    │   ├── cdk-helper
-    │   │   ├── add-cfn-nag-suppression.ts
-    │   │   ├── condition-aspect.ts
-    │   │   ├── override-logical-id.ts
-    │   │   └── set-condition.ts
-    │   ├── components
-    │   │   ├── app-registry-hub-resources.ts
-    │   │   ├── app-registry-spoke-resources.ts
-    │   │   ├── ecs-cluster-resources.ts
-    │   │   ├── register-spoke-account-resources.ts
-    │   │   ├── solution-helper-resources.ts
-    │   │   ├── usage-report-bucket-resources.ts
-    │   │   └── vpc-resources.ts
-    │   ├── cost-optimizer-for-amazon-workspaces-hub-stack.ts
-    │   └── cost-optimizer-for-amazon-workspaces-spoke-stack.ts
+    │   ├── cdk-helper
+    │   │   ├── add-cfn-nag-suppression.ts
+    │   │   ├── condition-aspect.ts
+    │   │   ├── override-logical-id.ts
+    │   │   └── set-condition.ts
+    │   ├── components
+    │   │   ├── dashboard-resources.ts
+    │   │   ├── ecs-cluster-resources.ts
+    │   │   ├── register-spoke-account-resources.ts
+    │   │   ├── usage-report-bucket-resources.ts
+    │   │   ├── uuid-resources.ts
+    │   │   └── vpc-resources.ts
+    │   ├── cost-optimizer-for-amazon-workspaces-hub-stack.ts
+    │   └── cost-optimizer-for-amazon-workspaces-spoke-stack.ts
     ├── package.json
     ├── package-lock.json
     ├── poetry.lock
@@ -219,27 +218,40 @@ npm run synth
         └── workspaces_app
             ├── __init__.py
             ├── __tests__
-            │   ├── __init__.py
-            │   ├── conftest.py
-            │   ├── test_account_registry.py
-            │   ├── test_directory_reader.py
-            │   ├── test_metrics_helper.py
-            │   └── test_workspaces_helper.py
+            │   ├── __init__.py
+            │   ├── conftest.py
+            │   ├── test_account_registry.py
+            │   ├── test_directory_reader.py
+            │   ├── test_metrics_helper.py
+            │   ├── test_user_session.py
+            │   ├── test_workspace_record.py
+            │   └── test_workspaces_helper.py
             ├── account_registry.py
             ├── directory_reader.py
             ├── metrics_helper.py
-            ├── utils
-            │   ├── __init__.py
-            │   ├── __tests__
-            │   │   ├── __init__.py
-            │   │   ├── conftest.py
-            │   │   ├── test_s3_utils.py
-            │   │   └── test_timer.py
-            │   ├── decimal_encoder.py
-            │   ├── s3_utils.py
-            │   ├── solution_metrics.py
-            │   └── timer.py
-            └── workspaces_helper.py
+            ├── user_session.py
+            ├── workspace_record.py
+            ├── workspaces_helper.py
+            └── utils
+                ├── __init__.py
+                ├── __tests__
+                │   ├── __init__.py
+                │   ├── conftest.py
+                │   ├── test_dashboard_metrics.py
+                │   ├── test_date_utils.py
+                │   ├── test_s3_utils.py
+                │   ├── test_timer.py
+                │   ├── test_usage_table_dao.py
+                │   └── test_user_session_dao.py
+                ├── dashboard_metrics.py
+                ├── date_utils.py
+                ├── decimal_encoder.py
+                ├── s3_utils.py
+                ├── solution_metrics.py
+                ├── timer.py
+                ├── usage_table_dao.py
+                ├── user_session_dao.py
+                └── workspace_utils.py
 </pre>
 
 

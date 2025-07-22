@@ -15,7 +15,7 @@ export const props: CostOptimizerHubStackProps = {
   solutionName: "workspaces-cost-optimizer",
   solutionProvider: "AWS Solutions",
   solutionTradeMarkName: "workspaces-cost-optimizer",
-  solutionVersion: "v2.7.7",
+  solutionVersion: "v2.8.0",
 };
 
 /*

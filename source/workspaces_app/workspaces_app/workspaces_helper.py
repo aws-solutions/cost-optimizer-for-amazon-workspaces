@@ -87,8 +87,12 @@ class WorkspacesHelper(object):
         logger.debug(f"workspaceRunningMode: {workspace_running_mode}")
         workspace_bundle_type = description.bundle_type
         workspace_hourly_threshold = description.usage_threshold
+        workspace_type = (
+            "STANDBY" if self.is_standby_workspace(workspace_id) else "PRIMARY"
+        )
 
         logger.debug(f"workspaceBundleType: {workspace_bundle_type}")
+        logger.debug(f"workspaceType: {workspace_type}")
         last_known_user_connection = None
         calculated_metrics = self.metrics_helper.get_billable_hours_and_performance(
             self.settings.get("dateTimeValues").get("start_time_for_current_month"),
@@ -96,7 +100,13 @@ class WorkspacesHelper(object):
             ws_record,
             autostop_timeout_minutes,
         )
-        billable_hours = calculated_metrics.get("billable_hours")
+        raw_billable_hours = calculated_metrics.get("billable_hours")
+
+        # Add maintenance time if applicable
+        billable_hours = self.add_maintenance_time(
+            raw_billable_hours, workspace_id, workspace_running_mode
+        )
+
         performance_metrics = calculated_metrics.get("performance_metrics")
         tags = self.get_list_tags_for_workspace(workspace_id)
         if workspace_utils.check_for_skip_tag(tags):
@@ -110,7 +120,7 @@ class WorkspacesHelper(object):
             (
                 workspace_terminated,
                 last_known_user_connection,
-            ) = self.get_termination_status(workspace_id, billable_hours, tags)
+            ) = self.get_termination_status(workspace_id, raw_billable_hours, tags)
             optimization_result = self.compare_usage_metrics(
                 workspace_id,
                 billable_hours,
@@ -152,7 +162,47 @@ class WorkspacesHelper(object):
             ),
             last_known_user_connection=last_known_user_connection,
             tags="".join(('"', str(tags), '"')),
+            workspace_type=workspace_type,
         )
+
+    def add_maintenance_time(
+        self, billable_hours: int, workspace_id: str, workspace_running_mode: str
+    ) -> int:
+        """
+        Add maintenance time (1 hour) to billable hours if conditions are met
+        :param billable_hours: Current billable hours
+        :param workspace_id: The workspace ID
+        :param workspace_running_mode: The workspace running mode
+        :return: Adjusted billable hours with maintenance time if applicable
+        """
+        # Only add maintenance time on last day of month or when testing end of month
+        if not (
+            self.settings.get("dateTimeValues", {}).get("current_month_last_day")
+            or self.settings.get("testEndOfMonth")
+        ):
+            return billable_hours
+
+        # Don't add maintenance time to workspaces that would be terminated (zero billable hours)
+        if billable_hours == 0:
+            logger.debug(
+                f"Skipping maintenance time for workspace {workspace_id} - zero billable hours"
+            )
+            return billable_hours
+
+        # Check if directory has maintenance mode enabled
+        directory_info = self.settings.get("directoryInfo", {})
+        maintenance_mode = directory_info.get("WorkspaceCreationProperties", {}).get(
+            "EnableMaintenanceMode", False
+        )
+
+        if maintenance_mode and workspace_running_mode == AUTO_STOP:
+            logger.info(f"Adding 1 hour maintenance time to workspace {workspace_id}")
+            return billable_hours + 1
+        else:
+            logger.debug(
+                f"Maintenance mode not enabled for directory of workspace {workspace_id}"
+            )
+            return billable_hours
 
     def get_hourly_threshold_for_bundle_type(self, bundle_type):
         if bundle_type in self.settings.get("hourlyLimits"):
@@ -251,6 +301,12 @@ class WorkspacesHelper(object):
             f"The value for last month check is {self.settings.get('dateTimeValues').get('current_month_last_day')}"
         )
         try:
+            is_standby = self.is_standby_workspace(workspace_id)
+            if is_standby:
+                logger.info(
+                    f"Workspace {workspace_id} is a standby workspace. Skipping termination check."
+                )
+                return workspace_terminated, last_known_user_connection_timestamp
             last_known_user_connection_timestamp = (
                 self.get_last_known_user_connection_timestamp(workspace_id)
             )
@@ -312,6 +368,29 @@ class WorkspacesHelper(object):
                 "%Y-%m-%d", last_known_user_connection_timestamp.timetuple()
             )
         return workspace_terminated, last_known_user_connection_timestamp
+
+    def is_standby_workspace(self, workspace_id):
+        """
+        This method checks if a workspace is a standby workspace
+        :param workspace_id: The ID of the workspace to check
+        :return: True if the workspace is a standby workspace, False otherwise
+        """
+        try:
+            response = self.workspaces_client.describe_workspaces(
+                WorkspaceIds=[workspace_id]
+            )
+            if response["Workspaces"]:
+                workspace = response["Workspaces"][0]
+                if "RelatedWorkspaces" in workspace:
+                    for related_workspace in workspace["RelatedWorkspaces"]:
+                        if related_workspace["Type"] == "PRIMARY":
+                            return True
+            return False
+        except Exception as e:
+            logger.exception(
+                f"Error checking if workspace {workspace_id} is standby: {e}"
+            )
+            return False
 
     def get_last_known_user_connection_timestamp(self, workspace_id):
         """

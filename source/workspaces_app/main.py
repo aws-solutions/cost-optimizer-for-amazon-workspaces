@@ -93,7 +93,7 @@ def ecs_handler() -> None:
     aggregated_csv = (
         "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,"
         "Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,"
-        "rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,ReportDate\n"
+        "rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,WorkspaceType,ReportDate\n"
     )
     total_directories = 0
     list_workspaces_processed = []
@@ -384,6 +384,7 @@ def process_directories(
                     "DirectoryId": directory.get("DirectoryId"),
                     "Region": region,
                     "DateTimeValues": date_time_values,
+                    "Directory": directory,
                     "AnonymousDataEndpoint": "https://metrics.awssolutionsbuilder.com/generic",
                 }
                 directory_reader = DirectoryReader(session, region)

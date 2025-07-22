@@ -13,10 +13,15 @@ main() {
 
   echo "Installing python packages including development dependencies"
   cd "$source_dir"
-  "$POETRY_HOME"/bin/poetry install --with dev
 
-  # Activate the virtual environment.
-  source $("$POETRY_HOME"/bin/poetry env info --path)/bin/activate
+  # Use poetry directly if it's in the path, otherwise use POETRY_HOME
+  if command -v poetry &> /dev/null; then
+    POETRY_CMD="poetry"
+  else
+    POETRY_CMD="$POETRY_HOME/bin/poetry"
+  fi
+
+  $POETRY_CMD install --with dev
 
   local coverage_dir="$template_dir"/test/coverage-reports
   rm -rf "$coverage_dir"
@@ -28,9 +33,9 @@ main() {
   ln -s "$source_dir"/lambda/utils/cfnresponse.py "$source_dir"/lambda/account_registration_provider/cfnresponse.py
 
   pushd "$source_dir"
-  python3 -m coverage run -m pytest && \
-    python3 -m coverage xml && \
-    python3 -m coverage report || \
+  $POETRY_CMD run python -m coverage run -m pytest && \
+    $POETRY_CMD run python -m coverage xml && \
+    $POETRY_CMD run python -m coverage report || \
     true
   popd
 
@@ -45,9 +50,6 @@ main() {
   cd "$source_dir"
   npm install
   npm run test
-
-  # Deactivate the virtual environment
-  deactivate
 }
 
 main "$@"

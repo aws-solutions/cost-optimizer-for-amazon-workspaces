@@ -129,6 +129,11 @@ class MetricsHelper:
             performance_metrics = self.process_performance_metrics(
                 metric_data_points, getattr(ws_record, "performance_metrics", None)
             )
+
+            billable_hours = self.apply_hours_increment_cap(
+                billable_hours, ws_record, time_range
+            )
+
             logger.debug("Calculated user connected hours: {}".format(billable_hours))
 
             return {
@@ -518,3 +523,33 @@ class MetricsHelper:
         # no data
         else:
             return None
+
+    def apply_hours_increment_cap(
+        self,
+        billable_hours: int,
+        ws_record: WorkspaceRecord | WorkspaceDescription,
+        time_range: dict,
+    ) -> int:
+        previous_billable_hours = (
+            getattr(getattr(ws_record, "billing_data", None), "billable_hours", None)
+            or 0
+        )
+
+        reference_date = datetime.strptime(time_range[START_TIME], TIME_FORMAT)
+        current_date = datetime.strptime(time_range[END_TIME], TIME_FORMAT)
+        time_diff = current_date - reference_date
+        hours_between = time_diff.total_seconds() / 3600
+
+        max_allowed_hours = previous_billable_hours + int(hours_between)
+
+        if billable_hours > max_allowed_hours:
+            workspace_id = (
+                ws_record.workspace_id
+                if hasattr(ws_record, "workspace_id")
+                else getattr(ws_record, "description", ws_record).workspace_id
+            )
+            logger.debug(
+                f"Workspace {workspace_id}: {billable_hours} > {max_allowed_hours} (prev:{previous_billable_hours} + {int(hours_between)} hours). Capping."
+            )
+            return max_allowed_hours
+        return billable_hours

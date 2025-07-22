@@ -68,6 +68,7 @@ def ws_record(ws_description, ws_billing_data, ws_metrics):
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
         tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
+        workspace_type="PRIMARY",
     )
 
 
@@ -152,6 +153,9 @@ def workspace_ddb_item(ws_record):
         },
         "Tags": {
             "S": ws_record.tags,
+        },
+        "WorkspaceType": {
+            "S": ws_record.workspace_type,
         },
         "ReportDate": {"S": ws_record.report_date},
         "LastReportedMetricPeriod": {"S": ws_record.last_reported_metric_period},

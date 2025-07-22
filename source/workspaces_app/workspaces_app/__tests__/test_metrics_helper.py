@@ -91,6 +91,7 @@ def ws_record(ws_billing_data, ws_metrics):
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
         tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
+        workspace_type="PRIMARY",
     )
 
 
@@ -695,12 +696,16 @@ def test_get_billable_hours_and_performance(mocker, session, ws_record, metric_d
     start_time = "2021-05-01T00:00:00Z"
     end_time = "2021-05-06T00:00:00Z"
 
-    mocker.patch.object(metrics_helper, "get_time_range")
+    mocker.patch.object(
+        metrics_helper,
+        "get_time_range",
+        return_value={"start_time": start_time, "end_time": end_time},
+    )
     mocker.patch.object(metrics_helper, "get_cloudwatch_metric_data_points")
     mocker.patch.object(
         metrics_helper, "get_list_data_points", return_value=metric_data
     )
-    mocker.patch.object(metrics_helper, "get_user_connected_hours")
+    mocker.patch.object(metrics_helper, "get_user_connected_hours", return_value=100)
     mock_user_session = mocker.patch.object(metrics_helper, "get_user_sessions")
     mocker.patch.object(metrics_helper.session_table, "update_ddb_items"),
     spy_get_time_range = mocker.spy(metrics_helper, "get_time_range")
@@ -740,7 +745,11 @@ def test_get_billable_hours_and_performance_when_no_previous_report(
     start_time = "2021-05-01T00:00:00Z"
     end_time = "2021-05-06T00:00:00Z"
 
-    mocker.patch.object(metrics_helper, "get_time_range")
+    mocker.patch.object(
+        metrics_helper,
+        "get_time_range",
+        return_value={"start_time": start_time, "end_time": end_time},
+    )
     mocker.patch.object(metrics_helper, "get_cloudwatch_metric_data_points")
     mocker.patch.object(
         metrics_helper, "get_list_data_points", return_value=metric_data
@@ -786,7 +795,11 @@ def test_get_billable_hours_and_performance_none(mocker, session, ws_record):
     end_time = "2021-05-06T00:00:00Z"
     last_workspace_report = {}
 
-    mocker.patch.object(metrics_helper, "get_time_range")
+    mocker.patch.object(
+        metrics_helper,
+        "get_time_range",
+        return_value={"start_time": start_time, "end_time": end_time},
+    )
     mocker.patch.object(metrics_helper, "get_cloudwatch_metric_data_points")
     metrics_helper.get_cloudwatch_metric_data_points.return_value = None
     mocker.patch.object(metrics_helper, "get_list_data_points")
@@ -1494,3 +1507,65 @@ def test_process_performance_metrics_with_zero_avg(session, ws_record, metric_da
     )
     assert result.memory_usage.avg == Decimal("0")
     assert result.memory_usage.count == 71
+
+
+def test_apply_hours_increment_cap_returns_unchanged_when_within_limit(
+    session, ws_record
+):
+    """Test that billable hours are unchanged when within increment limit"""
+    region = "us-east-1"
+    metrics_helper = MetricsHelper(session, region, "test-table")
+    ws_record.billing_data = WorkspaceBillingData(billable_hours=50)
+    time_range = {
+        "start_time": "2024-01-01T10:00:00Z",
+        "end_time": "2024-01-01T20:00:00Z",
+    }
+    result = metrics_helper.apply_hours_increment_cap(
+        billable_hours=55, ws_record=ws_record, time_range=time_range
+    )
+
+    assert result == 55
+
+
+def test_apply_hours_increment_cap_caps_when_exceeding_limit(session, ws_record):
+    """Test that billable hours are capped when exceeding increment limit"""
+    region = "us-east-1"
+    metrics_helper = MetricsHelper(session, region, "test-table")
+    ws_record.billing_data = WorkspaceBillingData(billable_hours=100)
+    time_range = {
+        "start_time": "2024-01-01T00:00:00Z",
+        "end_time": "2024-01-02T00:00:00Z",
+    }
+    result = metrics_helper.apply_hours_increment_cap(
+        billable_hours=150, ws_record=ws_record, time_range=time_range
+    )
+
+    assert result == 124
+
+
+def test_apply_hours_increment_cap_handles_zero_previous_hours(session):
+    """Test increment cap when there are no previous billable hours"""
+    region = "us-east-1"
+    metrics_helper = MetricsHelper(session, region, "test-table")
+
+    # Use WorkspaceDescription (no previous billing data)
+    ws_description = WorkspaceDescription(
+        region="us-east-1",
+        account="123456789012",
+        workspace_id="ws-12345678",
+        directory_id="d-12345",
+        usage_threshold=80,
+        bundle_type="STANDARD",
+        username="testuser",
+        computer_name="testcomputer",
+        initial_mode="AUTO_STOP",
+    )
+    time_range = {
+        "start_time": "2024-01-01T00:00:00Z",
+        "end_time": "2024-01-03T00:00:00Z",
+    }
+    result = metrics_helper.apply_hours_increment_cap(
+        billable_hours=60, ws_record=ws_description, time_range=time_range
+    )
+
+    assert result == 48

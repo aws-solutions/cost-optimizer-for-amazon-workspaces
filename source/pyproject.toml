@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cost-optimizer-for-amazon-workspaces"
-version = "2.7.6"
+version = "2.8.0"
 description = "Cost Optimizer for Amazon Workspaces (SO0018)"
 authors = ["AWS Solutions"]
 license = "Apache-2.0"
@@ -15,10 +15,10 @@ charset-normalizer = "2.1.1"
 idna = "3.7"
 jmespath = "1.0.1"
 python-dateutil = "2.9.0"
-requests = "^2.31.0"
+requests = "^2.32.4"
 s3transfer = "0.10.2"
 six = "1.16.0"
-urllib3 = "2.2.2"
+urllib3 = "^2.5.0"
 aws-lambda-powertools = "3.4.1"
 
 [tool.poetry.group.dev.dependencies]
