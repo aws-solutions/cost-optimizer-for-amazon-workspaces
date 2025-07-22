@@ -13,7 +13,7 @@ header() {
 
 usage() {
   echo "Please provide the base template-bucket, source-bucket-base-name, trademark-approved-solution-name and version"
-  echo "For example: ./deployment/build-s3-dist.sh solutions solutions-code trademarked-solution-name v2.2"
+  echo "For example: ./deployment/build-s3-dist.sh solutions solutions-code cost-optimizer-for-amazon-workspaces v2.8"
 }
 
 pack_lambda() {
@@ -39,6 +39,9 @@ pack_lambda() {
 
   # Install dependencies from the generated requirements.txt
   pip install -r "$source_dir"/requirements.txt -t "$package_temp_dir"
+
+  # Clean up requirements.txt after use
+  rm "$source_dir"/requirements.txt
 
   pushd "$package_temp_dir"
   local exclude_dirs=("__pycache__" "__tests__")

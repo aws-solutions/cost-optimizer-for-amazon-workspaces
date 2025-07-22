@@ -4,6 +4,21 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2025-07
+### Added
+- Support for standby workspaces identification and management
+- Maintenance mode billing support for AUTO_STOP workspaces
+- Billable hours increment cap to prevent abnormal usage spikes
+- WorkspaceType column in usage reports to distinguish PRIMARY/STANDBY workspaces
+
+### Removed
+- AppRegistry application resources and components
+- Associated AppRegistry tags and configurations
+
+### Fixed
+- Updated urllib3 to mitigate [CVE-2025-50181](https://avd.aquasec.com/nvd/cve-2025-50181), [CVE-2025-50182](https://avd.aquasec.com/nvd/cve-2025-50182)
+- Updated requests to mitigate [CVE-2024-47081 ](https://avd.aquasec.com/nvd/cve-2024-47081)
+
 ## [2.7.7] - 2025-05
 ### Updated
 - Update base python image to mitigate [CVE-2024-56406](https://nvd.nist.gov/vuln/detail/CVE-2024-56406)

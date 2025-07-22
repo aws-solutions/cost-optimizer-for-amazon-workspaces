@@ -1,6 +1,6 @@
 {
   "name": "cost-optimizer-for-amazon-workspaces",
-  "version": "2.7.7",
+  "version": "2.8.0",
   "description": "Cost Optimizer for Amazon Workspaces (SO0018)",
   "license": "Apache-2.0",
   "repository": {
@@ -18,10 +18,10 @@
     "test": "jest --coverage",
     "license-report": "license-report --output=csv --delimiter=' under ' --fields=name --fields=licenseType",
     "cdk": "cdk",
-    "bootstrap": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk bootstrap",
-    "deploy": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces",
-    "deploySpoke": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces-spoke",
-    "synth": "SOLUTION_VERSION=v2.7.7 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces DIST_OUTPUT_BUCKET=solutions-reference cdk synth"
+    "bootstrap": "SOLUTION_VERSION=v2.8.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk bootstrap",
+    "deploy": "SOLUTION_VERSION=v2.8.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces",
+    "deploySpoke": "SOLUTION_VERSION=v2.8.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces cdk deploy cost-optimizer-for-amazon-workspaces-spoke",
+    "synth": "SOLUTION_VERSION=v2.8.0 SOLUTION_NAME=cost-optimizer-for-amazon-workspaces SOLUTION_TRADEMARKEDNAME=cost-optimizer-for-amazon-workspaces DIST_OUTPUT_BUCKET=solutions-reference cdk synth"
   },
   "devDependencies": {
     "@aws-cdk/assert": "2.68.0",

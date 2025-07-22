@@ -80,6 +80,7 @@ def ws_record(ws_billing_data, ws_metrics):
         last_reported_metric_period="2024-08-29T00:00:00Z",
         last_known_user_connection="test-last-connection",
         tags="[{'key1': 'tag1'}, {'key2': 'value2'}]",
+        workspace_type="PRIMARY",
     )
 
 
@@ -909,6 +910,7 @@ def test_get_termination_status_returns_empty_string_for_terminate_workspaces_no
         workspaces_helper.WorkspacesHelper, "get_last_known_user_connection_timestamp"
     )
     mock_get_last_connect.return_value = test_timestamp
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
     assert result == ("", time.strftime("%Y-%m-%d", test_timestamp.timetuple()))
 
@@ -944,6 +946,7 @@ def test_get_termination_status_returns_yes_for_terminate_workspaces_yes(
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     workspace_utils.TERMINATE_UNUSED_WORKSPACES = "Yes"
 
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     mock_last_connect = mocker.patch.object(
         workspace_helper, "get_last_known_user_connection_timestamp"
     )
@@ -995,6 +998,8 @@ def test_get_termination_status_returns_dry_run_for_terminate_workspaces_dry_run
     tags = []
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     workspace_utils.TERMINATE_UNUSED_WORKSPACES = "Yes"
+
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     mock_last_connect = mocker.patch.object(
         workspace_helper, "get_last_known_user_connection_timestamp"
     )
@@ -1046,6 +1051,8 @@ def test_get_termination_status_returns_empty_string_when_workspace_used(
     tags = []
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     workspace_utils.TERMINATE_UNUSED_WORKSPACES = "Yes"
+
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     mock_last_connect = mocker.patch.object(
         workspace_helper, "get_last_known_user_connection_timestamp"
     )
@@ -1098,6 +1105,8 @@ def test_get_termination_status_returns_empty_string_when_workspace_not_availabl
     tags = []
     workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
     workspace_utils.TERMINATE_UNUSED_WORKSPACES = "Yes"
+
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     mock_last_connect = mocker.patch.object(
         workspace_helper, "get_last_known_user_connection_timestamp"
     )
@@ -1148,6 +1157,7 @@ def test_get_termination_status_with_billable_hours(mocker, session):
     billable_time = 10
     tags = [{"Key": "TestTag", "Value": "TestValue"}]
 
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
     mock_timestamp = datetime.datetime(2025, 1, 15, 12, 0, 0)
     mocker.patch.object(
         workspace_helper,
@@ -1166,6 +1176,7 @@ def test_get_termination_status_with_billable_hours(mocker, session):
     result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
 
     assert result == ("", "2025-01-15")
+    workspace_helper.is_standby_workspace.assert_called_once_with(workspace_id)
     workspace_helper.get_last_known_user_connection_timestamp.assert_called_once_with(
         workspace_id
     )
@@ -1173,6 +1184,59 @@ def test_get_termination_status_with_billable_hours(mocker, session):
     workspace_helper.check_if_workspace_available_on_first_day_selected_month.assert_called_once()
     workspace_utils.check_if_workspace_used_for_selected_period.assert_called_once()
     workspace_helper.check_if_workspace_needs_to_be_terminated.assert_not_called()
+
+
+def test_get_termination_status_skips_standby_workspace(mocker, session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+        "TerminateUnusedWorkspaces": "Yes",
+        "dateTimeValues": {
+            "start_time_for_current_month": "",
+            "end_time_for_current_month": "",
+            "last_day_current_month": "",
+            "first_day_selected_month": "",
+            "start_time_selected_date": "",
+            "end_time_selected_date": "",
+            "current_month_last_day": True,
+            "date_today": "",
+            "date_for_s3_key": "",
+        },
+    }
+    workspace_id = "ws-standby123"
+    billable_time = 0
+    tags = []
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    # Mock is_standby_workspace to return True
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=True)
+
+    # These methods should not be called for standby workspaces
+    mock_get_last_connect = mocker.patch.object(
+        workspace_helper, "get_last_known_user_connection_timestamp"
+    )
+    mock_check_workspace_used = mocker.patch.object(
+        workspace_utils, "check_if_workspace_used_for_selected_period"
+    )
+    mock_check_available = mocker.patch.object(
+        workspace_helper, "check_if_workspace_available_on_first_day_selected_month"
+    )
+    mock_check_terminate = mocker.patch.object(
+        workspace_helper, "check_if_workspace_needs_to_be_terminated"
+    )
+
+    result = workspace_helper.get_termination_status(workspace_id, billable_time, tags)
+
+    assert result == ("", None)
+    workspace_helper.is_standby_workspace.assert_called_once_with(workspace_id)
+    mock_get_last_connect.assert_not_called()
+    mock_check_workspace_used.assert_not_called()
+    mock_check_available.assert_not_called()
+    mock_check_terminate.assert_not_called()
 
 
 def test_get_workspaces_for_directory_use_next_token(session):
@@ -1352,6 +1416,159 @@ def test_get_list_tags_for_workspace_returns_none_in_case_of_exception(mocker, s
     client_stubber = Stubber(workspace_helper.workspaces_client)
     client_stubber.add_client_error("describe_tags", "Invalid Tags")
     assert workspace_helper.get_list_tags_for_workspace(workspace_id) is None
+
+
+def test_is_standby_workspace_returns_true_for_standby_workspace(session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-standby123"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    response = {
+        "Workspaces": [
+            {
+                "WorkspaceId": workspace_id,
+                "RelatedWorkspaces": [
+                    {"WorkspaceId": "ws-primary123", "Type": "PRIMARY"}
+                ],
+            }
+        ]
+    }
+    expected_params = {"WorkspaceIds": [workspace_id]}
+
+    client_stubber.add_response("describe_workspaces", response, expected_params)
+    client_stubber.activate()
+
+    result = workspace_helper.is_standby_workspace(workspace_id)
+
+    assert result is True
+    client_stubber.deactivate()
+
+
+def test_is_standby_workspace_returns_false_for_primary_workspace(session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-primary123"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    # Response for a primary workspace (no RelatedWorkspaces with PRIMARY type)
+    response = {
+        "Workspaces": [
+            {
+                "WorkspaceId": workspace_id,
+                "RelatedWorkspaces": [
+                    {"WorkspaceId": "ws-standby123", "Type": "STANDBY"}
+                ],
+            }
+        ]
+    }
+    expected_params = {"WorkspaceIds": [workspace_id]}
+
+    client_stubber.add_response("describe_workspaces", response, expected_params)
+    client_stubber.activate()
+
+    result = workspace_helper.is_standby_workspace(workspace_id)
+
+    assert result is False
+    client_stubber.deactivate()
+
+
+def test_is_standby_workspace_returns_false_for_workspace_with_no_related_workspaces(
+    session,
+):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-regular123"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    # Response for a workspace with no RelatedWorkspaces field
+    response = {
+        "Workspaces": [
+            {
+                "WorkspaceId": workspace_id
+                # No RelatedWorkspaces field
+            }
+        ]
+    }
+    expected_params = {"WorkspaceIds": [workspace_id]}
+
+    client_stubber.add_response("describe_workspaces", response, expected_params)
+    client_stubber.activate()
+
+    result = workspace_helper.is_standby_workspace(workspace_id)
+
+    assert result is False
+    client_stubber.deactivate()
+
+
+def test_is_standby_workspace_returns_false_for_empty_workspaces_response(session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-nonexistent123"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    # Empty response (no workspaces found)
+    response = {"Workspaces": []}
+    expected_params = {"WorkspaceIds": [workspace_id]}
+
+    client_stubber.add_response("describe_workspaces", response, expected_params)
+    client_stubber.activate()
+
+    result = workspace_helper.is_standby_workspace(workspace_id)
+
+    assert result is False
+    client_stubber.deactivate()
+
+
+def test_is_standby_workspace_returns_false_on_exception(session):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": 10,
+        "testEndOfMonth": True,
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+    }
+    workspace_id = "ws-error123"
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+    client_stubber = Stubber(workspace_helper.workspaces_client)
+
+    # Adding client error to simulate an exception
+    client_stubber.add_client_error("describe_workspaces", "ResourceNotFoundException")
+    client_stubber.activate()
+
+    result = workspace_helper.is_standby_workspace(workspace_id)
+
+    assert result is False
+    client_stubber.deactivate()
 
 
 def test_compare_usage_metrics__returns_new_mode_as_auto_stop(session, mocker):
@@ -1650,6 +1867,61 @@ def test_check_if_workspace_used_for_selected_period_returns_true_for_multi_day_
     assert result is True
 
 
+def test_process_workspace_sets_workspace_type_correctly(mocker, session, ws_record):
+    settings = {
+        "region": "us-east-1",
+        "hourlyLimits": {"STANDARD": 80},
+        "testEndOfMonth": "yes",
+        "isDryRun": True,
+        "startTime": 1,
+        "endTime": 2,
+        "dateTimeValues": {
+            "start_time_for_current_month": "",
+            "end_time_for_current_month": "",
+            "last_day_current_month": "",
+            "first_day_selected_month": "",
+            "start_time_selected_date": "",
+            "end_time_selected_date": "",
+            "current_month_last_day": "",
+            "date_today": "",
+            "date_for_s3_key": "",
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    mocker.patch.object(
+        workspace_helper.metrics_helper, "get_billable_hours_and_performance"
+    )
+    workspace_helper.metrics_helper.get_billable_hours_and_performance.return_value = {
+        "billable_hours": 100,
+        "performance_metrics": ws_record.performance_metrics,
+    }
+    mocker.patch.object(
+        workspace_helper, "get_list_tags_for_workspace", return_value=[]
+    )
+    mocker.patch.object(
+        workspace_helper, "get_termination_status", return_value=("", "last-known-time")
+    )
+    mocker.patch.object(
+        workspace_helper,
+        "compare_usage_metrics",
+        return_value={"resultCode": "-N-", "newMode": "AUTO_STOP"},
+    )
+
+    # Test case 1: Primary workspace
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=False)
+    dashboard_metrics = DashboardMetrics()
+    result = workspace_helper.process_workspace(ws_record, 60, dashboard_metrics)
+    assert result.workspace_type == "PRIMARY"
+
+    # Test case 2: Standby workspace
+    mocker.patch.object(workspace_helper, "is_standby_workspace", return_value=True)
+    dashboard_metrics = DashboardMetrics()
+    result = workspace_helper.process_workspace(ws_record, 60, dashboard_metrics)
+    assert result.workspace_type == "STANDBY"
+
+
 def test_process_workspace_with_metrics(mocker, session, ws_record):
     settings = {
         "region": "us-east-1",
@@ -1794,3 +2066,140 @@ def test_process_workspace_with_metrics(mocker, session, ws_record):
     assert result.billing_data.change_reported == "-N-"
     assert dashboard_metrics.conversion_metrics.hourly_to_monthly == 0
     assert dashboard_metrics.conversion_metrics.monthly_to_hourly == 0
+
+
+def test_add_maintenance_time_when_conditions_met(session):
+    """Test that maintenance time is added when all conditions are met"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": True,
+        },
+        "testEndOfMonth": False,
+        "directoryInfo": {
+            "WorkspaceCreationProperties": {"EnableMaintenanceMode": True}
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    # Test with non-zero billable hours
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=50, workspace_id="ws-12345", workspace_running_mode="AUTO_STOP"
+    )
+
+    assert result == 51  # 50 + 1 hour maintenance time
+
+
+def test_add_maintenance_time_when_test_end_of_month_true_but_always_on(
+    session,
+):
+    """Test that maintenance time is added when TestEndOfMonth is true"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": False,
+        },
+        "testEndOfMonth": True,
+        "directoryInfo": {
+            "WorkspaceCreationProperties": {"EnableMaintenanceMode": True}
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=25, workspace_id="ws-12345", workspace_running_mode="ALWAYS_ON"
+    )
+
+    assert result == 25  # No maintenance time added
+
+
+def test_add_maintenance_time_skips_zero_billable_hours(session):
+    """Test that maintenance time is not added to workspaces with zero billable hours"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": True,
+        },
+        "testEndOfMonth": False,
+        "directoryInfo": {
+            "WorkspaceCreationProperties": {"EnableMaintenanceMode": True}
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=0, workspace_id="ws-12345", workspace_running_mode="AUTO_STOP"
+    )
+
+    assert result == 0  # No maintenance time added to zero billable hours
+
+
+def test_add_maintenance_time_skips_when_not_last_day_and_not_test_mode(
+    session,
+):
+    """Test that maintenance time is not added when it's not last day and not test mode"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": False,
+        },
+        "testEndOfMonth": False,
+        "directoryInfo": {
+            "WorkspaceCreationProperties": {"EnableMaintenanceMode": True}
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=30, workspace_id="ws-12345", workspace_running_mode="AUTO_STOP"
+    )
+
+    assert result == 30  # No maintenance time added
+
+
+def test_add_maintenance_time_skips_when_maintenance_mode_disabled(
+    session,
+):
+    """Test that maintenance time is not added when maintenance mode is disabled"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": True,
+        },
+        "testEndOfMonth": False,
+        "directoryInfo": {
+            "WorkspaceCreationProperties": {"EnableMaintenanceMode": False}
+        },
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=40, workspace_id="ws-12345", workspace_running_mode="ALWAYS_ON"
+    )
+
+    assert result == 40  # No maintenance time added
+
+
+def test_add_maintenance_time_skips_when_no_directory_info(session):
+    """Test that maintenance time is not added when directoryInfo is missing"""
+    settings = {
+        "region": "us-east-1",
+        "dateTimeValues": {
+            "current_month_last_day": True,
+        },
+        "testEndOfMonth": False,
+        # No directoryInfo
+    }
+
+    workspace_helper = workspaces_helper.WorkspacesHelper(session, settings)
+
+    result = workspace_helper.add_maintenance_time(
+        billable_hours=20, workspace_id="ws-12345", workspace_running_mode="ALWAYS_ON"
+    )
+
+    assert result == 20  # No maintenance time added

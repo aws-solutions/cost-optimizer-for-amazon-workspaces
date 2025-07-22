@@ -161,6 +161,7 @@ class WorkspaceRecord:
     last_reported_metric_period: str = ""
     last_known_user_connection: str = ""
     tags: str = ""
+    workspace_type: str = ""
 
     def to_json(self) -> dict[str, any]:
         return {
@@ -171,6 +172,7 @@ class WorkspaceRecord:
             "last_reported_metric_period": self.last_reported_metric_period,
             "last_known_user_connection": self.last_known_user_connection,
             "tags": self.tags,
+            "workspace_type": self.workspace_type,
         }
 
     def to_ddb_obj(self) -> dict[str, any]:
@@ -217,6 +219,7 @@ class WorkspaceRecord:
                 ),
                 str(getattr(self.performance_metrics.udp_packet_loss_rate, "avg", "")),
                 self.tags,
+                self.workspace_type,
                 self.report_date
                 + "\n",  # Adding quotes to the string to help with csv format
             )
@@ -252,6 +255,7 @@ class WorkspaceRecord:
             last_known_user_connection=ddb_as_json["last_known_user_connection"],
             performance_metrics=WorkspacePerformanceMetrics.from_json(ddb_as_json),
             tags=ddb_as_json["tags"],
+            workspace_type=ddb_as_json["workspace_type"],
         )
 
     @staticmethod
@@ -318,5 +322,5 @@ class WorkspaceRecord:
         return (
             "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,"
             "New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,"
-            "cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,ReportDate,\n"
+            "cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,WorkspaceType,ReportDate,\n"
         )

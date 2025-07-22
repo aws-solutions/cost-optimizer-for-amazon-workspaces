@@ -118,6 +118,7 @@ def ws_record(ws_billing_data, ws_metrics):
         last_reported_metric_period="2024-09-03T00:00:00Z",
         last_known_user_connection="2024-09-02T00:00:00Z",
         tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
+        workspace_type="PRIMARY",
     )
 
 
@@ -197,13 +198,14 @@ def test_process_directory_without_ddb_item(
             "bundleType": ws_record.description.bundle_type,
             "hourlyThreshold": ws_record.description.usage_threshold,
             "billableTime": ws_record.billing_data.billable_hours,
+            "workspaceType": ws_record.workspace_type,
         }
     ]
     MockWorkspacesHelper.return_value.process_workspace.assert_called_with(
         unittest.mock.ANY, unittest.mock.ANY, dashboard_metrics
     )
-    report_header = "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,ReportDate,\n"
-    list_processed_workspaces = "test-ws-id,20,100,No change,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],test-report-date\n"
+    report_header = "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,WorkspaceType,ReportDate,\n"
+    list_processed_workspaces = "test-ws-id,20,100,No change,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],PRIMARY,test-report-date\n"
     header_field_count = len(str.split(report_header, ","))
     data_field_count = len(str.split(list_processed_workspaces, ","))
     assert header_field_count == data_field_count
@@ -369,7 +371,7 @@ def test_process_directory_continues_after_error(
     assert mock_upload_report.call_count == len(workspaces)
     assert mock_to_csv.call_count == len(result[1]) * 2
     assert (
-        "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,ReportDate,\n"
+        "WorkspaceID,Billable Hours,Usage Threshold,Change Reported,Bundle Type,Initial Mode,New Mode,Username,Computer Name,DirectoryId,WorkspaceTerminated,insessionlatency,cpuusage,memoryusage,rootvolumediskusage,uservolumediskusage,udppacketlossrate,Tags,WorkspaceType,ReportDate,\n"
         in upload_args[0][3]
     )
 
@@ -446,6 +448,7 @@ def test_process_directory_new_month(
             "bundleType": ws_record.description.bundle_type,
             "hourlyThreshold": ws_record.description.usage_threshold,
             "billableTime": ws_record.billing_data.billable_hours,
+            "workspaceType": ws_record.workspace_type,
         }
     ]
     MockWorkspacesHelper.return_value.process_workspace.assert_called_with(

@@ -15,7 +15,6 @@ import {
 } from "./components/register-spoke-account-resources";
 import { WorkspacesDashboardResources, WorkspacesDashboardResourcesProps } from "./components/dashboard-resources";
 import { UUIDResources, UUIDResourcesProps } from "./components/uuid-resources";
-import { AppRegistryHubResources, AppRegistryHubResourcesProps } from "./components/app-registry-hub-resources";
 import overrideLogicalId from "./cdk-helper/override-logical-id";
 import setCondition from "./cdk-helper/set-condition";
 export interface CostOptimizerHubStackProps extends cdk.StackProps {
@@ -371,7 +370,6 @@ export class CostOptimizerHubStack extends cdk.Stack {
     mappings.setValue("Data", "RegisterLambdaFunctionName", "Register-Spoke-Accounts");
     mappings.setValue("Data", "SpokeAccountWorkspacesRole", "Workspaces-Admin-Spoke");
     mappings.setValue("Data", "TagKey", "CloudFoundations:CostOptimizerForWorkspaces");
-    mappings.setValue("Data", "AppRegistryApplicationName", "workspaces-cost-optimizer");
     mappings.setValue("Data", "SolutionName", "Cost Optimizer for Amazon Workspaces");
 
     const createNewVPCCondition = new cdk.CfnCondition(this, "CreateNewVPCCondition", {
@@ -543,7 +541,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       stableTagInUse: stableTagging.valueAsString,
     };
 
-    const ecsClusterResources = new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);
+    new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);
 
     const registerSpokeAccountProps: RegisterSpokeAccountResourcesProps = {
       solutionId: props.solutionId,
@@ -569,38 +567,6 @@ export class CostOptimizerHubStack extends cdk.Stack {
       registerSpokeAccountProps,
     );
     Aspects.of(registerSpokeAccountFunction).add(new ConditionAspect(multiAccountDeploymentCondition));
-
-    const appRegistryHubProps: AppRegistryHubResourcesProps = {
-      solutionDomain: "CloudFoundations",
-      solutionId: props.solutionId,
-      solutionName: props.solutionName,
-      solutionVersion: props.solutionVersion,
-      applicationType: "AWS-Solutions",
-      appRegistryApplicationName: mappings.findInMap("Data", "AppRegistryApplicationName"),
-    };
-
-    const appRegistry = new AppRegistryHubResources(this, "AppRegistryHubResources", appRegistryHubProps);
-
-    // Function to add tags to a construct
-    const addTags = (construct: Construct) => {
-      cdk.Tags.of(construct).add("SolutionIdKey", props.solutionId);
-      cdk.Tags.of(construct).add("SolutionNameKey", props.solutionName);
-      cdk.Tags.of(construct).add("SolutionVersionKey", props.solutionVersion);
-      cdk.Tags.of(construct).add("awsApplication", appRegistry.applicationTagValue);
-    };
-
-    [
-      reportingBucket,
-      costOptimizerVpc,
-      ecsClusterResources,
-      uuidGenerator,
-      registerSpokeAccountFunction,
-      spokeAccountTable,
-      usageTable,
-      userSessionTable,
-    ].forEach((resource) => {
-      if (resource) addTags(resource);
-    });
 
     // Outputs
     new CfnOutput(this, "BucketNameOutput", {

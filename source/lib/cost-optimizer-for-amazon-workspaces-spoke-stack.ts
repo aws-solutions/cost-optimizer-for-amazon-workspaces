@@ -66,7 +66,6 @@ export class CostOptimizerSpokeStack extends cdk.Stack {
     mappings.setValue("Data", "HubAccountRegistrationFunctionName", "Register-Spoke-Accounts");
     mappings.setValue("Data", "SpokeAccountWorkspacesRole", "Workspaces-Admin-Spoke");
     mappings.setValue("Data", "TagKey", "CloudFoundations:CostOptimizerForWorkspaces");
-    mappings.setValue("Data", "AppRegistryApplicationName", "workspaces-cost-optimizer");
 
     const workspacesManagementRole = new Role(this, "WorkspacesManagementRole", {
       assumedBy: new ArnPrincipal(

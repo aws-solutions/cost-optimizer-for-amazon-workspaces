@@ -46,6 +46,7 @@ class DirectoryReader:
         is_dry_run = self.get_dry_run(stack_parameters)
         test_end_of_month = self.get_end_of_month(stack_parameters)
         directory_id = directory_parameters.get("DirectoryId")
+        directory_info = directory_parameters.get("Directory", {})
         report_csv = WorkspaceRecord.csv_header()
 
         # List of bundles with specific hourly limits
@@ -70,6 +71,7 @@ class DirectoryReader:
                 "terminateUnusedWorkspaces": stack_parameters.get(
                     "TerminateUnusedWorkspaces"
                 ),
+                "directoryInfo": directory_info,
             },
         )
         list_workspaces = workspaces_helper.get_workspaces_for_directory(directory_id)
@@ -120,6 +122,7 @@ class DirectoryReader:
                     "bundleType": new_ws_record.description.bundle_type,
                     "hourlyThreshold": new_ws_record.description.usage_threshold,
                     "billableTime": new_ws_record.billing_data.billable_hours,
+                    "workspaceType": new_ws_record.workspace_type,
                 }
                 list_processed_workspaces.append(workspace_processed)
                 self.usage_table_dao.update_ddb_item(new_ws_record)

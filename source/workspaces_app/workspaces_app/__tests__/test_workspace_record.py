@@ -74,6 +74,7 @@ def ws_record(ws_description, ws_billing_data, ws_metrics):
         last_reported_metric_period="test-last-period",
         last_known_user_connection="test-last-connection",
         tags="[{'key1': 'tag1'}, {'key2': 'tag2'}]",
+        workspace_type="PRIMARY",
     )
 
 
@@ -155,6 +156,9 @@ def ddb_item(ws_record):
         },
         "Tags": {
             "S": ws_record.tags,
+        },
+        "WorkspaceType": {
+            "S": ws_record.workspace_type,
         },
         "ReportDate": {"S": ws_record.report_date},
         "LastReportedMetricPeriod": {"S": ws_record.last_reported_metric_period},
@@ -262,5 +266,5 @@ def test_weighted_average_merge(ws_metrics):
 
 
 def test_to_csv(ws_record):
-    expected = "test-ws-id,20,100,ToHourly,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],test-report-date\n"
+    expected = "test-ws-id,20,100,ToHourly,test-bundle,test-mode,test-mode,test-user,test-computer,test-dir-id,,93.42,94.42,95.42,96.42,97.42,98.42,[{'key1': 'tag1'}, {'key2': 'tag2'}],PRIMARY,test-report-date\n"
     assert ws_record.to_csv() == expected
