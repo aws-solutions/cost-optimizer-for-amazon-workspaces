@@ -95,7 +95,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.8_stable",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
         "TaskDefinitionName": "wco-task",
-        "Version": "v2.8.1",
+        "Version": "v2.8.2",
       },
     },
   },
@@ -2050,7 +2050,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.8.1/register_spoke_lambda.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.8.2/register_spoke_lambda.zip",
         },
         "Environment": {
           "Variables": {
@@ -2060,7 +2060,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.1",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.2",
           },
         },
         "FunctionName": {
@@ -2604,7 +2604,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.8.1/uuid_generator.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.8.2/uuid_generator.zip",
         },
         "Description": "Solution Helper Lambda Function",
         "Environment": {
@@ -2612,7 +2612,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.1",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.2",
           },
         },
         "Handler": "uuid_generator/uuid_generator.lambda_handler",

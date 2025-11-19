@@ -4,6 +4,11 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2025-11
+### Fixed
+- Updated openssl to mitigate [CVE-2025-9232](https://avd.aquasec.com/nvd/cve-2025-9232) and [CVE-2025-9230](https://avd.aquasec.com/nvd/cve-2025-9230)
+- Updated js-yaml to mitigate [CVE-2025-64718](https://avd.aquasec.com/nvd/cve-2025-64718)
+
 ## [2.8.1] - 2025-09
 ### Fixed
 - Updated the base python image in the Dockerfile to address package vulnerabilities
