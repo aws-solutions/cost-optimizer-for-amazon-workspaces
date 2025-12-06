@@ -18,7 +18,7 @@ python-dateutil = "2.9.0"
 requests = "^2.32.4"
 s3transfer = "0.10.2"
 six = "1.16.0"
-urllib3 = "^2.5.0"
+urllib3 = "^2.6.0"
 aws-lambda-powertools = "3.4.1"
 
 [tool.poetry.group.dev.dependencies]
