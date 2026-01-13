@@ -4,6 +4,13 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.4] - 2026-01
+### Fixed
+- Updated aws-cdk-lib to version 2.210.0 to mitigate [CVE-2025-5889](https://avd.aquasec.com/nvd/cve-2025-5889) in brace-expansion
+- Updated aws-cdk CLI to version 2.1033.0
+- Updated urllib3 to mitigate [CVE-2026-21441](https://avd.aquasec.com/nvd/cve-2026-21441)
+- Updated base python image to mitigate [CVE-2025-6020](https://avd.aquasec.com/nvd/cve-2025-6020), [CVE-2025-68973](https://avd.aquasec.com/nvd/cve-2025-68973), [CVE-2025-68146](https://avd.aquasec.com/nvd/cve-2025-68146), [CVE-2024-22365](https://avd.aquasec.com/nvd/cve-2024-22365)
+
 ## [2.8.3] - 2025-12
 ### Fixed
 - Updated urllib3 to 2.6.1 to mitigate [CVE-2025-66471](https://avd.aquasec.com/nvd/cve-2025-66471) and [CVE-2025-66418](https://avd.aquasec.com/nvd/cve-2025-66418)
