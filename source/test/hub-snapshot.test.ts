@@ -15,7 +15,7 @@ export const props: CostOptimizerHubStackProps = {
   solutionName: "workspaces-cost-optimizer",
   solutionProvider: "AWS Solutions",
   solutionTradeMarkName: "workspaces-cost-optimizer",
-  solutionVersion: "v2.8.5",
+  solutionVersion: "v2.8.6",
 };
 
 /*
@@ -38,7 +38,9 @@ describe("CloudFormation Template Interface Metadata", () => {
   it("should correctly define the Pricing Parameters group with expected parameters", () => {
     const rawTemplate = app.synth().getStackArtifact(stack.artifactId).template;
     const parameterGroups = rawTemplate.Metadata["AWS::CloudFormation::Interface"].ParameterGroups;
-    const pricingParamsGroup = parameterGroups.find((group: any) => group.Label.default === "Pricing Parameters");
+    const pricingParamsGroup = parameterGroups.find(
+      (group: { Label: { default: string } }) => group.Label.default === "Pricing Parameters",
+    );
     expect(pricingParamsGroup).toBeDefined();
 
     const expectedParams = [

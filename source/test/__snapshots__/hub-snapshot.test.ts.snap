@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`hub stack synth matches the existing snapshot 1`] = `
 {
@@ -95,7 +95,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
         "StableImage": "PUBLIC_ECR_REGISTRY/workspaces-cost-optimizer:v2.8_stable",
         "TagKey": "CloudFoundations:CostOptimizerForWorkspaces",
         "TaskDefinitionName": "wco-task",
-        "Version": "v2.8.5",
+        "Version": "v2.8.6",
       },
     },
   },
@@ -2040,7 +2040,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.8.5/register_spoke_lambda.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.8.6/register_spoke_lambda.zip",
         },
         "Environment": {
           "Variables": {
@@ -2050,7 +2050,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.5",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.6",
           },
         },
         "FunctionName": {
@@ -2594,7 +2594,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
               ],
             ],
           },
-          "S3Key": "workspaces-cost-optimizer/v2.8.5/uuid_generator.zip",
+          "S3Key": "workspaces-cost-optimizer/v2.8.6/uuid_generator.zip",
         },
         "Description": "Solution Helper Lambda Function",
         "Environment": {
@@ -2602,7 +2602,7 @@ exports[`hub stack synth matches the existing snapshot 1`] = `
             "LOG_LEVEL": {
               "Ref": "LogLevel",
             },
-            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.5",
+            "USER_AGENT_STRING": "AwsSolution/SO0018/v2.8.6",
           },
         },
         "Handler": "uuid_generator/uuid_generator.lambda_handler",
