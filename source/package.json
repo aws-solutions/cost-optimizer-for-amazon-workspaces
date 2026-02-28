@@ -30,7 +30,7 @@
     "@types/node": "^20.5.9",
     "@types/sinon": "^17.0.3",
     "aws-cdk": "^2.1033.0",
-    "aws-cdk-lib": "^2.210.0",
+    "aws-cdk-lib": "^2.240.0",
     "cdk-nag": "^2.27.124",
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^9.1.0",
@@ -46,7 +46,7 @@
     "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.210.0",
+    "aws-cdk-lib": "^2.240.0",
     "constructs": "^10.4.2"
   },
   "jest": {
