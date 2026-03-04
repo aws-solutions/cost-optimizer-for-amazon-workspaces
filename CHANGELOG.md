@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.7] - 2026-03-04
+### Fixed
+- Updated package-lock.json to fix [CVE-2026-27903](https://avd.aquasec.com/nvd/cve-2026-27903) and [CVE-2026-27904](https://avd.aquasec.com/nvd/cve-2026-27904) in minimatch
+
 ## [2.8.6] - 2026-02-24
 ### Fixed
 - Upgraded ESLint from v8 to v10, Jest from v29 to v30, and typescript-eslint to v8.56.1 to mitigate [CVE-2026-26996](https://avd.aquasec.com/nvd/2026/cve-2026-26996/) in minimatch
