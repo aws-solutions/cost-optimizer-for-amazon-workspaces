@@ -4,43 +4,6 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.8.8] - 2026-03-17
-### Fixed
-- Updated flatted to 3.4.1 to mitigate [CVE-2026-32141](https://avd.aquasec.com/nvd/cve-2026-32141)
-
-## [2.8.7] - 2026-03-04
-### Fixed
-- Updated package-lock.json to fix [CVE-2026-27903](https://avd.aquasec.com/nvd/cve-2026-27903) and [CVE-2026-27904](https://avd.aquasec.com/nvd/cve-2026-27904) in minimatch
-
-## [2.8.6] - 2026-02-24
-### Fixed
-- Upgraded ESLint from v8 to v10, Jest from v29 to v30, and typescript-eslint to v8.56.1 to mitigate [CVE-2026-26996](https://avd.aquasec.com/nvd/2026/cve-2026-26996/) in minimatch
-
-## [2.8.5] - 2026-02
-### Fixed
-- Updated openssl to mitigate [CVE-2025-15467](https://avd.aquasec.com/nvd/cve-2025-15467), [CVE-2025-69419](https://avd.aquasec.com/nvd/cve-2025-69419), [CVE-2025-69420](https://avd.aquasec.com/nvd/cve-2025-69420), [CVE-2025-69421](https://avd.aquasec.com/nvd/cve-2025-69421), [CVE-2026-22796](https://avd.aquasec.com/nvd/cve-2026-22796), [CVE-2025-69418](https://avd.aquasec.com/nvd/cve-2025-69418), [CVE-2025-68160](https://avd.aquasec.com/nvd/cve-2025-68160), [CVE-2026-22795](https://avd.aquasec.com/nvd/cve-2026-22795)
-
-
-## [2.8.4] - 2026-01
-### Fixed
-- Updated aws-cdk-lib to version 2.210.0 to mitigate [CVE-2025-5889](https://avd.aquasec.com/nvd/cve-2025-5889) in brace-expansion
-- Updated aws-cdk CLI to version 2.1033.0
-- Updated urllib3 to mitigate [CVE-2026-21441](https://avd.aquasec.com/nvd/cve-2026-21441)
-- Updated base python image to mitigate [CVE-2025-6020](https://avd.aquasec.com/nvd/cve-2025-6020), [CVE-2025-68973](https://avd.aquasec.com/nvd/cve-2025-68973), [CVE-2025-68146](https://avd.aquasec.com/nvd/cve-2025-68146), [CVE-2024-22365](https://avd.aquasec.com/nvd/cve-2024-22365)
-
-## [2.8.3] - 2025-12
-### Fixed
-- Updated urllib3 to 2.6.1 to mitigate [CVE-2025-66471](https://avd.aquasec.com/nvd/cve-2025-66471) and [CVE-2025-66418](https://avd.aquasec.com/nvd/cve-2025-66418)
-
-## [2.8.2] - 2025-11
-### Fixed
-- Updated openssl to mitigate [CVE-2025-9232](https://avd.aquasec.com/nvd/cve-2025-9232) and [CVE-2025-9230](https://avd.aquasec.com/nvd/cve-2025-9230)
-- Updated js-yaml to mitigate [CVE-2025-64718](https://avd.aquasec.com/nvd/cve-2025-64718)
-
-## [2.8.1] - 2025-09
-### Fixed
-- Updated the base python image in the Dockerfile to address package vulnerabilities
-
 ## [2.8.0] - 2025-07
 ### Added
 - Support for standby workspaces identification and management
