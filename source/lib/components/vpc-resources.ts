@@ -216,7 +216,7 @@ export class VpcResources extends Construct {
       statements: [
         new PolicyStatement({
           actions: ["s3:PutObject", "s3:GetObject"],
-          principals: [new AnyPrincipal()],
+          principals: [new AnyPrincipal()], // NOSONAR (typescript:S6270) - VPC endpoint policy, not public access; restricted by IAM condition
           resources: [
             cdk.Arn.format(
               {
@@ -240,7 +240,7 @@ export class VpcResources extends Construct {
         }),
         new PolicyStatement({
           actions: ["s3:ListBucket"],
-          principals: [new AnyPrincipal()],
+          principals: [new AnyPrincipal()], // NOSONAR (typescript:S6270) - VPC endpoint policy, not public access; restricted by IAM condition
           resources: [`arn:${cdk.Aws.PARTITION}:s3:::${props.costOptimizerBucketName}`],
           conditions: accountCondition,
         }),
@@ -259,7 +259,7 @@ export class VpcResources extends Construct {
       statements: [
         new PolicyStatement({
           actions: ["dynamodb:Scan"],
-          principals: [new AnyPrincipal()],
+          principals: [new AnyPrincipal()], // NOSONAR (typescript:S6270) - VPC endpoint policy, not public access; restricted by IAM condition
           resources: [
             cdk.Arn.format(
               {
@@ -282,7 +282,7 @@ export class VpcResources extends Construct {
         }),
         new PolicyStatement({
           actions: ["dynamodb:PutItem", "dynamodb:GetItem"],
-          principals: [new AnyPrincipal()],
+          principals: [new AnyPrincipal()], // NOSONAR (typescript:S6270) - VPC endpoint policy, not public access; restricted by IAM condition
           resources: [
             cdk.Arn.format(
               {
@@ -305,7 +305,7 @@ export class VpcResources extends Construct {
         }),
         new PolicyStatement({
           actions: ["dynamodb:BatchWriteItem"],
-          principals: [new AnyPrincipal()],
+          principals: [new AnyPrincipal()], // NOSONAR (typescript:S6270) - VPC endpoint policy, not public access; restricted by IAM condition
           resources: [
             cdk.Arn.format(
               {

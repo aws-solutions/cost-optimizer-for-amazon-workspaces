@@ -200,6 +200,20 @@ export class CostOptimizerHubStack extends cdk.Stack {
       default: 80,
     });
 
+    const generalPurpose4xlargeLimit = new CfnParameter(this, "GeneralPurpose4xlargeLimit", {
+      type: "Number",
+      description:
+        "The number of hours a GeneralPurpose.4xlarge instance can run in a month before being converted to ALWAYS_ON. Default is 121.",
+      default: 121,
+    });
+
+    const generalPurpose8xlargeLimit = new CfnParameter(this, "GeneralPurpose8xlargeLimit", {
+      type: "Number",
+      description:
+        "The number of hours a GeneralPurpose.8xlarge instance can run in a month before being converted to ALWAYS_ON. Default is 125.",
+      default: 125,
+    });
+
     const organizationID = new CfnParameter(this, "OrganizationID", {
       type: "String",
       description: "Organization ID to support multi account deployment. Leave blank for single account deployments.",
@@ -270,6 +284,8 @@ export class CostOptimizerHubStack extends cdk.Stack {
               graphicsProG4dnLimit.logicalId,
               powerLimit.logicalId,
               powerProLimit.logicalId,
+              generalPurpose4xlargeLimit.logicalId,
+              generalPurpose8xlargeLimit.logicalId,
             ],
           },
           {
@@ -518,6 +534,8 @@ export class CostOptimizerHubStack extends cdk.Stack {
       powerProLimit: powerProLimit.valueAsString,
       graphicsG4dnLimit: graphicsG4dnLimit.valueAsString,
       graphicsProG4dnLimit: graphicsProG4dnLimit.valueAsString,
+      generalPurpose4xlargeLimit: generalPurpose4xlargeLimit.valueAsString,
+      generalPurpose8xlargeLimit: generalPurpose8xlargeLimit.valueAsString,
       metricsEndpoint: mappings.findInMap("Data", "MetricsURL"),
       userAgentString: cdk.Fn.sub("AwsSolution/${SolutionID}/${Version}", {
         SolutionID: mappings.findInMap("Data", "ID"),
@@ -541,7 +559,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       stableTagInUse: stableTagging.valueAsString,
     };
 
-    new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps);
+    new EcsClusterResources(this, "EcsClusterResources", ecsClusterProps); // NOSONAR (typescript:S1848) - CDK construct registers with parent
 
     const registerSpokeAccountProps: RegisterSpokeAccountResourcesProps = {
       solutionId: props.solutionId,
@@ -559,7 +577,7 @@ export class CostOptimizerHubStack extends cdk.Stack {
       solutionVersion: props.solutionVersion,
     };
 
-    new WorkspacesDashboardResources(this, "WorkspacesDashboardResources", workspacesDashboardProps);
+    new WorkspacesDashboardResources(this, "WorkspacesDashboardResources", workspacesDashboardProps); // NOSONAR (typescript:S1848) - CDK construct registers with parent
 
     const registerSpokeAccountFunction = new RegisterSpokeAccountResources(
       this,
@@ -643,5 +661,15 @@ export class CostOptimizerHubStack extends cdk.Stack {
       value: graphicsProG4dnLimit.valueAsString,
       exportName: "GraphicsProG4dnLimit",
     }).overrideLogicalId("GraphicsProG4dnLimit");
+
+    new CfnOutput(this, "GeneralPurpose4xlargeLimitOutput", {
+      value: generalPurpose4xlargeLimit.valueAsString,
+      exportName: "GeneralPurpose4xlargeLimit",
+    }).overrideLogicalId("GeneralPurpose4xlargeLimit");
+
+    new CfnOutput(this, "GeneralPurpose8xlargeLimitOutput", {
+      value: generalPurpose8xlargeLimit.valueAsString,
+      exportName: "GeneralPurpose8xlargeLimit",
+    }).overrideLogicalId("GeneralPurpose8xlargeLimit");
   }
 }

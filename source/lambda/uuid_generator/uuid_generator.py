@@ -20,7 +20,11 @@ logger = Logger(service="cfn_stack_uuid_generator")
 log_level = str(os.getenv("LOG_LEVEL", "INFO"))
 logger.setLevel(log_level)
 
-boto_config = botocore.config.Config(user_agent_extra=os.getenv("USER_AGENT_STRING"))
+boto_config = botocore.config.Config(
+    user_agent_extra=os.getenv("USER_AGENT_STRING"),
+    connect_timeout=60,
+    read_timeout=60,
+)
 cfn_client = boto3.client("cloudformation", config=boto_config)
 
 
