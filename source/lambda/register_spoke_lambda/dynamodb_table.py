@@ -17,7 +17,11 @@ log_level = str(os.getenv("LOG_LEVEL", "INFO"))
 logger.setLevel(log_level)
 
 # Update boto config
-boto_config = botocore.config.Config(user_agent_extra=os.getenv("USER_AGENT_STRING"))
+boto_config = botocore.config.Config(
+    user_agent_extra=os.getenv("USER_AGENT_STRING"),
+    connect_timeout=60,
+    read_timeout=60,
+)
 
 
 class DynamoDBTable:

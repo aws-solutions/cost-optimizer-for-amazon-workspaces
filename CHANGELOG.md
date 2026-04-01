@@ -4,6 +4,23 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-04-01
+### Added
+- Support for GeneralPurpose.4xlarge and GeneralPurpose.8xlarge WorkSpaces bundle types
+
+### Changed
+- Updated operational metrics data collection and documentation
+- Upgraded Docker base image from Debian 12 (Bookworm) to Debian 13 (Trixie)
+- Updated NOTICE.txt with missing transitive dependency attributions
+
+### Fixed
+- Updated requests to 2.33.1 to mitigate [CVE-2026-25645](https://nvd.nist.gov/vuln/detail/CVE-2026-25645)
+- Updated handlebars to 4.7.9 to mitigate [CVE-2026-33937](https://nvd.nist.gov/vuln/detail/CVE-2026-33937), [CVE-2026-33938](https://nvd.nist.gov/vuln/detail/CVE-2026-33938), [CVE-2026-33940](https://nvd.nist.gov/vuln/detail/CVE-2026-33940), [CVE-2026-33941](https://nvd.nist.gov/vuln/detail/CVE-2026-33941), [GHSA-442j-39wm-28r2](https://github.com/advisories/GHSA-442j-39wm-28r2), [GHSA-7rx3-28cr-v5wh](https://github.com/advisories/GHSA-7rx3-28cr-v5wh)
+- Updated flatted to 3.4.2 to mitigate [CVE-2026-33228](https://nvd.nist.gov/vuln/detail/CVE-2026-33228)
+- Updated picomatch to mitigate [CVE-2026-33671](https://nvd.nist.gov/vuln/detail/CVE-2026-33671) and [CVE-2026-33672](https://nvd.nist.gov/vuln/detail/CVE-2026-33672)
+- Updated path-to-regexp to 8.4.0 to mitigate [CVE-2024-45296](https://nvd.nist.gov/vuln/detail/CVE-2024-45296)
+- Updated brace-expansion to mitigate [CVE-2025-5889](https://nvd.nist.gov/vuln/detail/CVE-2025-5889)
+
 ## [2.8.8] - 2026-03-17
 ### Fixed
 - Updated flatted to 3.4.1 to mitigate [CVE-2026-32141](https://avd.aquasec.com/nvd/cve-2026-32141)

@@ -40,6 +40,8 @@ export interface EcsClusterResourcesProps extends cdk.StackProps {
   readonly powerProLimit: string;
   readonly graphicsG4dnLimit: string;
   readonly graphicsProG4dnLimit: string;
+  readonly generalPurpose4xlargeLimit: string;
+  readonly generalPurpose8xlargeLimit: string;
   readonly metricsEndpoint: string;
   readonly userAgentString: string;
   readonly autoStopTimeoutHours: string;
@@ -337,6 +339,10 @@ export class EcsClusterResources extends Construct {
               value: props.uuid,
             },
             {
+              name: "AccountId",
+              value: cdk.Aws.ACCOUNT_ID,
+            },
+            {
               name: "BucketName",
               value: props.costOptimizerBucketName,
             },
@@ -367,6 +373,14 @@ export class EcsClusterResources extends Construct {
             {
               name: "GraphicsProG4dnLimit",
               value: props.graphicsProG4dnLimit,
+            },
+            {
+              name: "GeneralPurpose4xlargeLimit",
+              value: props.generalPurpose4xlargeLimit,
+            },
+            {
+              name: "GeneralPurpose8xlargeLimit",
+              value: props.generalPurpose8xlargeLimit,
             },
             {
               name: "MetricsEndpoint",

@@ -38,7 +38,7 @@ class DashboardMetrics:
         self.conversion_metrics = ConversionMetrics()
         self.termination_metrics = 0
         self.total_workspaces = 0
-        logger.info(f"Initialized DashboardMetrics")
+        logger.info("Initialized DashboardMetrics")
 
     def update_total_workspaces(self, count: int):
         try:

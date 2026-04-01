@@ -15,7 +15,7 @@ export const props: CostOptimizerHubStackProps = {
   solutionName: "workspaces-cost-optimizer",
   solutionProvider: "AWS Solutions",
   solutionTradeMarkName: "workspaces-cost-optimizer",
-  solutionVersion: "v2.8.8",
+  solutionVersion: "v2.9.0",
 };
 
 /*
@@ -51,6 +51,8 @@ describe("CloudFormation Template Interface Metadata", () => {
       "GraphicsProG4dnLimit",
       "PowerLimit",
       "PowerProLimit",
+      "GeneralPurpose4xlargeLimit",
+      "GeneralPurpose8xlargeLimit",
     ];
 
     expectedParams.forEach((param) => {
@@ -113,6 +115,20 @@ describe("Limit Parameters", () => {
       type: "Number",
       description:
         "The number of hours a GraphicsPro.g4dn instance can run in a month before being converted to ALWAYS_ON. Default is 80.",
+    },
+    {
+      name: "GeneralPurpose4xlargeLimit",
+      default: 121,
+      type: "Number",
+      description:
+        "The number of hours a GeneralPurpose.4xlarge instance can run in a month before being converted to ALWAYS_ON. Default is 121.",
+    },
+    {
+      name: "GeneralPurpose8xlargeLimit",
+      default: 125,
+      type: "Number",
+      description:
+        "The number of hours a GeneralPurpose.8xlarge instance can run in a month before being converted to ALWAYS_ON. Default is 125.",
     },
   ];
 
