@@ -23,8 +23,7 @@
         "strictPropertyInitialization": true,
         "stripInternal": true,
         "target": "ES2018",
-        "ignoreDeprecations": "5.0",
-        "types": ["jest", "node"]
+        "ignoreDeprecations": "5.0"
     },
     "include": [
         "**/*.ts"

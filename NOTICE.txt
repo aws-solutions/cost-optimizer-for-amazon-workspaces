@@ -15,9 +15,9 @@ This software includes third party software subject to the following copyrights:
 
 pip under the MIT license.
 docker/library/python under the MIT license.
-urllib3 under the MIT license.
-attrs under the MIT license.
-typing-extensions under the Python-2.0 license.
+urllib3 under the MIT License.
+attrs under the MIT License.
+typing-extensions under the Python Software Foundation License Version 2.
 aws-lambda-powertools under the MIT license.
 colorama under the 0BSD license.
 constructs under the Apache-2.0 license.
@@ -533,7 +533,7 @@ filelist under the Apache-2.0 license.
 lodash.memoize under the MIT license.
 boto3 under the Apache-2.0 license.
 botocore under the Apache-2.0 license.
-certifi under the MPL-2.0 license.
+certifi under the Mozilla Public License 2.0
 charset-normalizer under the MIT license.
 coverage under the Apache-2.0 license.
 freezegun under the Apache-2.0 license.
@@ -551,69 +551,6 @@ requests under the Apache-2.0 license.
 s3transfer under the Apache-2.0 license.
 six under the MIT license.
 tomli under the MIT license.
-@aws-cdk/cloud-assembly-api under the Apache-2.0 license.
-@jest/pattern under the MIT license.
-baseline-browser-mapping under the Apache-2.0 license.
-@babel/helper-globals under the MIT license.
-@jridgewell/remapping under the MIT license.
-exit-x under the MIT license.
-foreground-child under the ISC license.
-jackspeak under the BlueOak-1.0.0 license.
-@isaacs/cliui under the ISC license.
-eastasianwidth under the MIT license.
-@pkgjs/parseargs under the MIT license.
-minipass under the BlueOak-1.0.0 license.
-package-json-from-dist under the BlueOak-1.0.0 license.
-path-scurry under the BlueOak-1.0.0 license.
-@jest/get-type under the MIT license.
-@jest/diff-sequences under the MIT license.
-@jest/snapshot-utils under the MIT license.
-unrs-resolver under the MIT license.
-napi-postinstall under the MIT license.
-@unrs/resolver-binding-android-arm-eabi under the MIT license.
-@unrs/resolver-binding-android-arm64 under the MIT license.
-@unrs/resolver-binding-darwin-arm64 under the MIT license.
-@unrs/resolver-binding-darwin-x64 under the MIT license.
-@unrs/resolver-binding-freebsd-x64 under the MIT license.
-@unrs/resolver-binding-linux-arm-gnueabihf under the MIT license.
-@unrs/resolver-binding-linux-arm-musleabihf under the MIT license.
-@unrs/resolver-binding-linux-arm64-gnu under the MIT license.
-@unrs/resolver-binding-linux-arm64-musl under the MIT license.
-@unrs/resolver-binding-linux-ppc64-gnu under the MIT license.
-@unrs/resolver-binding-linux-riscv64-gnu under the MIT license.
-@unrs/resolver-binding-linux-riscv64-musl under the MIT license.
-@unrs/resolver-binding-linux-s390x-gnu under the MIT license.
-@unrs/resolver-binding-linux-x64-gnu under the MIT license.
-@unrs/resolver-binding-linux-x64-musl under the MIT license.
-@unrs/resolver-binding-wasm32-wasi under the MIT license.
-@unrs/resolver-binding-win32-arm64-msvc under the MIT license.
-@unrs/resolver-binding-win32-ia32-msvc under the MIT license.
-@unrs/resolver-binding-win32-x64-msvc under the MIT license.
-@napi-rs/wasm-runtime under the MIT license.
-@emnapi/core under the MIT license.
-@emnapi/wasi-threads under the MIT license.
-@emnapi/runtime under the MIT license.
-@tybys/wasm-util under the MIT license.
-@eslint/config-array under the Apache-2.0 license.
-@eslint/object-schema under the Apache-2.0 license.
-@eslint/config-helpers under the Apache-2.0 license.
-@eslint/core under the Apache-2.0 license.
-@eslint/plugin-kit under the Apache-2.0 license.
-@humanfs/node under the Apache-2.0 license.
-@humanfs/core under the Apache-2.0 license.
-@humanwhocodes/retry under the Apache-2.0 license.
-@types/estree under the MIT license.
-@types/esrecurse under the MIT license.
-eslint-plugin-headers under the ISC license.
-handlebars under the MIT license.
-neo-async under the MIT license.
-wordwrap under the MIT license.
-uglify-js under the BSD-2-Clause license.
-typescript-eslint under the MIT license.
-@typescript-eslint/project-service under the MIT license.
-@typescript-eslint/tsconfig-utils under the MIT license.
-tinyglobby under the MIT license.
-fdir under the MIT license.
 
 ********************
 OPEN SOURCE LICENSES
@@ -621,7 +558,6 @@ OPEN SOURCE LICENSES
 
 0BSD - http://landley.net/toybox/license.html
 BSD-2-Clause - https://opensource.org/licenses/BSD-2-Clause
-BlueOak-1.0.0 - https://opensource.org/licenses/BlueOak-1.0.0
 CC-BY-4.0 - https://creativecommons.org/licenses/by/4.0/legalcode
 ISC - https://www.isc.org/licenses/
 Python-2.0 - https://opensource.org/licenses/Python-2.0

@@ -164,8 +164,6 @@ def get_stack_parameters() -> dict[str, any]:
         "PowerProLimit",
         "GraphicsG4dnLimit",
         "GraphicsProG4dnLimit",
-        "GeneralPurpose4xlargeLimit",
-        "GeneralPurpose8xlargeLimit",
         "TerminateUnusedWorkspaces",
         "UsageTable",
         "UserSessionTable",

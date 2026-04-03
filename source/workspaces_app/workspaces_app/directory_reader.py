@@ -64,8 +64,6 @@ class DirectoryReader:
                     "POWERPRO": stack_parameters.get("PowerProLimit"),
                     "GRAPHICS_G4DN": stack_parameters.get("GraphicsG4dnLimit"),
                     "GRAPHICSPRO_G4DN": stack_parameters.get("GraphicsProG4dnLimit"),
-                    "GENERALPURPOSE_4XLARGE": stack_parameters.get("GeneralPurpose4xlargeLimit"),
-                    "GENERALPURPOSE_8XLARGE": stack_parameters.get("GeneralPurpose8xlargeLimit"),
                 },
                 "testEndOfMonth": test_end_of_month,
                 "isDryRun": is_dry_run,

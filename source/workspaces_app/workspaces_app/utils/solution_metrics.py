@@ -9,7 +9,7 @@ import json
 import math
 import os
 import typing
-from datetime import datetime, timezone
+from datetime import datetime
 
 # Third Party Libraries
 import requests
@@ -81,12 +81,9 @@ class SolutionMetricsHelper:
             )
 
             reported_metrics_data = {
-                "TimeStamp": str(
-                    datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
-                ),
+                "TimeStamp": str(datetime.utcnow().isoformat()),
                 "Solution": solution_id,
                 "UUID": get_uuid(),
-                "Account_id": get_account_id(),
                 "Data": metrics_data,
             }
 
@@ -132,7 +129,3 @@ def get_image_version() -> str:
 
 def get_stable_tag() -> str:
     return os.getenv("StableTag", "Unknown")
-
-
-def get_account_id() -> str:
-    return os.getenv("AccountId", "Unknown")

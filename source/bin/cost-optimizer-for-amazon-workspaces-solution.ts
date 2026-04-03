@@ -67,8 +67,8 @@ const costOptimizerSpokeStackProperties: CostOptimizerSpokeStackProps = {
   }),
 };
 
-new CostOptimizerHubStack(app, "cost-optimizer-for-amazon-workspaces", costOptimizerHubStackProperties); // NOSONAR (typescript:S1848) - CDK construct registers with parent
+new CostOptimizerHubStack(app, "cost-optimizer-for-amazon-workspaces", costOptimizerHubStackProperties);
 
-new CostOptimizerSpokeStack(app, "cost-optimizer-for-amazon-workspaces-spoke", costOptimizerSpokeStackProperties); // NOSONAR (typescript:S1848) - CDK construct registers with parent
+new CostOptimizerSpokeStack(app, "cost-optimizer-for-amazon-workspaces-spoke", costOptimizerSpokeStackProperties);
 
 app.synth();

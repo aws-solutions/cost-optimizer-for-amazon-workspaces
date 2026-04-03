@@ -22,8 +22,6 @@ logger.setLevel(log_level)
 boto_config = botocore.config.Config(
     retries={"total_max_attempts": 10, "mode": "adaptive"},
     user_agent_extra=os.getenv("USER_AGENT_STRING", "Unknown"),
-    connect_timeout=60,
-    read_timeout=60,
 )
 
 
@@ -36,8 +34,7 @@ def invoke_register_lambda(request_type: str):
         "request_type": request_type,
         "role_arn": os.environ.get("MANAGEMENT_ROLE_ARN"),
     }
-    # Sync invoke required for CloudFormation custom resource response
-    return boto3.client("lambda", config=boto_config).invoke(  # NOSONAR(S6246)
+    return boto3.client("lambda", config=boto_config).invoke(
         FunctionName=os.environ.get("REGISTER_LAMBDA_ARN"),
         Payload=json.dumps(payload),
         InvocationType="RequestResponse",
