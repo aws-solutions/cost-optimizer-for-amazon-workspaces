@@ -255,7 +255,7 @@ class WorkspaceRecord:
             last_known_user_connection=ddb_as_json["last_known_user_connection"],
             performance_metrics=WorkspacePerformanceMetrics.from_json(ddb_as_json),
             tags=ddb_as_json["tags"],
-            workspace_type=ddb_as_json["workspace_type"],
+            workspace_type=ddb_as_json.get("workspace_type", ""),
         )
 
     @staticmethod
