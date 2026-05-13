@@ -4,6 +4,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.2] - 2026-05-13
+### Fixed
+- Updated openssl to mitigate [CVE-2026-31789](https://nvd.nist.gov/vuln/detail/CVE-2026-31789), [CVE-2026-28390](https://nvd.nist.gov/vuln/detail/CVE-2026-28390), [CVE-2026-31790](https://nvd.nist.gov/vuln/detail/CVE-2026-31790), [CVE-2026-28389](https://nvd.nist.gov/vuln/detail/CVE-2026-28389), [CVE-2026-28388](https://nvd.nist.gov/vuln/detail/CVE-2026-28388), [CVE-2026-28387](https://nvd.nist.gov/vuln/detail/CVE-2026-28387), [CVE-2026-2673](https://nvd.nist.gov/vuln/detail/CVE-2026-2673)
+- Updated urllib3 to 2.7.0 to mitigate [GHSA-qccp-gfcp-xxvc](https://github.com/advisories/GHSA-qccp-gfcp-xxvc) and [GHSA-mf9v-mfxr-j63j](https://github.com/advisories/GHSA-mf9v-mfxr-j63j)
+- Updated aws-cdk-lib to 2.253.1 to mitigate [CVE-2026-33750](https://nvd.nist.gov/vuln/detail/CVE-2026-33750) in brace-expansion
+
 ## [2.9.1] - 2026-04-09
 ### Fixed
 - Fixed KeyError for workspace_type when upgrading from v2.7.x to v2.9.0 due to missing field in existing DynamoDB records
