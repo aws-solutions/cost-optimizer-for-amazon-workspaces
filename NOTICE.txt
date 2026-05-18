@@ -601,6 +601,7 @@ napi-postinstall under the MIT license.
 @eslint/plugin-kit under the Apache-2.0 license.
 @humanfs/node under the Apache-2.0 license.
 @humanfs/core under the Apache-2.0 license.
+@humanfs/types under the Apache-2.0 license.
 @humanwhocodes/retry under the Apache-2.0 license.
 @types/estree under the MIT license.
 @types/esrecurse under the MIT license.
