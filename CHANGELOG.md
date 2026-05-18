@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.3] - 2026-05-18
+### Fixed
+- Updated aws-cdk-lib to 2.254.0 to mitigate [CVE-2026-6321](https://nvd.nist.gov/vuln/detail/CVE-2026-6321) and [CVE-2026-6322](https://nvd.nist.gov/vuln/detail/CVE-2026-6322) in fast-uri
+
 ## [2.9.2] - 2026-05-13
 ### Fixed
 - Updated openssl to mitigate [CVE-2026-31789](https://nvd.nist.gov/vuln/detail/CVE-2026-31789), [CVE-2026-28390](https://nvd.nist.gov/vuln/detail/CVE-2026-28390), [CVE-2026-31790](https://nvd.nist.gov/vuln/detail/CVE-2026-31790), [CVE-2026-28389](https://nvd.nist.gov/vuln/detail/CVE-2026-28389), [CVE-2026-28388](https://nvd.nist.gov/vuln/detail/CVE-2026-28388), [CVE-2026-28387](https://nvd.nist.gov/vuln/detail/CVE-2026-28387), [CVE-2026-2673](https://nvd.nist.gov/vuln/detail/CVE-2026-2673)

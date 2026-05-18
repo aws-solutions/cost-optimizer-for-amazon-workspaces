@@ -15,7 +15,7 @@ export const costOptimizerSpokeStackProperties: CostOptimizerSpokeStackProps = {
   solutionProvider: "aws",
   solutionBucketName: "solutions",
   solutionName: "workspaces-cost-optimizer",
-  solutionVersion: "v2.9.2",
+  solutionVersion: "v2.9.3",
   description:
     "(" +
     "SO0018" +
@@ -23,7 +23,7 @@ export const costOptimizerSpokeStackProperties: CostOptimizerSpokeStackProps = {
     " for deployment of the " +
     "workspaces-cost-optimizer" +
     ", Version: " +
-    "v2.9.2",
+    "v2.9.3",
   synthesizer: new DefaultStackSynthesizer({
     generateBootstrapVersionRule: false,
   }),
