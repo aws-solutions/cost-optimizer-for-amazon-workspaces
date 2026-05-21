@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.4] - 2026-05-21
+### Fixed
+- Update base python image to mitigate [CVE-2026-4437](https://security-tracker.debian.org/tracker/CVE-2026-4437), [CVE-2026-4046](https://security-tracker.debian.org/tracker/CVE-2026-4046), [CVE-2026-4878](https://security-tracker.debian.org/tracker/CVE-2026-4878)
+
 ## [2.9.3] - 2026-05-18
 ### Fixed
 - Updated aws-cdk-lib to 2.254.0 to mitigate [CVE-2026-6321](https://nvd.nist.gov/vuln/detail/CVE-2026-6321) and [CVE-2026-6322](https://nvd.nist.gov/vuln/detail/CVE-2026-6322) in fast-uri
