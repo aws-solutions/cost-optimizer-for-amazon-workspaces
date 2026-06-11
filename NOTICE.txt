@@ -582,6 +582,9 @@ napi-postinstall under the MIT license.
 @unrs/resolver-binding-linux-ppc64-gnu under the MIT license.
 @unrs/resolver-binding-linux-riscv64-gnu under the MIT license.
 @unrs/resolver-binding-linux-riscv64-musl under the MIT license.
+@unrs/resolver-binding-linux-loong64-gnu under the MIT license.
+@unrs/resolver-binding-linux-loong64-musl under the MIT license.
+@unrs/resolver-binding-openharmony-arm64 under the MIT license.
 @unrs/resolver-binding-linux-s390x-gnu under the MIT license.
 @unrs/resolver-binding-linux-x64-gnu under the MIT license.
 @unrs/resolver-binding-linux-x64-musl under the MIT license.
