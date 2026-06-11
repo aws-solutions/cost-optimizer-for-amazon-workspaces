@@ -10,7 +10,8 @@ WORKDIR /workspaces_app
 COPY pyproject.toml poetry.lock ./
 
 # Install poetry and dependencies
-RUN pip install poetry && \
+RUN pip install pip==26.1.2 && \
+    pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --only main --no-root
 
