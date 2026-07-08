@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.6] - 2026-07-08
+### Fixed
+- Updated base python image to mitigate [GHSA-6v7p-g79w-8964](https://github.com/advisories/GHSA-6v7p-g79w-8964)
+
 ## [2.9.5] - 2026-06-11
 ### Fixed
 - Updated base python image to mitigate [CVE-2026-45447](https://nvd.nist.gov/vuln/detail/CVE-2026-45447), [CVE-2026-45445](https://nvd.nist.gov/vuln/detail/CVE-2026-45445), [CVE-2026-34180](https://nvd.nist.gov/vuln/detail/CVE-2026-34180), [CVE-2026-42764](https://nvd.nist.gov/vuln/detail/CVE-2026-42764), [CVE-2026-7383](https://nvd.nist.gov/vuln/detail/CVE-2026-7383), [CVE-2026-9076](https://nvd.nist.gov/vuln/detail/CVE-2026-9076), [CVE-2026-42496](https://nvd.nist.gov/vuln/detail/CVE-2026-42496), [CVE-2026-42497](https://nvd.nist.gov/vuln/detail/CVE-2026-42497), [CVE-2026-9538](https://nvd.nist.gov/vuln/detail/CVE-2026-9538), [GHSA-897w-fcg9-f6xj](https://github.com/advisories/GHSA-897w-fcg9-f6xj), [GHSA-9277-mp7x-85jf](https://github.com/advisories/GHSA-9277-mp7x-85jf), [GHSA-65pc-fj4g-8rjx](https://github.com/advisories/GHSA-65pc-fj4g-8rjx)
