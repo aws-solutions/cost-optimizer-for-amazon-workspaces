@@ -21,6 +21,7 @@ typing-extensions under the Python-2.0 license.
 aws-lambda-powertools under the MIT license.
 colorama under the 0BSD license.
 constructs under the Apache-2.0 license.
+@aws/cloudformation-validate under the Apache-2.0 license.
 @aws-cdk/assert under the Apache-2.0 license.
 aws-cdk-lib under the Apache-2.0 license.
 @balena/dockerignore under the Apache-2.0 license.
@@ -542,6 +543,7 @@ iniconfig under the MIT license.
 jmespath under the MIT license.
 packaging under the Apache-2.0 license.
 pluggy under the MIT license.
+pygments under the BSD-2-Clause license.
 pyparsing under the MIT license.
 pytest under the MIT license.
 pytest-cov under the MIT license.

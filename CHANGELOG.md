@@ -4,6 +4,13 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.7] - 2026-07-23
+### Fixed
+- Updated aws-cdk-lib to 2.262.0 to mitigate [CVE-2026-13760](https://nvd.nist.gov/vuln/detail/CVE-2026-13760) and [GHSA-3jxr-9vmj-r5cp](https://github.com/advisories/GHSA-3jxr-9vmj-r5cp) in brace-expansion
+- Updated fast-uri to mitigate [CVE-2026-13676](https://nvd.nist.gov/vuln/detail/CVE-2026-13676) and [CVE-2026-16221](https://nvd.nist.gov/vuln/detail/CVE-2026-16221)
+- Updated js-yaml to mitigate [CVE-2026-53550](https://nvd.nist.gov/vuln/detail/CVE-2026-53550) and [CVE-2026-59869](https://nvd.nist.gov/vuln/detail/CVE-2026-59869)
+- Updated pytest to 9.1.1 to mitigate [CVE-2025-71176](https://nvd.nist.gov/vuln/detail/CVE-2025-71176)
+
 ## [2.9.6] - 2026-07-08
 ### Fixed
 - Updated base python image to mitigate [GHSA-6v7p-g79w-8964](https://github.com/advisories/GHSA-6v7p-g79w-8964)
