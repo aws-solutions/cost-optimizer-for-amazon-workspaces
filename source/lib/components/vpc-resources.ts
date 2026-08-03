@@ -164,7 +164,7 @@ export class VpcResources extends Construct {
       routeTableId: publicRouteTable.ref,
       gatewayId: internetGateway.ref,
     });
-    publicRouteToInternet.addDependency(internetGatewayAttachment);
+    publicRouteToInternet.addResourceDependency(internetGatewayAttachment);
     overrideLogicalId(publicRouteToInternet, "PublicRouteToInternet");
 
     const privateRouteToInternet = new CfnRoute(this, "PrivateRouteToInternet", {
