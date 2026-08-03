@@ -4,6 +4,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.8] - 2026-08-03
+### Fixed
+- Updated aws-cdk-lib to 2.263.0 to mitigate [CVE-2026-14257](https://nvd.nist.gov/vuln/detail/CVE-2026-14257) in brace-expansion
+- Added npm overrides for brace-expansion to resolve transitive dependency vulnerabilities in jest/ts-jest paths
+- Replaced deprecated `addDependency` with `addResourceDependency` in vpc-resources
+
 ## [2.9.7] - 2026-07-23
 ### Fixed
 - Updated aws-cdk-lib to 2.262.0 to mitigate [CVE-2026-13760](https://nvd.nist.gov/vuln/detail/CVE-2026-13760) and [GHSA-3jxr-9vmj-r5cp](https://github.com/advisories/GHSA-3jxr-9vmj-r5cp) in brace-expansion
