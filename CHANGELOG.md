@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.10] - 2026-08-20
+### Fixed
+- Updated aws-cdk-lib to 2.265.0 to mitigate [CVE-2026-14257](https://nvd.nist.gov/vuln/detail/CVE-2026-14257) in brace-expansion
+
 ## [2.9.9] - 2026-08-12
 ### Fixed
 - Updated js-yaml to 3.15.1 to mitigate [CVE-2026-59870](https://nvd.nist.gov/vuln/detail/CVE-2026-59870)
