@@ -4,6 +4,10 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.11] - 2026-09-08
+### Fixed
+- Updated fast-uri to mitigate [GHSA-5jgf-p345-68v8](https://github.com/advisories/GHSA-5jgf-p345-68v8), [GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc), [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf), [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp)
+
 ## [2.9.10] - 2026-08-20
 ### Fixed
 - Updated aws-cdk-lib to 2.265.0 to mitigate [CVE-2026-14257](https://nvd.nist.gov/vuln/detail/CVE-2026-14257) in brace-expansion
