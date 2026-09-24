@@ -93,9 +93,11 @@ def s3_put_report(
         "Putting report to s3 bucket {} with key: {}".format(bucket_name, s3_key)
     )
     try:
-        session.client("s3", config=boto_config).put_object(
-            Bucket=bucket_name, Body=report_body, Key=s3_key
-        )
+        kwargs = {"Bucket": bucket_name, "Body": report_body, "Key": s3_key}
+        account_id = os.getenv("AccountId")
+        if account_id:
+            kwargs["ExpectedBucketOwner"] = account_id
+        session.client("s3", config=boto_config).put_object(**kwargs)
         logger.debug(
             "Successfully uploaded the report to s3 bucket {} with key: {}".format(
                 bucket_name, s3_key

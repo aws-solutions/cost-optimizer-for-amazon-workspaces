@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Standard Library
+import os
 import time
 import unittest
 
@@ -242,6 +243,7 @@ def test_create_s3_key_uses_latest_report_date_if_provided():
     assert actual_key == expected_key
 
 
+@unittest.mock.patch.dict(os.environ, {"AccountId": "111111111111"})
 @unittest.mock.patch("boto3.session.Session")
 def test_put_report(mock_session):
     session = mock_session()
@@ -250,10 +252,14 @@ def test_put_report(mock_session):
     s3_key = "a_key"
     s3_utils.s3_put_report(session, bucket_name, report_body, s3_key)
     session.client.return_value.put_object.assert_called_once_with(
-        Bucket=bucket_name, Body=report_body, Key=s3_key
+        Bucket=bucket_name,
+        Body=report_body,
+        Key=s3_key,
+        ExpectedBucketOwner="111111111111",
     )
 
 
+@unittest.mock.patch.dict(os.environ, {"AccountId": "111111111111"})
 @unittest.mock.patch("boto3.session.Session")
 def test_put_report_error(mock_session):
     session = mock_session()
@@ -265,5 +271,8 @@ def test_put_report_error(mock_session):
     )
     s3_utils.s3_put_report(session, bucket_name, report_body, s3_key)
     session.client.return_value.put_object.assert_called_once_with(
-        Bucket=bucket_name, Body=report_body, Key=s3_key
+        Bucket=bucket_name,
+        Body=report_body,
+        Key=s3_key,
+        ExpectedBucketOwner="111111111111",
     )

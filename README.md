@@ -89,6 +89,12 @@ cd deployment
 
 Run the build script.
 
+**Note:** [Poetry](https://python-poetry.org/docs/#installation) is required to package the Lambda functions. Install it before running the build:
+```
+curl -sSL https://install.python-poetry.org | python3 -
+export POETRY_HOME="$HOME/.local"
+```
+
 ```
 chmod +x ./build-s3-dist.sh && ./build-s3-dist.sh $TEMPLATE_OUTPUT_BUCKET $DIST_OUTPUT_BUCKET $SOLUTION_NAME $VERSION
 ```

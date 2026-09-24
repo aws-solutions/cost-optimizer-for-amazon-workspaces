@@ -4,6 +4,13 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.12] - 2026-09-24
+### Added
+- S3 bucket owner verification to validate correct bucket ownership before writing reports
+
+### Fixed
+- Updated base python image to mitigate [CVE-2026-5450](https://nvd.nist.gov/vuln/detail/CVE-2026-5450), [CVE-2026-8376](https://nvd.nist.gov/vuln/detail/CVE-2026-8376), [CVE-2026-57433](https://nvd.nist.gov/vuln/detail/CVE-2026-57433), [CVE-2026-42496](https://nvd.nist.gov/vuln/detail/CVE-2026-42496), [CVE-2026-13221](https://nvd.nist.gov/vuln/detail/CVE-2026-13221), [CVE-2026-12087](https://nvd.nist.gov/vuln/detail/CVE-2026-12087), [CVE-2026-41992](https://nvd.nist.gov/vuln/detail/CVE-2026-41992), [CVE-2026-11824](https://nvd.nist.gov/vuln/detail/CVE-2026-11824), [CVE-2026-48959](https://nvd.nist.gov/vuln/detail/CVE-2026-48959), [CVE-2026-7017](https://nvd.nist.gov/vuln/detail/CVE-2026-7017), [CVE-2026-86145](https://nvd.nist.gov/vuln/detail/CVE-2026-86145), [CVE-2026-89161](https://nvd.nist.gov/vuln/detail/CVE-2026-89161), [CVE-2026-57432](https://nvd.nist.gov/vuln/detail/CVE-2026-57432), [CVE-2026-42497](https://nvd.nist.gov/vuln/detail/CVE-2026-42497), [CVE-2026-5928](https://nvd.nist.gov/vuln/detail/CVE-2026-5928), [CVE-2026-48961](https://nvd.nist.gov/vuln/detail/CVE-2026-48961), [CVE-2026-48962](https://nvd.nist.gov/vuln/detail/CVE-2026-48962), [CVE-2026-89157](https://nvd.nist.gov/vuln/detail/CVE-2026-89157), [CVE-2026-11822](https://nvd.nist.gov/vuln/detail/CVE-2026-11822)
+
 ## [2.9.11] - 2026-09-08
 ### Fixed
 - Updated fast-uri to mitigate [GHSA-5jgf-p345-68v8](https://github.com/advisories/GHSA-5jgf-p345-68v8), [GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc), [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf), [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp)
