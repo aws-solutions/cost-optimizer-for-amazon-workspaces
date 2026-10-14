@@ -4,6 +4,11 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.14] - 2026-10-14
+### Fixed
+- Updated handlebars to 4.7.10 to mitigate [GHSA-xw65-4hp5-5hc7](https://github.com/advisories/GHSA-xw65-4hp5-5hc7), [GHSA-8r5x-fm3f-whwj](https://github.com/advisories/GHSA-8r5x-fm3f-whwj), and [GHSA-p8wg-vrv2-v86f](https://github.com/advisories/GHSA-p8wg-vrv2-v86f)
+- Updated aws-cdk-lib to 2.273.0 to mitigate [CVE-2026-102276](https://nvd.nist.gov/vuln/detail/CVE-2026-102276), [CVE-2026-102277](https://nvd.nist.gov/vuln/detail/CVE-2026-102277), and [CVE-2026-102278](https://nvd.nist.gov/vuln/detail/CVE-2026-102278) in brace-expansion
+
 ## [2.9.13] - 2026-10-05
 ### Fixed
 - Updated urllib3 to 2.8.0 to mitigate [CVE-2026-97687](https://nvd.nist.gov/vuln/detail/CVE-2026-97687) and [CVE-2026-97689](https://nvd.nist.gov/vuln/detail/CVE-2026-97689)
